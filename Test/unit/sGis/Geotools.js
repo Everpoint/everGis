@@ -100,6 +100,40 @@ $(function() {
                 expect(sGis.geotools.contains(poly, [15, 0])).toBe(true);
                 expect(sGis.geotools.contains(poly, [25, 0])).toBe(false);
             });
+
+            it('should correctly work with 1-ring polygons', function() {
+                expect(sGis.geotools.contains(simplePolygon, point)).toBe(true);
+                expect(sGis.geotools.contains(simplePolygon, [0, 9])).toBe(true);
+                expect(sGis.geotools.contains(simplePolygon, [-9, -9])).toBe(true);
+                expect(sGis.geotools.contains(simplePolygon, [9, -9])).toBe(true);
+                expect(sGis.geotools.contains(simplePolygon, [0, -10])).toBe(true);
+                expect(sGis.geotools.contains(simplePolygon, [-9, -10])).toBe(true);
+                expect(sGis.geotools.contains(simplePolygon, [9, -10])).toBe(true);
+                expect(sGis.geotools.contains(simplePolygon, [-5, 0])).toBe(true);
+                expect(sGis.geotools.contains(simplePolygon, [5, 0])).toBe(true);
+                expect(sGis.geotools.contains(simplePolygon, simplePolygon[0])).toBe(true);
+                expect(sGis.geotools.contains(simplePolygon, simplePolygon[1])).toBe(true);
+                expect(sGis.geotools.contains(simplePolygon, simplePolygon[2])).toBe(true);
+                expect(sGis.geotools.contains(simplePolygon, [-100, -100])).toBe(false);
+                expect(sGis.geotools.contains(simplePolygon, [-10, 0])).toBe(false);
+                expect(sGis.geotools.contains(simplePolygon, [-5, 8])).toBe(false);
+                expect(sGis.geotools.contains(simplePolygon, [0, 11])).toBe(false);
+                expect(sGis.geotools.contains(simplePolygon, [5, 8])).toBe(false);
+                expect(sGis.geotools.contains(simplePolygon, [11, -10])).toBe(false);
+                expect(sGis.geotools.contains(simplePolygon, [10, -11])).toBe(false);
+                expect(sGis.geotools.contains(simplePolygon, [0, -11])).toBe(false);
+                expect(sGis.geotools.contains(simplePolygon, [-10, -11])).toBe(false);
+            });
+
+            it('should return true if the point is closer to polygon then tolerance', function() {
+                expect(sGis.geotools.contains(polygon, point, 1)).toBe(true);
+                expect(sGis.geotools.contains(polygon, [-9, -10], 1)).toBe(true);
+                expect(sGis.geotools.contains(polygon, [-10, -10], 1)).toBe(true);
+                expect(sGis.geotools.contains(polygon, [-6, 0], 1)).toBe(true);
+                expect(sGis.geotools.contains(polygon, [0, 11], 1)).toBe(true);
+                expect(sGis.geotools.contains(polygon, [0, -11], 1)).toBe(true);
+                expect(sGis.geotools.contains(polygon, [0, -11.001], 1)).toBe(false);
+            });
         });
     });
 });
