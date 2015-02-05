@@ -1,0 +1,34 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>sGis Framework - Dynamic Service Sample</title>
+        <meta charset="UTF-8">
+        <style>
+            body, html {margin: 0px; overflow: hidden; height: 100%;}
+            div#map {width: 100%; height: 100%;}
+        </style>
+        
+        <script src="http://dev2.everpoint.ru/EverGIS/HTML5/005/evergis.js"></script>
+
+    </head>
+    <body>
+        <!--
+            Пример работы с динамическим сервисом.
+        -->
+        <div id="map"></div>
+        <div id="output"></div>
+        <script>
+            window.onload = function() {
+            
+            var sp = new sGis.SpatialProcessor({
+                    url: 'http://dev2.everpoint.ru/EG_public/SpatialProcessor/IIS/', login: 'jspublic', password: 'jspublic',
+                    mapWrapper: 'map',
+                    services: ['osm', 'rosreestr']
+                });
+                
+            sp.service.rosreestr.activeLayers = [0,1,2,3,4];
+
+            }
+        </script>
+    </body>
+</html>

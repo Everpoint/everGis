@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>sGis Framework - Feature Layer Sample</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        
+        <style>
+            body, html {margin: 0px; overflow: hidden; height: 100%;}
+            div#map {width: 100%; height: 100%;}
+        </style>
+
+        <script src="http://dev2.everpoint.ru/EverGIS/HTML5/005/evergis.js"></script>
+
+    </head>
+    <body>
+        <!--
+            Пример работы с геометрией
+        -->
+        <div id="map"></div>
+        <input id="drawButton" type="button" value="Нарисовать случайный прямоугольник" style="position: absolute; top: 15px; right: 15px;"/>
+        <script>
+            window.onload = function() {
+            
+            var sp = new sGis.SpatialProcessor({
+                url: 'http://dev2.everpoint.ru/eg_public/SpatialProcessor/IIS/', login: 'jspublic', password: 'jspublic',
+                mapWrapper: 'map',
+                services: ['osm']
+            });
+                
+            var featureLayer = new sGis.FeatureLayer({features: [
+                        new sGis.feature.Point([55.755831, 37.617673], {color: 'red', size: 10})
+                ]});
+            
+            sp.map.addLayer(featureLayer);
+                
+            var editor = new sGis.controls.Editor(sp.map, {activeLayer: featureLayer});
+                editor.activate();
+            
+            document.getElementById('drawButton').onclick = function() {
+                var center = {lat: 55.755831, lon: 37.617673},
+                    color = 'rgb(' + rand(256) + ', ' + rand(256) + ', ' + rand(256) + ')',
+                    fillColor = 'rgb(' + rand(256) + ', ' + rand(256) + ', ' + rand(256) + ')',
+                    lineWidth = rand(5),
+                    
+                    dx = Math.random() - 0.5,
+                    dy = Math.random() - 0.5,
+                    size = Math.random();
+                    
+                var rect = new sGis.feature.Polygon([[center.lat + dy, center.lon + dx], [center.lat + dy, center.lon + dx + size], [center.lat + dy + size, center.lon + dx + size], [center.lat + dy + size, center.lon + dx]], {
+                    color: color,
+                    fillColor: fillColor,
+                    width: lineWidth,
+                    symbol: new sGis.symbol.polygon.ImageFill({fillImage: 'http://dev2.everpoint.ru/SandBox/Content/Images/logo1.png'})
+                });
+            
+                featureLayer.add(rect.projectTo(sp.map.crs));
+                sp.map.redrawLayer(featureLayer);
+            };
+            
+            function rand(x) {
+                return Math.round(Math.random() * x);
+            }
+            
+            }
+
+        </script>
+    </body>
+</html>

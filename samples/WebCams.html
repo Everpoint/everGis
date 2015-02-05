@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>sGis Framework - Map Tip with Web Cameras Sample</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <style>
+            body, html {margin: 0px; overflow: hidden; height: 100%;}
+            div#map {width: 100%; height: 100%;}
+        </style>
+
+        <script src="http://dev2.everpoint.ru/EverGIS/HTML5/005/evergis.js"></script>
+
+    </head>
+    <body>
+        <!--
+            Пример отображения видео-контента в баллуне
+        -->
+        <div id="map"></div>
+        <script>
+            window.onload = function() {
+            
+            var sp = new sGis.SpatialProcessor({
+                    url: 'http://dev2.everpoint.ru/EverGIS/SpatialProcessor/IIS/', login: 'z', password: 'x',
+                    mapWrapper: 'map',
+                    services: ['osm', 'dit_cams'],
+                    controllers: ['identify']
+                }),
+                featureLayer = new sGis.FeatureLayer(),
+                player;
+        
+            sp.map.addLayer(featureLayer);
+            sp.controller.identify.hide();
+        
+            sp.map.addListner('click', function(sGisEvent) {
+                var buffer = sp.map.resolution * 5,
+                    point = sGisEvent.point,
+                    identifyPolygon = new sGis.feature.Polygon([[point.x - buffer, point.y - buffer], [point.x - buffer, point.y + buffer], [point.x + buffer, point.y + buffer], [point.x + buffer, point.y - buffer]]);
+                    
+                sp.controller.identify.identify({
+                    geometry: identifyPolygon,
+                    success: function() {
+                        var rows = sp.controller.identify.tree.rows;
+
+                        for (var i in rows) {
+                            if (rows[i].dataType === 'LeafNode') {
+                                query(rows[i].data.StorageId);
+                                return;
+                            }
+                        }
+                    }
+                });
+                
+                function query(storageId) {
+                    sp.controller.identify.query({
+                            storageId: storageId, 
+                            success: function(objects) {
+                                closeMaptip();
+                                
+                                player = document.createElement('iframe');
+                                player.src = objects[0].attributes.url.value;
+                                player.width = 500;
+                                player.height = 400;
+                                player.style.position = 'absolute';
+                                player.style.transformOrigin = 'left top';
+                                player.style.backgroundColor = 'white';     
+                                
+                                var button = document.createElement('input');
+                                button.type = 'button';
+                                button.value = 'X';
+                                button.onclick = closeMaptip;
+
+                                var position = objects[0].coordinates,
+                                    maptip = new sGis.feature.Maptip(position, {crs: sp.map.crs, content: button, style: {width: 505, height: 430, offset: {x: -255, y: -440}}});
+                                featureLayer.add(maptip);
+                                sp.map.redrawLayer(featureLayer);
+
+                                updatePlayerPosition();
+
+                                sp.map.wrapper.appendChild(player);                                
+
+                                function closeMaptip() {
+                                    sp.map.removeListner('.player');
+                                    featureLayer.features = [];
+                                    if (player) {
+                                        sp.map.wrapper.removeChild(player);
+                                        player = null;
+                                    }
+                                    sp.map.redrawLayer(featureLayer);
+                                }
+
+                                sp.map.addListner('bboxChange.player', updatePlayerPosition);
+
+                                function updatePlayerPosition() {
+                                    var offset = sp.map.getPxPosition(position);
+
+                                    player.style.top = offset.y + maptip.style.offset.y + 25 + 'px';
+                                    player.style.left = offset.x + maptip.style.offset.x + 'px';
+                                }
+
+                                var startResolution, startBbox;
+
+                                sp.map.addListner('animationStart.player', function() {
+                                    startResolution = sp.map.resolution;
+                                    startBbox = sp.map.bbox;
+                                });
+
+                                sp.map.addListner('animationFrame.player', function() {
+                                    var scale = startResolution / sp.map.resolution,
+                                        offset = sp.map.getPxPosition(position);
+
+
+                                    player.style.top = offset.y + maptip.style.offset.y * scale + 25 + 'px';
+                                    player.style.left = offset.x + maptip.style.offset.x * scale + 'px';                            
+                                    player.style.transform = 'scale(' + scale + ')';
+                                });
+
+                                sp.map.addListner('animationEnd.player', function() {
+                                    updatePlayerPosition();
+                                    player.style.transform = 'scale(1)';
+                                });
+                            }
+                        });
+                };   
+                
+            });
+            }
+        </script>
+    </body>
+</html>

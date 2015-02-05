@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>sGis Framework - Offscreen map sample</title>
+        <meta charset="UTF-8">        
+        <style>
+            body, html {margin: 0px; overflow: hidden; height: 100%;}
+            div#map {position: absolute; top: 52px; bottom: 0px;}
+        </style>
+
+        <script src="http://dev2.everpoint.ru/EverGIS/HTML5/005/evergis.js"></script>
+    </head>
+    <body>
+        <!--
+            Пример работы с картой, не отображенной на экране.
+        -->
+        <input type="button" value="Скрыть/Показать" id="hide_show" /><br>
+        <input type="button" value="Увеличить/Уменьшить" id="toggle_size" />
+        <div id="map" style="display: none; width:100%;"></div>
+        <script>
+            window.onload = function() {
+            
+            var sp = new sGis.SpatialProcessor({
+                url: 'http://dev2.everpoint.ru/eg_public/SpatialProcessor/IIS/', login: 'jspublic', password: 'jspublic',
+                mapWrapper: 'map',
+                services: ['osm']
+            }),
+                wrapper = document.getElementById('map');
+            
+            document.getElementById('hide_show').onclick = function() {
+                if (wrapper.style.display === 'none') {
+                    wrapper.style.display = 'block';
+                } else {
+                    wrapper.style.display = 'none';
+                }
+                sp.map.updateSize();
+            };
+            
+            document.getElementById('toggle_size').onclick = function() {
+                if (wrapper.style.width === '100%') {
+                    wrapper.style.width = '50%';
+                } else {
+                    wrapper.style.width = '100%';
+                }
+                sp.map.updateSize();
+            };
+            }
+        </script>
+    </body>
+</html>

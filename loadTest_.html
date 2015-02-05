@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>sGis Framework - ArcGis Layer Editing Sample</title>
+    <meta charset="UTF-8">
+    <style>
+        body, html {
+            margin: 0px;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        div#map {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+
+    <script src="http://dev2.everpoint.ru/EverGIS/HTML5/005/evergis.js"></script>
+
+</head>
+<body>
+    <div id="map"></div>
+
+    <script>
+        window.onload = function() {
+
+        sGis.spatialProcessor.Connector.prototype.apiLoginUrl = 'http://livingroom/strategis.JsClient/apilogin.aspx';
+
+        var sp = new sGis.SpatialProcessor({
+            url: 'http://livingroom/spatialProcessor/', login: 'new', password: 'new',
+            mapWrapper: 'map',
+            services: ['osm', 'egip_map', 'loadTest'],
+            controllers: ['identify']
+        });
+
+        setTimeout(doWork, 5000);
+
+        var origin;
+        function doWork() {
+            origin = sp.map.position;
+            sp.addController('clientLayer', { serviceName: 'loadTest' });
+
+            sp.map.resolution /= 16;
+            //setInterval(randomPan, 2000);
+            //setInterval(randomZoom, 20000);
+            //identify();
+        }
+
+
+        var counter = 0;
+        function randomPan() {
+            if (counter < 20) {
+                var position = sp.map.position;
+
+                var bbox = sp.map.bbox;
+                position.x += bbox.width * (Math.random() - 0.5);
+                position.y += bbox.height * (Math.random() - 0.5);
+                counter++;
+            } else {
+                var position = origin;
+                counter = 0;
+            }
+
+            sp.map.position = position;
+        }
+
+        var plus = true;
+        function randomZoom() {
+            var resolution = sp.map.resolution;
+            if (plus) {
+                resolution *= 2;
+            } else {
+                resolution /= 2;
+            }
+            plus = !plus;
+
+            sp.map.resolution = resolution;
+        }
+
+        function identify() {
+            var bbox = sp.map.bbox;
+            var geometry = new sGis.feature.Polygon([[bbox.xMin, bbox.yMin], [bbox.xMin, bbox.yMax], [bbox.xMax, bbox.yMax], [bbox.xMax, bbox.yMin]], { crs: sp.map.crs });
+            sp.controller.identify.identify({
+                geometry: geometry,
+                success: function() {
+                    console.log('Identified');
+                    identify();
+                },
+                error: function(text) {
+                    console.log(text);
+                    setTimeout(identify, 10000);
+                }
+            });
+        }
+
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>sGis Framework - DTO integration Sample</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <style>
+            body, html {margin: 0px; overflow: hidden; height: 100%;}
+            div#map {width: 100%; height: 100%;}
+            .maptip {margin: 5px;}
+            .backpane {position: absolute; top: 10px; right: 10px; width: 300px; bottom: 10px; padding: 5px; background-color: rgba(200, 200, 200, 0.3)}
+            div#output {position: absolute; top: 140px; right: 15px; width: 320px; bottom: 15px; overflow-y: scroll; font-size: 0.9em;}
+        </style>
+
+        <script src="http://dev2.everpoint.ru/EverGIS/HTML5/005/evergis.js"></script>
+
+
+    </head>
+    <body>
+        <div id="map"></div>
+        <div class="backpane"></div>
+        <input type="button" id="showButton" value="Показать данные" style="position: absolute; right: 15px; top: 15px;"/> 
+        <div style="position: absolute; right: 15px; top: 40px;"><label for="showCars">Показывать объекты</label><input type="checkbox" id="showCars" disabled /></div>
+        <div id="message" style="position: absolute; right: 15px; top: 65px;"></div>
+        <div id="output"></div>
+
+        <script>
+            window.onload = function() {
+                var sp = new sGis.SpatialProcessor({
+                        url: 'http://dev2.everpoint.ru/EverGIS/SpatialProcessor/IIS/', login: 'z', password: 'x',
+                        mapWrapper: 'map',
+                        services: ['egko'],
+                        controllers: ['ditIntegration']
+                    });
+                    
+                var featureLayer = new sGis.FeatureLayer();
+                sp.map.addLayer(featureLayer);
+                var clusteringService;
+
+                document.getElementById('showButton').onclick = showData;
+
+                function showData() {
+                    sp.controller.ditIntegration.hide();
+                    document.getElementById('showCars').disabled = false;
+
+                    sp.controller.ditIntegration.disintegrate({
+                        layerId: 'cars',
+                        moduleId: 'geo',
+                        queryId: '6',
+                        requested: function() {
+                            document.getElementById('message').innerHTML = 'Данные запрошены.<br>Пожалуйста, подождите...';
+                        },
+                        success: function() {
+                            if (!clusteringService) initializeClusteringService();
+                            clusteringService.updateClusters();
+                            document.getElementById('message').innerHTML = 'Объекты отображены на карте!';
+                        }
+                    });
+                }
+
+                function initializeClusteringService() {
+                    clusteringService = new sGis.spatialProcessor.ClusteringService(sp.connector, 'clusterService', {
+                        map: sp.map,
+                        layer: featureLayer,
+                        storageId: sp.controller.ditIntegration.mapServer.layerInfo[0].LayerInfo.storageId,
+                        click: function() {
+                            query(this.items, this.coordinates);
+                            showList(this.items);
+                        }
+                    });
+                }
+
+                var mapTipLayer = new sGis.FeatureLayer();
+                function query(ids, position) {
+                    sp.dataAccessService.query({storageId: ids, layerStorageId: sp.controller.ditIntegration.mapServer.layerInfo[0].LayerInfo.storageId, crs: sp.map.crs, success: function(features) {
+                        var output = '<div class="maptip">Количество объектов: ' + ids.length;
+                        var contractors = [];
+                        var field = "Подрядчик";
+                        for (var i = 0, len = features.length; i < len; i++) {
+                            if (features[i].attributes[field]) contractors.push(features[i].attributes[field].value);
+                        }
+                        contractors = utils.getUnique(contractors);
+                        output += '<br>Список подрядчиков (первые 200): <ul><li>' + contractors.join('</li><li>') + '</li></ul></div>';
+                        
+
+                        var mapTip = new sGis.feature.Maptip(position, { content: output, crs: sp.map.crs, style: { width: 300 }});
+                        mapTipLayer.features = [mapTip];
+                        
+                        if (sp.map.getLayerIndex(mapTipLayer) === -1) {
+                            sp.map.addLayer(mapTipLayer);
+                        } else {
+                            sp.map.redrawLayer(mapTipLayer);
+                        }
+                    }});
+                }
+
+                var outputField = document.getElementById('output');
+
+                function showList(items) {
+                    var list = document.createElement('ul');
+                    for (var i = 0, len = items.length; i < len; i++) {
+                        var item = document.createElement('li');
+                        item.style.cursor = 'pointer';
+                        item.id = items[i];
+                        item.innerHTML = items[i];
+                        item.onclick = function() {
+                            showAttributes(this.id);
+                        }
+                        list.appendChild(item);
+                    }
+                    
+                    outputField.innerHTML = '';
+                    outputField.appendChild(list);
+                }
+
+                function showAttributes(id) {
+                    sp.dataAccessService.query({
+                        storageId: [id],
+                        layerStorageId: sp.controller.ditIntegration.mapServer.layerInfo[0].LayerInfo.storageId,
+                        crs: sp.map.crs,
+                        success: function(features) {
+                            var list = outputField.firstChild;
+                            outputField.removeChild(list);
+                            var attributes = '';
+                            for (var i in features[0].attributes) {
+                                attributes += '<li>' + i + ': ' + features[0].attributes[i].value + '</li>';
+                            }
+
+                            outputField.innerHTML = '<ul>' + attributes + '</ul>';
+                            var button = document.createElement('button');
+                            button.innerHTML = 'Назад'
+                            button.onclick = function() {
+                                outputField.innerHTML = '';
+                                outputField.appendChild(list);
+                            }
+                            button.style.marginLeft = '30px';
+                            outputField.appendChild(button);
+                        }
+                    });
+                }
+
+                sp.map.addListner('keypress', function(sGisEvent) {
+                    if (sGisEvent.browserEvent.which === 27) {
+                        mapTipLayer.features = [];
+                        if (sp.map.getLayerIndex(mapTipLayer) !== -1) {
+                            sp.map.redrawLayer(mapTipLayer);
+                        }
+                    }
+                })
+
+                document.getElementById('showCars').onchange = function() {
+                    if (this.checked) {
+                        sp.controller.ditIntegration.show();
+                    } else {
+                        sp.controller.ditIntegration.hide();
+                    }
+                }
+            };
+        </script>
+    </body>
+</html>

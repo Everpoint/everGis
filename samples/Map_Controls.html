@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>sGis Framework - Controls Sample</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        
+        <style>
+            body, html {margin: 0px; overflow: hidden; height: 100%;}
+            div#map {width: 100%; height: 100%;}
+            div.control_pane {position: absolute; top: 15px; right: 15px; width: 300px; background-color: rgba(255, 255, 255, 0.7);}
+        </style>
+
+        <script src="http://dev2.everpoint.ru/EverGIS/HTML5/005/evergis.js"></script>
+
+    </head>
+    <body>
+        <!--
+            Пример работы с управляющими элементами карты.
+        -->
+        <div id="map"></div>
+        <div class="control_pane">
+            <input type="radio" name="controls" id="off" onclick="allOff()" /><label for="off">Редактировать</label><br>
+            <input type="radio" name="controls" id="point" onclick="pointControlOn()" /><label for="point">Рисовать точки</label><br>
+            <input type="radio" name="controls" id="polyline" onclick="polylineControlOn()" /><label for="polyline">Рисовать линии</label><br>
+            <input type="radio" name="controls" id="polygon" onclick="polygonControlOn()" /><label for="polygon">Рисовать полигоны</label>
+        </div>
+        <script>
+            window.onload = function() {
+            
+            var sp = new sGis.SpatialProcessor({
+                    url: 'http://dev2.everpoint.ru/eg_public/SpatialProcessor/IIS/', login: 'jspublic', password: 'jspublic',
+                    mapWrapper: 'map',
+                    services: ['osm']
+                }),
+                featureLayer = new sGis.FeatureLayer();
+
+            sp.map.addLayer(featureLayer);
+
+            pointControl = new sGis.controls.Point(sp.map, {activeLayer: featureLayer});
+            polylineControl = new sGis.controls.Polyline(sp.map, {activeLayer: featureLayer, style: {strokeColor: 'blue'}});
+            polygonControl = new sGis.controls.Polygon(sp.map, {activeLayer: featureLayer, style: {fillColor: 'rgba(100, 255, 255, 0.5)', strokeWidth: 3}});
+            editorControl = new sGis.controls.Editor(sp.map, {activeLayer: featureLayer, allowDeletion: false});
+
+            editorControl.addListner('featureMove', function(sGisEvent) {
+                console.log(sGisEvent.feature.id);
+            });
+
+            editorControl.activate();
+            
+            }
+            
+            function allOff() {
+                pointControl.deactivate();
+                polylineControl.deactivate();
+                polygonControl.deactivate();
+            }
+            
+            function pointControlOn() {
+                pointControl.activate();
+                polylineControl.deactivate();
+                polygonControl.deactivate();
+            }
+
+            function polylineControlOn() {
+                pointControl.deactivate();
+                polylineControl.activate();
+                polygonControl.deactivate();
+            }
+            function polygonControlOn() {
+                pointControl.deactivate();
+                polylineControl.deactivate();
+                polygonControl.activate();
+            }
+            
+        </script>
+    </body>
+</html>

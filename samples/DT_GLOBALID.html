@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>sGis Framework - Dynamic Service Sample</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <style>
+            body, html {margin: 0px; overflow: hidden; height: 100%;}
+            div#map {width: 100%; height: 100%;}
+        </style>        
+        
+        <script src="http://dev2.everpoint.ru/EverGIS/HTML5/005/evergis.js"></script>
+
+    </head>
+    <body>
+        <!--
+            Пример работы с динамическим сервисом.
+        -->
+        <div id="map"></div>
+        <br>
+        <script>
+            window.onload = function() {
+            
+                var sp = new sGis.SpatialProcessor({
+                    url: 'http://dev1.everpoint.ru/evergis/SpatialProcessor/IIS/', login: 'dt', password: '123',
+                    mapWrapper: 'map',
+                    services: ['egko', 'dit_deptrans'],
+                    controllers: ['definitionQuery']
+                    });
+                    sp.service.dit_deptrans.isActive = false;
+                    sp.service.dit_deptrans.activeLayers = [8]; // НОМЕР СЛОЯ
+
+                    sp.service.dit_deptrans.addListner('initialize', setDefinition);     
+
+
+                function setDefinition() {             
+                    sp.controller.definitionQuery.setDefinitionQuery({
+                        storageId: sp.service.dit_deptrans.layerInfo[8].LayerInfo.storageId,
+                        definitionQuery: "GLOBALID==1706269",
+                        success: function() {
+                            sp.service.dit_deptrans.layer.forceUpdate();
+                            sp.service.dit_deptrans.isActive = true;
+                            sp.map.redrawLayer(sp.service.dit_deptrans.layer);
+                        }
+                    });                
+                }
+            };
+        </script>
+    </body>
+</html>

@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>sGis Framework - ArcGis Layer Editing Sample</title>
+    <meta charset="UTF-8">
+    <style>
+        body, html {
+            margin: 0px;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        div#map {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+
+    <script src="Source\sGis\sGis.js"></script>
+    <script src="Source\sGis\Geotools.js"></script>
+    <script src="Source\sGis\Event.js"></script>
+    <script src="Source\sGis\utils.js"></script>
+    <script src="Source\sGis\Crs.js"></script>
+    <script src="Source\sGis\IEventHandler.js"></script>
+    <script src="Source\sGis\geom.js"></script>
+    <script src="Source\sGis\Painter.js"></script>
+    <script src="Source\sGis\Layer.js"></script>
+    <script src="Source\sGis\LayerGroup.js"></script>
+    <script src="Source\sGis\Map.js"></script>
+    <script src="Source\sGis\TileLayer.js"></script>
+    <script src="Source\sGis\DynamicLayer.js"></script>
+    <script src="Source\sGis\FeatureLayer.js"></script>
+    <script src="Source\sGis\ESRIDynamicLayer.js"></script>
+    <script src="Source\sGis\Decorations.js"></script>
+    <script src="Source\sGis\symbols\Symbol.js"></script>
+    <script src="Source\sGis\symbols\Maptip.js"></script>
+    <script src="Source\sGis\features\Feature.js"></script>
+    <script src="Source\sGis\features\Point.js"></script>
+    <script src="Source\sGis\features\Polyline.js"></script>
+    <script src="Source\sGis\features\Polygon.js"></script>
+    <script src="Source\sGis\features\Label.js"></script>
+    <script src="Source\sGis\features\Maptip.js"></script>
+    <script src="Source\sGis\features\PointGroup.js"></script>
+    <script src="Source\sGis\controls\Control.js"></script>
+    <script src="Source\sGis\controls\Point.js"></script>
+    <script src="Source\sGis\controls\Polyline.js"></script>
+    <script src="Source\sGis\controls\Polygon.js"></script>
+    <script src="Source\sGis\controls\Editor.js"></script>
+
+    <script src="Source\spatialProcessor\Connector.js"></script>
+    <script src="Source\spatialProcessor\MapServer.js"></script>
+    <script src="Source\spatialProcessor\DataTree.js"></script>
+    <script src="Source\spatialProcessor\xmlSerializer.js"></script>
+    <script src="Source\spatialProcessor\Sfs.js"></script>
+    <script src="Source\spatialProcessor\Template.js"></script>
+    <script src="Source\spatialProcessor\DataAccessService.js"></script>
+    <script src="Source\spatialProcessor\Printer.js"></script>
+    <script src="Source\spatialProcessor\controller\Controller.js"></script>
+    <script src="Source\spatialProcessor\controller\Identify.js"></script>
+    <script src="Source\spatialProcessor\controller\SuperSearch.js"></script>
+    <script src="Source\spatialProcessor\controller\DitIntegration.js"></script>
+    <script src="Source\spatialProcessor\controller\ClientLayer.js"></script>
+    <script src="Source\spatialProcessor\controller\DefinitionQuery.js"></script>
+
+    <script src="Source\spatialProcessor\mapItem\MapItem.js"></script>
+    <script src="Source\spatialProcessor\mapItem\Folder.js"></script>
+    <script src="Source\spatialProcessor\mapItem\MapServer.js"></script>
+    <script src="Source\spatialProcessor\mapItem\DynamicServiceLayer.js"></script>
+
+    <script src="Source\spatialProcessor\SpatialProcessor.js"></script>
+
+    <script src="Source\spatialProcessor\Application.js"></script>
+
+</head>
+<body>
+    <div id="map"></div>
+
+    <script>
+        window.onload = function() {
+
+            sGis.spatialProcessor.Connector.prototype.apiLoginUrl = 'http://livingroom/strategis.JsClient/apilogin.aspx';
+
+            var sp = new sGis.SpatialProcessor({
+                url: 'http://livingroom/spatialProcessor/', login: 'new', password: 'new',
+                mapWrapper: 'map',
+                services: ['osm', 'egip_map', 'loadTest'],
+                controllers: ['identify']
+            });
+
+            setTimeout(doWork, 5000);
+
+            var origin;
+            function doWork() {
+                origin = sp.map.position;
+                sp.addController('clientLayer', { serviceName: 'loadTest' });
+
+                sp.map.resolution /= 16;
+                setInterval(randomPan, 2000);
+                setInterval(randomZoom, 20000);
+                identify();
+            }
+
+
+            var counter = 0;
+            function randomPan() {
+                if (counter < 20) {
+                    var position = sp.map.position;
+
+                    var bbox = sp.map.bbox;
+                    position.x += bbox.width * (Math.random() - 0.5);
+                    position.y += bbox.height * (Math.random() - 0.5);
+                    counter++;
+                } else {
+                    var position = origin;
+                    counter = 0;
+                }
+
+                sp.map.position = position;
+            }
+
+            var plus = true;
+            function randomZoom() {
+                var resolution = sp.map.resolution;
+                if (plus) {
+                    resolution *= 2;
+                } else {
+                    resolution /= 2;
+                }
+                plus = !plus;
+
+                sp.map.resolution = resolution;
+            }
+
+            function identify() {
+                var bbox = sp.map.bbox;
+                var geometry = new sGis.feature.Polygon([[bbox.xMin, bbox.yMin], [bbox.xMin, bbox.yMax], [bbox.xMax, bbox.yMax], [bbox.xMax, bbox.yMin]], { crs: sp.map.crs });
+                sp.controller.identify.identify({
+                    geometry: geometry,
+                    success: function() {
+                        console.log('Identified');
+                        identify();
+                    },
+                    error: function(text) {
+                        console.log(text);
+                        setTimeout(identify, 10000);
+                    }
+                });
+            }
+
+        };
+    </script>
+</body>
+</html>

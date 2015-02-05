@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>sGis Framework - Tile and Dynamic Layers Sample</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <style>
+            body, html {margin: 0px; overflow: hidden; height: 100%;}
+            div#map {width: 100%; height: 100%;}
+            div.control_pane {position: absolute; top: 15px; right: 15px; width: 300px; background-color: rgba(255, 255, 255, 0.7);}
+        </style>
+
+        <script src="..\Source\sGis\sGis.js"></script>
+        <script src="..\Source\sGis\Geotools.js"></script>
+        <script src="..\Source\sGis\RBush.js"></script>
+        <script src="..\Source\sGis\Event.js"></script>
+        <script src="..\Source\sGis\utils.js"></script>
+        <script src="..\Source\sGis\utils\utils.js"></script>
+        <script src="..\Source\sGis\utils\proto.js"></script>
+        <script src="..\Source\sGis\Crs.js"></script>
+        <script src="..\Source\sGis\IEventHandler.js"></script>
+        <script src="..\Source\sGis\geom.js"></script>
+        <script src="..\Source\sGis\Painter.js"></script>
+        <script src="..\Source\sGis\Layer.js"></script>
+        <script src="..\Source\sGis\LayerGroup.js"></script>
+        <script src="..\Source\sGis\Map.js"></script>
+        <script src="..\Source\sGis\TileLayer.js"></script>
+        <script src="..\Source\sGis\DynamicLayer.js"></script>
+        <script src="..\Source\sGis\FeatureLayer.js"></script>
+        <script src="..\Source\sGis\ESRIDynamicLayer.js"></script>
+        <script src="..\Source\sGis\Decorations.js"></script>
+        <script src="..\Source\sGis\geom\Arc.js"></script>
+        <script src="..\Source\sGis\geom\Point.js"></script>
+        <script src="..\Source\sGis\geom\Polyline.js"></script>
+        <script src="..\Source\sGis\geom\Polygon.js"></script>
+        <script src="..\Source\sGis\symbols\Symbol.js"></script>
+        <script src="..\Source\sGis\symbols\Maptip.js"></script>
+        <script src="..\Source\sGis\symbols\Point.js"></script>
+        <script src="..\Source\sGis\symbols\Polyline.js"></script>
+        <script src="..\Source\sGis\symbols\Polygon.js"></script>
+        <script src="..\Source\sGis\features\Feature.js"></script>
+        <script src="..\Source\sGis\features\Image.js"></script>
+        <script src="..\Source\sGis\features\FeatureGroup.js"></script>
+        <script src="..\Source\sGis\features\Point.js"></script>
+        <script src="..\Source\sGis\features\Polyline.js"></script>
+        <script src="..\Source\sGis\features\Polygon.js"></script>
+        <script src="..\Source\sGis\features\Label.js"></script>
+        <script src="..\Source\sGis\features\Maptip.js"></script>
+        <script src="..\Source\sGis\features\PointGroup.js"></script>
+        <script src="..\Source\sGis\controls\Control.js"></script>
+        <script src="..\Source\sGis\controls\Point.js"></script>
+        <script src="..\Source\sGis\controls\Polyline.js"></script>
+        <script src="..\Source\sGis\controls\Polygon.js"></script>
+        <script src="..\Source\sGis\controls\Editor.js"></script>
+        <script src="..\Source\sGis\controls\Distance.js"></script>
+        <script src="..\Source\sGis\controls\Area.js"></script>
+        <script src="..\Source\sGis\controls\Rectangle.js"></script>
+        <script src="..\Source\sGis\controls\BaseLayerSwitch.js"></script>
+
+        <script src="..\Source\spatialProcessor\Connector.js"></script>
+        <script src="..\Source\spatialProcessor\MapServer.js"></script>
+        <script src="..\Source\spatialProcessor\DataTree.js"></script>
+        <script src="..\Source\spatialProcessor\xmlSerializer.js"></script>
+        <script src="..\Source\spatialProcessor\Sfs.js"></script>
+        <script src="..\Source\spatialProcessor\Template.js"></script>
+        <script src="..\Source\spatialProcessor\Printer.js"></script>
+        <script src="..\Source\spatialProcessor\controller\Controller.js"></script>
+        <script src="..\Source\spatialProcessor\controller\Identify.js"></script>
+        <script src="..\Source\spatialProcessor\controller\SuperSearch.js"></script>
+        <script src="..\Source\spatialProcessor\controller\DitIntegration.js"></script>
+        <script src="..\Source\spatialProcessor\controller\ClientLayer.js"></script>
+        <script src="..\Source\spatialProcessor\controller\DefinitionQuery.js"></script>
+        <script src="..\Source\spatialProcessor\controller\TableView.js"></script>
+        <script src="..\Source\spatialProcessor\DataAccessService.js"></script>
+
+        <script src="..\Source\spatialProcessor\mapItem\MapItem.js"></script>
+        <script src="..\Source\spatialProcessor\mapItem\Folder.js"></script>
+        <script src="..\Source\spatialProcessor\mapItem\MapServer.js"></script>
+        <script src="..\Source\spatialProcessor\mapItem\ClientLayer.js"></script>
+        <script src="..\Source\spatialProcessor\mapItem\DynamicServiceLayer.js"></script>
+
+        <script src="..\Source\spatialProcessor\SpatialProcessor.js"></script>
+
+        <script src="..\Source\spatialProcessor\Application.js"></script>
+    </head>
+    <body>
+        <!--
+            Пример карты с 3 слоями.
+        -->
+        <div id="map"></div>
+        <div class="control_pane">
+            <input type="checkbox" id="yandex" onchange="toggleYandex()" checked/><label for="yandex">Yandex Maps</label><br>
+            <input type="checkbox" id="population" onchange="togglePopulation()" checked/><label for="population">Население России</label>
+        </div>
+        <script>
+            window.onload = function() {
+                map = new sGis.Map({wrapper: 'map'}),
+                osm = new sGis.TileLayer('http://b.tile.openstreetmap.org/{z}/{x}/{y}.png');
+            
+//                map.addLayer(osm);
+                
+                yandexMap = new sGis.TileLayer('http://vec01.maps.yandex.net/tiles?l=map&v=4.16.3&x={x}&y={y}&z={z}&lang=ru_RU', {crs: sGis.CRS.ellipticalMercator, opacity: 0.5, display: false});
+                map.addLayer(yandexMap);
+
+                population = new sGis.ESRIDynamicLayer('http://gis.everpoint.ru/arcgis/rest/services/Population_Rosstat/Rosstat_ADM4_local/MapServer/', {display: false});
+                population.opacity = 0.5;
+//                map.addLayer(population);
+
+
+                function showAlert(sGisEvent) {
+                    alert(sGisEvent.mouseOffset.x + ', ' + sGisEvent.mouseOffset.y);
+                }
+            };
+            
+            function toggleYandex() {
+                if (yandexMap.isDisplayed) {
+                    yandexMap.hide();
+                } else {
+                    yandexMap.show();
+                }
+            }
+
+            function togglePopulation() {
+                if (population.isDisplayed) {
+                    population.hide();
+                } else {
+                    population.show();
+                }
+            }            
+        </script>
+    </body>
+</html>

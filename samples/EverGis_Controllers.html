@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>sGis Framework - Identification Sample</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">        
+        <style>
+            body, html {margin: 0px; overflow: hidden; height: 100%;}
+            div#map {width: 100%; height: 100%;}
+            div#output {width: 300px; position: absolute; right: 15px; top: 15px; background-color: rgba(255, 255, 255, 0.8)}
+        </style>
+
+        <script src="http://dev2.everpoint.ru/EverGIS/HTML5/005/evergis.js"></script>
+
+    </head>
+    <body>
+        <!--
+            Пример идентификации Spatial Processor.
+        -->
+        <div id="map"></div>
+        <div id="output"></div>
+        <script>
+            window.onload = function() {
+            
+            var sp = new sGis.SpatialProcessor({
+                url: 'http://dev2.everpoint.ru/eg_public/SpatialProcessor/IIS/', login: 'jspublic', password: 'jspublic',
+                mapWrapper: 'map',
+                services: ['osm', 'evergisjs_mrc_test'],
+                controllers: ['identify']
+                }),
+                output = document.getElementById('output');
+                
+            sp.service.osm.addListner('initialize', function() {
+                sp.service.evergisjs_mrc_test.activeLayers = [0, 1];
+
+                var drawingControl = new sGis.controls.Polygon(sp.map);
+                drawingControl.activate();
+                
+                var featureLayer = new sGis.FeatureLayer();
+                sp.map.addLayer(featureLayer);
+            
+                drawingControl.addListner('drawingFinish', function(sGisEvent) {
+                    output.innerHTML = 'Ожидаем ответ от сервера...';
+
+                    sp.controller.identify.identify({geometry: sGisEvent.geom, success: function() {
+                        drawingControl.activeLayer.features = [];
+                        featureLayer.features = [];
+                        output.innerHTML = 'Результат идентификации:<br>';
+                        var rows = sp.controller.identify.tree.rows;
+
+                        for (var i in rows) {
+                            if (rows[i].dataType === 'LeafNode') {
+                                var row = document.createElement('div');
+                                row.style.cursor = 'pointer';
+                                row.onclick = (function(i) {return function() {query(rows[i].data.StorageId);};})(i);
+                                row.innerHTML = rows[i].data.Header;
+                                output.appendChild(row);
+                            }
+                        }
+                    }});
+                    
+                    sp.map.update();
+                });
+
+
+                function query(storageId) {
+                    featureLayer.features = [];
+                    sp.map.moveLayerToIndex(featureLayer, 10);
+                    sp.controller.identify.query({
+                        storageId: storageId,
+                        success: function(objects) {
+                            for (var i in objects) {
+                                var maptip = new sGis.feature.Maptip(objects[i].centroid || objects[i].coordinates, {
+                                    content: getAttributeTable(objects[i]), 
+                                    crs: objects[i].crs,
+                                    style: {width: 300}
+                                });
+                                featureLayer.add(maptip);
+                            }
+                            sp.map.redrawLayer(featureLayer);
+                        }
+                    });
+                }
+                
+                function getAttributeTable(feature) {
+                    var attributes = feature.attributes,
+                        string = '';
+                    for (var i in attributes) {
+                        string += attributes[i].title + ': ' + attributes[i].value + '<br>';
+                    }
+                    return string;
+                }                
+            });
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>sGis Framework - Multiple Maps Sample</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        
+        <style>
+            body, html {margin: 0px; overflow: hidden; height: 100%;}
+            div#map1 {position: absolute; width: 100%; top: 0px;}
+            div#map2 {position: absolute; width: 100%;}
+            div#curtain {height: 4px; width: 100%; cursor: n-resize; border: 1px solid gray; background-color: #ccc;}
+        </style>
+        
+        <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+        <script src="http://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+        <script src="http://dev2.everpoint.ru/evergis/html5/lib/touchpunch.js"></script>
+
+        <script src="http://dev2.everpoint.ru/EverGIS/HTML5/005/evergis.js"></script>
+
+    </head>
+    <body>
+        <!--
+        
+        Пример работы с несколькими картами одновременно.
+        
+        -->
+        
+        <div id="map1"></div>
+        <div id="curtain"></div>
+        <div id="map2"></div>
+        <script>
+            window.onload = function() {
+            
+                var $map1 = $('#map1'),
+                    $map2 = $('#map2'),
+                    $curtain = $('#curtain'),
+                    windowHeight = $(document.body).height();
+
+                $map1.height(windowHeight / 2 - 3);
+                $map2.height(windowHeight / 2 - 3).offset({top: windowHeight / 2 + 3});
+                $curtain.offset({top: windowHeight / 2 - 3});
+
+                $("#curtain").draggable({
+                    axis: 'y',
+                    drag: updateSize,
+                    stop: updateSize
+                });
+
+                function updateSize() {
+                    var offset = $curtain.offset().top;
+                    $map1.height(offset);
+                    $map2.height(windowHeight - offset - 6).offset({top: offset + 6});  
+                    sp1.map.updateSize();
+                    sp2.map.updateSize();                
+                }
+
+                var sp1 = new sGis.SpatialProcessor({
+                    url: 'http://dev2.everpoint.ru/eg_public/SpatialProcessor/IIS/', login: 'jspublic', password: 'jspublic',
+                    mapWrapper: 'map1',
+                    services: ['osm']
+                }),
+                    sp2 = new sGis.SpatialProcessor({
+                    url: 'http://dev2.everpoint.ru/eg_public/SpatialProcessor/IIS/', login: 'jspublic', password: 'jspublic',
+                    mapWrapper: 'map2',
+                    services: ['esri_gray']
+                });
+
+                sp1.map.addListner('bboxChange animationEnd', synchronizePosition);
+                sp2.service.esri_gray.addListner('initialize', synchronizePosition);
+                
+                var changing = null;
+                
+                function synchronizePosition() {
+                    if (changing !== sp2.map) {
+                        var position = sp1.map.position;
+                        position.y -= (sp1.map.height + sp2.map.height) / 2 * sp1.map.resolution;
+                        changing = sp1.map;
+                        sp2.map.position = position;
+                        sp2.map.resolution = sp1.map.resolution;
+                        changing = null;
+                    }
+                }
+                
+                sp2.map.addListner('bboxChange animationEnd', backSynchronizePosition);
+                
+                function backSynchronizePosition() {
+                    if (changing !== sp1.map) {
+                        var position = sp2.map.position;
+                        position.y += (sp1.map.height + sp2.map.height) / 2 * sp2.map.resolution;
+                        changing = sp2.map;
+                        sp1.map.position = position;
+                        sp1.map.resolution = sp2.map.resolution;
+                        changing = null;
+                    }
+                }
+                
+                $(window).resize(function() {
+                    windowHeight = $(document.body).height();
+                    updateSize();
+                });
+            }
+        </script>
+    </body>
+</html>

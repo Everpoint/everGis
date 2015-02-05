@@ -1,0 +1,114 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>sGis Framework - Attribute Query Sample</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">        
+        <style>
+            body, html {margin: 0px; overflow: hidden; height: 100%;}
+            div#map {width: 100%; height: 100%;}
+            div.search {width: 24px; height: 24px; background-size: 100% auto; background-image: url(data:image/png;base64,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);}
+        </style>
+
+        <script src="http://dev2.everpoint.ru/EverGIS/HTML5/005/evergis.js"></script>
+
+    </head>
+    <body>
+        <!--
+            Пример контекстного запроса Spatial Processor.
+        -->
+        <div id="map"></div>
+        <input type="text" id="queryField" style="position: absolute; right: 49px; top: 15px; width: 200px; height: 24px;" value="Якиманка"/>
+        <button id="queryButton" style="position: absolute; right: 15px; top: 15px; margin: 0px; padding: 1px;"><div class="search"></div></button><br>
+        <script>
+            window.onload = function() {
+            
+            var sp = new sGis.SpatialProcessor({
+                url: 'http://dev2.everpoint.ru/eg_public/SpatialProcessor/IIS/', login: 'jspublic', password: 'jspublic',
+                mapWrapper: 'map',
+                services: ['osm', 'evergisjs_mrc_test'],
+                controllers: ['superSearch']
+            }),
+                featureLayer = new sGis.FeatureLayer();            
+    
+            sp.service.osm.addListner('initialize', function() {
+                sp.map.addLayer(featureLayer);
+            });
+            document.getElementById('queryButton').onclick = search;
+            
+            function search() {
+                var queryField = document.getElementById('queryField'),
+                    queryString = queryField.value;
+            
+                var serviceMapItem = sp.service.evergisjs_mrc_test.mapItem;
+
+                sp.controller.superSearch.superSearch({
+                    string: queryString,
+                    storageIds: [serviceMapItem.children[2].id], // Необязательный параметр - id mapItem слоев, по которым производить поиск
+                    success: function() {
+                        featureLayer.features = [];
+
+                        var rows = sp.controller.superSearch.tree.rows,
+                            xArray = [],
+                            yArray = [];
+
+                        for (var i in rows) {
+                            if (rows[i].dataType === 'LeafNode') {
+                                var env = rows[i].data.Envelope;
+                                xArray.push(env.xmax, env.xmin);
+                                yArray.push(env.ymax, env.ymin);
+                            }
+                        }
+                        if (xArray.length > 0) setMapPosition(xArray, yArray);
+                        
+                        query(rows[i].data.StorageId); //Запрашиваем данные по последнему объекту из дерева
+                    }
+                });
+            }
+            
+            
+            function setMapPosition(xArray, yArray) {
+                var centerX = (utils.max(xArray) + utils.min(xArray)) / 2,
+                    centerY = (utils.max(yArray) + utils.min(yArray)) / 2;
+                sp.map.position = new sGis.Point(centerX, centerY, sp.map.crs);
+                sp.map.resolution = Math.max(
+                    0.1, 
+                    (utils.max(xArray) - utils.min(xArray)) / sp.map.width * 2, 
+                    (utils.max(yArray) - utils.min(yArray)) / sp.map.width * 2
+                );                
+            }            
+            
+            function query(storageId) {
+                sp.controller.superSearch.query({
+                    storageId: storageId,
+                    success: function(response) {
+                        for (var i in response) {
+                            var mapTip = new sGis.feature.Maptip(response[i].centroid, {crs: sp.map.crs, content: getAttributeTable(response[i]), style: {width: 300}});
+                            featureLayer.add(mapTip);
+                        }
+                        sp.map.moveLayerToIndex(featureLayer, 10);
+                        sp.map.redrawLayer(featureLayer);
+                    }
+                });
+            }
+            
+            function getAttributeTable(feature) {
+                var attributes = feature.attributes,
+                    string = '';
+                for (var i in attributes) {
+                    string += attributes[i].title + ': ' + attributes[i].value + '<br>';
+                }
+                return string;
+            }
+            
+            // If enter key is pressed perform search
+            sp.map.addListner('keypress', function(sGisEvent) {
+                if (sGisEvent.browserEvent.which === 13) {
+                    search();
+                }
+            });
+            
+            }
+        </script>
+    </body>
+</html>

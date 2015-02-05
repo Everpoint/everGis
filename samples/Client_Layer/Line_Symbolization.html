@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>sGis Framework - LineSymbolization</title>
+    <meta charset="UTF-8">
+    <style>
+        body, html {
+            margin: 0px;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        div#map {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <script src="http://dev2.everpoint.ru/EverGIS/HTML5/005/evergis.js"></script>
+
+</head>
+<body>
+    <!--
+    Пример символизации полилиний.
+    -->
+    <div id="map"></div>
+    <script>
+    window.onload = function() {
+
+        var sp = new sGis.SpatialProcessor({
+            url: 'http://dev2.everpoint.ru/eg_public/SpatialProcessor/IIS/', login: 'jspublic', password: 'jspublic',
+            mapWrapper: 'map',
+            services: ['osm']
+        });
+
+        sp.service.osm.addListner('initialize', function() {
+            var clientLayer = sp.addController('clientLayer');
+            clientLayer.loadFile({
+                fileName: 'd:\\Сервисы\\Moscow_Roads_EG.sgl',
+                success: function() {
+                    applySymbolization();
+                }
+            });
+
+
+            function applySymbolization() {
+                clientLayer.getClassifiers({
+                    geometryType: 'polyline',
+                    propertyName: 'StrokeThickness',
+                    success: function(properties) {
+                        properties[1].AttributeName = 'KATEGOR';
+                        getTable(properties[1])
+                    }
+                });
+
+                function getTable(settings) {
+                    clientLayer.buildClassifierTable({
+                        geometryType: 'polyline',
+                        settings: [settings],
+                        success: function(table) {
+                            for (var i in table) {
+                                table[i].PropertyValue = Math.round((parseInt(i) + 1) / 2);
+                            }
+                            applySymbolizer(table);
+                        }
+                    });
+                }
+
+                function applySymbolizer(table) {
+                    clientLayer.applySymbolizer({
+                        tables: {
+                            polyline: [table]
+                        }
+                    });
+                }
+            }
+        });
+
+    };
+    </script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>sGis Framework - Polyline Transformation Sample</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <style>
+            body, html {margin: 0px; overflow: hidden; height: 100%;}
+            div#map {width: 100%; height: 100%;}
+            input#transform {position: absolute; top: 15px; right: 15px;}
+        </style>
+
+        <script src="http://dev2.everpoint.ru/EverGIS/HTML5/005/evergis.js"></script>
+    </head>
+    <body>
+        <!--
+            Пример трансформации полилиний
+        -->
+        <div id="map"></div>
+        <input type="button" value="Повернуть" id="transform"/>
+        <script>
+            window.onload = function() {
+            
+            var sp = new sGis.SpatialProcessor({
+                    url: 'http://dev2.everpoint.ru/eg_public/SpatialProcessor/IIS/', login: 'jspublic', password: 'jspublic',
+                    mapWrapper: 'map',
+                    services: ['osm']
+                }),             
+                feature = new sGis.feature.Polyline([[4187580, 7509961], [4197580, 7509961], [4197580, 7519961], [4187580, 7519961], [4187580, 7509961]], {crs: sGis.CRS.webMercator, color: 'red', width: 5}),
+                featureLayer = new sGis.FeatureLayer({features: [feature]});
+            
+                sp.map.addLayer(featureLayer);
+                
+                var editor = new sGis.controls.Editor(sp.map, {activeLayer: featureLayer});
+                editor.activate();
+                
+                document.getElementById('transform').onclick = transform;
+                
+                function transform() {
+                    var angle = 0.1,        // угол поворота в радианах
+                        scaleX = 1.1,       // масштаб по оси Х
+                        scaleY = 1.1,       // масштаб по оси У
+                        centerX = 4187580,  // координата Х центра поворота
+                        centerY = 7509961;  // координата У центра поворота
+
+                    var center = [centerX, centerY];
+                    feature.rotate(angle, center);
+                    feature.scale([scaleX, scaleY], center);
+                    sp.map.redrawLayer(featureLayer);
+                }
+                
+                var label = new sGis.feature.Label([0,0], {content: '', crs: sp.map.crs, style: {offset: {x: 5, y: -20}, align: 'left'}});
+                editor.addListner('rotationStart', function(sGisEvent) {
+                    featureLayer.add(label);
+                });
+                
+                editor.addListner('rotation', function(sGisEvent) {
+                    label.coordinates = sGisEvent.point;
+                    label.content = '' + (sGisEvent.angle * 180 / Math.PI).toFixed(2) + '°';
+                });
+                
+                editor.addListner('rotationEnd', function(sGisEvent) {
+                    featureLayer.remove(label);
+                    sp.map.redrawLayer(featureLayer);
+                });
+                
+            }
+        </script>
+    </body>
+</html>

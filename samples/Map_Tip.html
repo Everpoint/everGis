@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>sGis Framework - Map Tip Sample</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+
+        <style>
+            body, html {margin: 0px; overflow: hidden; height: 100%;}
+            div#map {width: 100%; height: 100%;}
+        </style>
+
+        <script src="http://dev2.everpoint.ru/EverGIS/HTML5/005/evergis.js"></script>
+
+    </head>
+    <body>
+        <!--
+            Пример работы с баллунами
+        -->
+        <div id="map"></div>
+        <script>
+            window.onload = function() {
+            
+            sp = new sGis.SpatialProcessor({
+                url: 'http://dev2.everpoint.ru/eg_public/SpatialProcessor/IIS/', login: 'jspublic', password: 'jspublic',
+                mapWrapper: 'map',
+                services: ['osm']
+            });
+            featureLayer = new sGis.FeatureLayer();
+            point = new sGis.feature.Point([55.755831, 37.617673], {symbol: new sGis.symbol.point.Image()});
+            maptip = new sGis.feature.Maptip([55.755831, 37.617673], {hidden: true, style: {width: 200, height: 225, offset: {x: -250, y: -220}}});
+        
+            var html = '<b>Москва</b><br>столица нашей родины</b>\
+                        <img src="http://upload.wikimedia.org/wikipedia/commons/b/bb/Coat_of_Arms_of_Moscow.svg" \
+                        width="150" height="150"><input type="button" value="Закрыть" onclick="hide()" />';
+
+
+            maptip.content = html;
+            
+            point.addListner('click', function() {
+                maptip.show();
+                sp.map.redrawLayer(featureLayer);
+            });
+            
+            maptip.addListner('dragStart', function(sGisEvent) {
+                sGisEvent.draggingObject = this;
+                sGisEvent.stopPropagation();                        
+            });
+            maptip.addListner('drag', function(sGisEvent) {
+                maptip.style.offset = {x: maptip.style.offset.x - sGisEvent.offset.xPx, y: maptip.style.offset.y - sGisEvent.offset.yPx};
+                sp.map.redrawLayer(featureLayer);
+            });
+                                
+            
+            featureLayer.add([point, maptip]);
+            
+            sp.map.addLayer(featureLayer);
+
+            }
+            
+            function hide() {
+                maptip.hide();
+                sp.map.redrawLayer(featureLayer);
+            };            
+        </script>
+    </body>
+</html>

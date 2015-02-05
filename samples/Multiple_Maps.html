@@ -1,0 +1,66 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <title>sGis Framework - Multiple Maps Sample</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        
+        <style>
+            body, html {margin: 0px; overflow: hidden; height: 100%;}
+            div#map1 {height: 50%; border-bottom: 1px solid black;}
+            div#map2 {height: 50%;}
+        </style>
+
+        <script src="http://dev2.everpoint.ru/EverGIS/HTML5/005/evergis.js"></script>
+    </head>
+    <body>
+        <!--
+        
+        Пример работы с несколькими картами одновременно.
+        
+        -->
+        
+        <div id="map1"></div>
+        <div id="map2"></div>
+        <script>
+            window.onload = function() {
+            
+                var sp1 = new sGis.SpatialProcessor({
+                        url: 'http://dev2.everpoint.ru/eg_public/SpatialProcessor/IIS/', login: 'jspublic', password: 'jspublic',
+                        mapWrapper: 'map1',
+                        services: ['osm']
+                    }),
+                    sp2 = new sGis.SpatialProcessor({
+                        url: 'http://dev2.everpoint.ru/eg_public/SpatialProcessor/IIS/', login: 'jspublic', password: 'jspublic',
+                        mapWrapper: 'map2',
+                        services: ['esri_gray']
+                    });
+            
+            sp1.map.addListner('bboxChange', synchronizePosition);
+            sp2.service.esri_gray.addListner('initialize', synchronizePosition);
+            
+            function synchronizePosition() {
+                var position = sp1.map.position;
+                position.y -= (sp1.map.height + sp2.map.height) / 2 * sp1.map.resolution;
+                sp2.map.position = position;
+                sp2.map.resolution = sp1.map.resolution;                
+            }
+
+            sp1.map.addListner('animationStart', function() {
+                sp2.map.painter.prohibitUpdate();
+            });
+
+            sp1.map.addListner('animationEnd', function() {
+                sp2.map.painter.allowUpdate();
+            });
+
+            // Delete the lower map on 'esc' pressing 
+            sp1.map.addListner('keydown', function(sGisEvent) {
+                if (sGisEvent.browserEvent.which === 27) {
+                    sp2.kill();
+                }
+            });
+            }
+        </script>
+    </body>
+</html>
