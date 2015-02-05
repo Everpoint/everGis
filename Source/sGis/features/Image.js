@@ -39,7 +39,17 @@
                 return this._bbox.projectTo(this.crs);
             },
             set: function(bbox) {
-                var adjBbox = bbox instanceof sGis.Bbox ? bbox : new sGis.Bbox(bbox[0], bbox[1], this.crs);
+                var adjBbox;
+                if (bbox instanceof sGis.Bbox) {
+                    if (this._crs) {
+                        adjBbox = bbox.projectTo(this._crs);
+                    } else {
+                        adjBbox = bbox;
+                        this._crs = bbox.crs;
+                    }
+                } else {
+                    adjBbox = new sGis.Bbox(bbox[0], bbox[1], this._crs || sGis.CRS.geo);
+                }
                 if (!this._bbox || !this._bbox.equals(adjBbox)) {
                     this._bbox = adjBbox;
                     this._cache = null;
@@ -52,12 +62,11 @@
                 return this._bbox && this._bbox.crs || this._crs;
             },
             set: function(crs) {
-                if (this.crs !== crs) {
+                if (this._crs !== crs) {
                     if (this._bbox) {
                         this._bbox.crs = crs;
-                    } else {
-                        this._crs = crs;
                     }
+                    this._crs = crs;
                     this._cache = null;
                 }
             }

@@ -83,6 +83,10 @@
             return new sGis.Bbox(this.p[0].projectTo(crs), this.p[1].projectTo(crs));
         },
 
+        clone: function() {
+            return this.projectTo(this.crs);
+        },
+
         equals: function(bbox) {
             return this.p[0].x === bbox.p[0].x &&
                 this.p[0].y === bbox.p[0].y &&

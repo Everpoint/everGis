@@ -5,6 +5,15 @@ $(document).ready(function() {
     $(document.body).html('<div id="map" style="width: 500px; height: 500px;"></div>');
     
     describe('Feature', function() {
+
+        beforeEach(function() {
+            $('#map').width(500).height(500);
+        });
+
+        afterEach(function() {
+            $('#map').html('').width(0).height(0);;
+        });
+
         describe('Point', function() {
             it('should be created with default parameters', function() {
                 expect(function() {new sGis.feature.Point();}).toThrow();
@@ -12,7 +21,7 @@ $(document).ready(function() {
                 var point1 = new sGis.feature.Point([55, 37]);
                     
                 expect(point1).toBeDefined();
-                expect(point1.render(1000, sGis.CRS.webMercator)[0] instanceof sGis.geom.Point).toBeTruthy();
+                expect(point1.render(1000, sGis.CRS.webMercator)[0] instanceof sGis.geom.Arc).toBeTruthy();
             });
             
             it('should have unique id', function() {
@@ -38,31 +47,31 @@ $(document).ready(function() {
                 
                 expect(utils.isArray(renderedPoint)).toBeTruthy();
                 expect(renderedPoint.length).toBe(1);
-                expect(renderedPoint[0] instanceof sGis.geom.Point).toBeTruthy();
+                expect(renderedPoint[0] instanceof sGis.geom.Arc).toBeTruthy();
             });
             
             it('should correctly set parameters', function() {
                 var point1 = new sGis.feature.Point([55, 37], {color: 'green', size: 15}),
                     rendering1 = point1.render(1000, sGis.CRS.webMercator);
                     
-                expect(rendering1[0].color).toBe('green');
-                expect(rendering1[0].size).toBe(15);
+                expect(rendering1[0].fillColor).toBe('green');
+                expect(rendering1[0].radius).toBe(7.5);
                 
                 point1.color = 'yellow';
                 
                 expect(point1.color).toBe('yellow');
-                expect(rendering1[0].color).toBe('green');
+                expect(rendering1[0].fillColor).toBe('green');
                 
                 rendering1 = point1.render(1000, sGis.CRS.webMercator);
-                expect(rendering1[0].color).toBe('yellow');
+                expect(rendering1[0].fillColor).toBe('yellow');
                 
                 point1.size = 10;
                 
                 expect(point1.size).toBe(10);
-                expect(rendering1[0].size).toBe(15);
+                expect(rendering1[0].radius).toBe(7.5);
                 
                 rendering1 = point1.render(1000, sGis.CRS.webMercator);
-                expect(rendering1[0].size).toBe(10);
+                expect(rendering1[0].radius).toBe(5);
             });
         });
         
@@ -571,7 +580,46 @@ $(document).ready(function() {
                     expect(rendered[0].fillColor).toBe(polygon.fillColor);
                     
                     polygon.addPoint([20000, 20000]);
-                });                
+                });
+
+                describe('.contains()', function() {
+                    var polygon = new sGis.feature.Polygon([[-100, -100], [-100, 100], [100, 100], [100, -100]], {crs: sGis.CRS.webMercator});
+
+                    it('should get sGis.Point as parameter and return true if point is inside polygon and false if not', function() {
+                        var point = new sGis.Point(0, 0, sGis.CRS.webMercator);
+                        expect(polygon.contains(point)).toBe(true);
+
+                        var point1 = new sGis.Point(101, 0, sGis.CRS.webMercator);
+                        expect(polygon.contains(point1)).toBe(false);
+                    });
+
+                    it('should get sGis.feature.Point as parameter and return true if point is inside polygon and false if not', function() {
+                        var point = new sGis.feature.Point([0, 0], { crs: sGis.CRS.webMercator });
+                        expect(polygon.contains(point)).toBe(true);
+
+                        var point1 = new sGis.feature.Point([101, 0], { crs: sGis.CRS.webMercator });
+                        expect(polygon.contains(point1)).toBe(false);
+                    });
+
+                    it('should get coordinates as parameter and return true if point is inside polygon and false if not', function() {
+                        expect(polygon.contains([0, 0])).toBe(true);
+                        expect(polygon.contains([101, 0])).toBe(false);
+                    });
+
+                    it('should reproject points before checking', function() {
+                        var point = new sGis.Point(0, 0, sGis.CRS.webMercator);
+                        expect(polygon.contains(point.projectTo(sGis.CRS.geo))).toBe(true);
+
+                        var point1 = new sGis.Point(101, 0, sGis.CRS.webMercator);
+                        expect(polygon.contains(point1.projectTo(sGis.CRS.geo))).toBe(false);
+
+                        var point2 = new sGis.feature.Point([0, 0], { crs: sGis.CRS.webMercator });
+                        expect(polygon.contains(point2.projectTo(sGis.CRS.geo))).toBe(true);
+
+                        var point3 = new sGis.feature.Point([101, 0], { crs: sGis.CRS.webMercator });
+                        expect(polygon.contains(point3.projectTo(sGis.CRS.geo))).toBe(false);
+                    });
+                });
             });
         });
 

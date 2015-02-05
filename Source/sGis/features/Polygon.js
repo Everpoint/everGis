@@ -46,6 +46,26 @@
                     symbol: this.symbol
                 });
             }
+        },
+
+        /**
+         * Checks if the point is inside the polygon
+         * @param {sGis.Point|sGis.feature.Point|Array} point - The point to check. Coordinates can be given in [x, y] format (must be in polygon crs)
+         * @return {Boolean}
+         */
+        contains: {
+            value: function(point) {
+                var pointCoordinates;
+                if (point instanceof sGis.Point || point instanceof sGis.feature.Point) {
+                    pointCoordinates = point.projectTo(this.crs).coordinates;
+                } else if (sGis.utils.is.array(point)) {
+                    pointCoordinates = point;
+                } else {
+                    utils.error('Invalid format of the point');
+                }
+
+                return sGis.geotools.contains(this.coordinates, pointCoordinates);
+            }
         }
     });
 

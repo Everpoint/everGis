@@ -38,40 +38,9 @@
         contains: {
             value: function (a, b) {
                 var position = b && isValidPoint([a, b]) ? [a, b] : utils.isArray(a) && isValidPoint(a) ? a : a.x && a.y ? [a.x, a.y] : utils.error('Point coordinates are expecred but got ' + a + ' instead'),
-                    coordinates = this._coordinates,
-                    intersectionCount = 0;
+                    coordinates = this._coordinates;
 
-                for (var ring = 0, l = coordinates.length; ring < l; ring++) {
-                    var points = coordinates[ring],
-                        prevD = points[0][0] > position[0],
-                        prevH = points[0][1] > position[1];
-
-                    points[points.length] = points[0]; // to include the line between the first and the last points
-
-                    for (var i = 1; i < points.length; i++) {
-                        if (pointToLineDistance(position, [points[i - 1], points[i]]) < this._width / 2 + 2) {
-                            return true;
-                        }
-
-                        var D = points[i][0] > position[0],
-                            H = points[i][1] > position[1];
-
-                        if (H !== prevH //othervise line does not intersect horizontal line
-                            && (D > 0 || prevD > 0) //line is to the left from the point, but we look to the right
-                        ) {
-                            if (points[i - 1][1] !== position[1]) {
-                                if (intersects([[points[i][0], points[i][1]], [points[i - 1][0], points[i - 1][1]]], [position, [Math.max(points[i][0], points[i - 1][0]), position[1]]])) {
-                                    intersectionCount++;
-                                }
-                            }
-
-                        }
-                        prevD = D;
-                        prevH = H;
-                    }
-                }
-
-                return intersectionCount % 2 === 1;
+                return sGis.geotools.contains(coordinates, position, this.width / 2 + 2);
             }
         },
 
@@ -114,29 +83,8 @@
         }
     });
 
-    function intersects(line1, line2) {
-        if (line1[0][0] === line1[1][0]) {
-            return line1[0][0] > line2[0][0];
-        } else {
-            var k = (line1[0][1] - line1[1][1]) / (line1[0][0] - line1[1][0]),
-                b = line1[0][1] - k * line1[0][0],
-                x = (line2[0][1] - b) / k;
-
-            return x > line2[0][0];
-        }
-    }
-
-    function pointToLineDistance(point, line) {
-        var lx = line[1][0] - line[0][0],
-            ly = line[1][1] - line[0][1],
-            dx = line[0][0] - point[0],
-            dy = line[0][1] - point[1],
-            t = 0 - (dx * lx + dy * ly) / (lx * lx + ly * ly);
-
-        t = t < 0 ? 0 : t > 1 ? 1 : t;
-        var distance = Math.sqrt(Math.pow(lx * t + dx, 2) + Math.pow(ly * t + dy, 2));
-
-        return distance;
+    function isValidPoint(point) {
+        return utils.isArray(point) & utils.isNumber(point[0]) && utils.isNumber(point[1]);
     }
 
 })();
