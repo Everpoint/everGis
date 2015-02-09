@@ -10,7 +10,7 @@
     };
 
     sGis.feature.Point.prototype = new sGis.Feature({
-        _defaultSymbol: sGis.symbol.point.Point,
+        _defaultSymbol: new sGis.symbol.point.Point(),
         _crs: sGis.CRS.geo,
 
         projectTo: function(crs) {

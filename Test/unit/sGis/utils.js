@@ -39,6 +39,15 @@ $(document).ready(function() {
                 expect(utils.isString()).toBeFalsy();
             });
         });
+
+        describe('.copyObject()', function() {
+            it('should copy all keys of the object and their values', function() {
+                var obj = {a: undefined, b: null, c: 1, d: 'a', e: [1, 2], f: {a: 1, b: {c: 1, d: 2}}};
+                var copy = utils.copyObject(obj);
+                expect(obj).toEqual(copy);
+                expect(copy).not.toBe(obj);
+            });
+        });
     });
 
     /*

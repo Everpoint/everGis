@@ -294,14 +294,14 @@
         return getXML(formatedData);
     };
 
-    sGis.spatialProcessor.serializeGeometryEdit = function(editDescription) {
+    sGis.spatialProcessor.serializeGeometryEdit = function(editDescription, attributesOnly) {
         var featureList = [];
         for (var i in editDescription) {
             if (utils.isArray(editDescription[i])) featureList = featureList.concat(editDescription[i]);
         }
 
-        var formatedData = getFormatedData(featureList);
-        return getXML(formatedData, editDescription);
+        var formatedData = getFormatedData(featureList, attributesOnly);
+        return getXML(formatedData, editDescription, attributesOnly);
     };
 
     sGis.spatialProcessor.serializeSymbols = function(symbols) {
@@ -334,7 +334,7 @@
         for (var i in attributes) {
             if (attributes.hasOwnProperty(i)) {
                 var attributesIndex = getAttributesDefinitionIndex(attributes[i], data.resources);
-                data.visualObjects[i] = {attributesIndex: attributesIndex, feature: {attributes: attributes[i]}};
+                data.visualObjects[i] = {attributesIndex: attributesIndex, feature: {id: i, attributes: attributes[i]}};
             }
         }
 
@@ -347,15 +347,15 @@
         polygon: sGis.feature.Polygon
     };
 
-    function getXML(data, editDescription) {
+    function getXML(data, editDescription, attributesOnly) {
         var xml = getNewXMLDocument(),
             dataNode = xml.getElementsByTagName('Data')[0];
 
         dataNode.appendChild(getSerializerGeometricSettingsNode(xml));
         dataNode.appendChild(getSerializerCalloutSettingsNode(xml));
-        dataNode.appendChild(getResourcesNode(data, xml));
-        dataNode.appendChild(getVisualObjectsNode(data, xml));
-        if (editDescription) dataNode.appendChild(getEditCommandsNode(editDescription, xml));
+        dataNode.appendChild(getResourcesNode(data, xml, attributesOnly));
+        dataNode.appendChild(getVisualObjectsNode(data, xml, attributesOnly));
+        if (editDescription) dataNode.appendChild(getEditCommandsNode(editDescription, xml, attributesOnly));
 
         var text = new XMLSerializer().serializeToString(xml);
         return text;
@@ -367,7 +367,7 @@
         return parser.parseFromString('<Data />', 'text/xml');
     }
 
-    function getEditCommandsNode(editDescription, xml) {
+    function getEditCommandsNode(editDescription, xml, attributesOnly) {
         var node = xml.createElement('EditCommands');
         if (utils.isArray(editDescription.added)) {
             for (var i in editDescription.added) {
@@ -376,7 +376,7 @@
         }
         if (utils.isArray(editDescription.updated)) {
             for (var i in editDescription.updated) {
-                node.appendChild(getUpdateObjectNode(editDescription.updated[i], xml));
+                node.appendChild(getUpdateObjectNode(editDescription.updated[i], xml, attributesOnly));
             }
         }
         if (utils.isArray(editDescription.deleted)) {
@@ -395,11 +395,11 @@
         return node;
     }
 
-    function getUpdateObjectNode(feature, xml) {
+    function getUpdateObjectNode(feature, xml, attributesOnly) {
         var node = xml.createElement('UpdateObject');
         setNodeAttributes(node, {
             Id: feature.id,
-            OnlyAttributes: "False"
+            OnlyAttributes: attributesOnly || "False"
         });
         return node;
     }
@@ -416,7 +416,7 @@
         var node = xml.createElement('SerializerSettings');
         setNodeAttributes(node, {
             Type: 'Geometric',
-            Version: '0',
+            //Version: '0',
             GeometryVersion: '2'
         });
 
@@ -434,22 +434,24 @@
         return node;
     }
 
-    function getResourcesNode(data, xml) {
+    function getResourcesNode(data, xml, attributesOnly) {
         var node = xml.createElement('Resources');
         for (var i in data.resources.attributesDefinitions) {
             node.appendChild(getAttributesDefinitionNode(data.resources.attributesDefinitions[i], i, xml));
         }
 
-        for (var i in data.resources.brushes) {
-            node.appendChild(getBrushNode(data.resources.brushes[i], i, xml));
-        }
+        if (!attributesOnly) {
+            for (var i in data.resources.brushes) {
+                node.appendChild(getBrushNode(data.resources.brushes[i], i, xml));
+            }
 
-        for (var i in data.resources.images) {
-            node.appendChild(getByteArrayNode(data.resources.images[i], i, xml));
-        }
+            for (var i in data.resources.images) {
+                node.appendChild(getByteArrayNode(data.resources.images[i], i, xml));
+            }
 
-        for (var i in data.resources.symbols) {
-            node.appendChild(getSymbolNode(data.resources.symbols[i], i, xml));
+            for (var i in data.resources.symbols) {
+                node.appendChild(getSymbolNode(data.resources.symbols[i], i, xml));
+            }
         }
 
         return node;
@@ -600,28 +602,34 @@
         return node;
     }
 
-    function getVisualObjectsNode(data, xml) {
+    function getVisualObjectsNode(data, xml, attributesOnly) {
         var node = xml.createElement('VisualObjects');
         for (var i in data.visualObjects) {
             if (data.visualObjects.hasOwnProperty(i)) {
-                node.appendChild(getGeometricNode(data.visualObjects[i], i, xml));
+                node.appendChild(getGeometricNode(data.visualObjects[i], xml, attributesOnly));
             }
         }
 
         return node;
     }
 
-    function getGeometricNode(visualObject, id, xml) {
+    function getGeometricNode(visualObject, xml, attributesOnly) {
         var node = xml.createElement('Geometric');
-        setNodeAttributes(node, {
-            Id: id,
-            VisualDefinition: visualObject.symbolIndex,
-            AttributesDefinition: visualObject.attributesIndex,
-            VisualDefinitionId: visualObject.feature.visualDefinitionId ? visualObject.feature.visualDefinitionId : '00000000-0000-0000-0000-000000000000',
-            GeneratorId: visualObject.feature.generatorId ? visualObject.feature.generatorId : '00000000-0000-0000-0000-000000000000'
-        });
+
+        var nodeAttributes = {
+            Id: visualObject.feature.id,
+            AttributesDefinition: visualObject.attributesIndex
+        };
+
+        if (!attributesOnly) {
+            nodeAttributes.VisualDefinition = visualObject.symbolIndex;
+            nodeAttributes.VisualDefinitionId = visualObject.feature.visualDefinitionId ? visualObject.feature.visualDefinitionId : visualObject.feature.visualDefinitionId === undefined ? undefined : '00000000-0000-0000-0000-000000000000';
+            nodeAttributes.GeneratorId = visualObject.feature.generatorId ? visualObject.feature.generatorId : visualObject.feature.generatorId === undefined ? undefined : '00000000-0000-0000-0000-000000000000';
+        }
+
+        setNodeAttributes(node, nodeAttributes);
         node.appendChild(getAttributesNode(visualObject, xml));
-        if (visualObject.feature instanceof sGis.Feature) {
+        if (!attributesOnly) {
             node.appendChild(getGeometryNode(visualObject.feature, xml));
         }
 
@@ -679,11 +687,11 @@
 
     function setNodeAttributes(node, attributes) {
         for (var i in attributes) {
-            if (attributes[i] !== "") node.setAttribute(i, attributes[i]);
+            if (attributes[i] !== "" && attributes[i] !== undefined) node.setAttribute(i, attributes[i]);
         }
     }
 
-    function getFormatedData(features) {
+    function getFormatedData(features, attributesOnly) {
         var data = {
             resources: {
                 attributesDefinitions: {},
@@ -695,9 +703,12 @@
             visualObjects: []
         };
         for (var i in features) {
-            var feature = features[i],
-                attributesIndex = getAttributesDefinitionIndex(feature.attributes, data.resources),
-                symbolIndex = getSymbolIndex(feature, data.resources);
+            var feature = features[i];
+            var attributesIndex = getAttributesDefinitionIndex(feature.attributes, data.resources);
+
+            if (!attributesOnly && features[i].symbol) {
+                var symbolIndex = getSymbolIndex(feature, data.resources);
+            }
 
             data.visualObjects[i] = {
                 feature: feature,

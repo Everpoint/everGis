@@ -43,8 +43,8 @@
             if (options && options.symbol) {
                 this.symbol = options.symbol;
                 delete options.symbol;
-            } else {
-                this.symbol = new this._defaultSymbol();
+            } else if (this._defaultSymbol) {
+                this.symbol = this._defaultSymbol;
             }
 
             utils.init(this, options);

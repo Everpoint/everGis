@@ -9,7 +9,7 @@
     };
 
     sGis.feature.Maptip.prototype = new sGis.Feature({
-        _defaultSymbol: sGis.symbol.maptip.Simple,
+        _defaultSymbol: new sGis.symbol.maptip.Simple(),
         _content: defaultContent
     });
 

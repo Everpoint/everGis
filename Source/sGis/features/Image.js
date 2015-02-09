@@ -13,7 +13,7 @@
         _width: 256,
         _height: 256,
         _opacity: 1,
-        _defaultSymbol: sGis.symbol.image.Image
+        _defaultSymbol: new sGis.symbol.image.Image()
     });
 
     Object.defineProperties(sGis.feature.Image.prototype, {

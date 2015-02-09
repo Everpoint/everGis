@@ -12,7 +12,7 @@
     };
 
     sGis.feature.Label.prototype = new sGis.Feature({
-        _defaultSymbol: sGis.symbol.label.Label,
+        _defaultSymbol: new sGis.symbol.label.Label(),
         _content: defaultDiv.cloneNode(true),
         _crs: sGis.CRS.geo,
 

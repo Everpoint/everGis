@@ -10,7 +10,7 @@
     };
 
     sGis.feature.Polyline.prototype = new sGis.Feature({
-        _defaultSymbol: sGis.symbol.polyline.Simple,
+        _defaultSymbol: new sGis.symbol.polyline.Simple(),
         _cache: {},
 
         addPoint: function(point, ring) {

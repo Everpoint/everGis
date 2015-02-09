@@ -13,7 +13,7 @@
 
     Object.defineProperties(sGis.feature.Polygon.prototype, {
         _defaultSymbol: {
-            value: sGis.symbol.polygon.Simple
+            value: new sGis.symbol.polygon.Simple()
         },
 
         _fillColor: {

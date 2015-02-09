@@ -331,6 +331,22 @@
         return copy;
     };
 
+    //TODO: this will not copy the inner arrays properly
+    utils.copyObject = function(obj) {
+        if (obj instanceof Array) {
+            return utils.copyArray(obj);
+        } else if (obj instanceof Object) {
+            var copy = {};
+            var keys = Object.keys(obj);
+            for (var i = 0; i < keys.length; i++) {
+                copy[keys[i]] = utils.copyObject(obj[keys[i]]);
+            }
+            return copy;
+        } else {
+            return obj;
+        }
+    };
+
     utils.getColorObject = function(color) {
         var canvas = document.createElement('canvas'),
             ctx = canvas.getContext('2d');

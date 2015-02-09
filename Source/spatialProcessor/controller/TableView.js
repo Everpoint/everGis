@@ -53,11 +53,11 @@
         },
 
         highlight: function(properties) {
-            var self = this;
+            var idsString = properties.ids ? '&ids=' + encodeURIComponent(JSON.stringify(properties.ids)) : '';
             this.__operation(function() {
                 return {
                     operation: 'tableView.highlight',
-                    dataParameters: 'queryId=' + properties.queryId + '&ids=' + encodeURIComponent(JSON.stringify(properties.ids)),
+                    dataParameters: 'queryId=' + properties.queryId + idsString,
                     success: properties.success,
                     error: properties.error,
                     requested: properties.requested
@@ -66,11 +66,27 @@
         },
 
         save: function(properties) {
-            var serializedAttributes = sGis.spatialProcessor.serializeAttributes(properties.attributes);
+            if (!properties.added && !properties.updated && !properties.deleted) utils.error('Edit description must contain at least one feature');
+
+            var edit = {added: properties.added, updated: properties.updated, deleted: properties.deleted},
+                xmlString = encodeURIComponent('<?xml version="1.0" encoding="utf-8"?>' + sGis.spatialProcessor.serializeGeometryEdit(edit, true));
+
             this.__operation(function() {
                 return {
                     operation: 'tableView.save',
-                    dataParameters: 'queryId=' + properties.queryId + '&changes=' + encodeURIComponent(serializedAttributes),
+                    dataParameters: 'queryId=' + properties.queryId + '&changes=' + xmlString,
+                    requested: properties.requested,
+                    error: properties.error,
+                    success: properties.success
+                };
+            });
+        },
+
+        createDrawingLayer: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.createDrawingLayer',
+                    dataParameters: 'queryId=' + properties.queryId + '&storageId=' + properties.storageId,
                     success: properties.success,
                     error: properties.error,
                     requested: properties.requested
