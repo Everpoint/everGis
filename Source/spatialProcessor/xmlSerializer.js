@@ -884,17 +884,8 @@
     };
 
     function colorToHex(color) {
-        var hex = '#',
-            colorObj = utils.getColorObject(color);
-
-        hex += toHex(colorObj.a) + toHex(colorObj.r) + toHex(colorObj.g) + toHex(colorObj.b);
-        return hex;
-    }
-
-    function toHex(str) {
-        var hex = parseInt(str).toString(16);
-        if (hex.length === 1) hex = '0' + hex;
-        return hex;
+        var c = new sGis.utils.Color(color);
+        return c.toString('hex');
     }
 
 })();

@@ -395,7 +395,8 @@ function parseOperationSuccess(data) {
 }
 
 function parseColor(color) {
-    return 'rgba(' + parseInt(color.substring(3, 5), 16) + ', ' + parseInt(color.substring(5, 7), 16) + ', ' + parseInt(color.substring(7, 9), 16) + ', ' + parseInt(color.substring(1, 3), 16) / 255 + ')';
+    var c = new sGis.utils.Color(color);
+    return c.toString();
 }
 
 })();

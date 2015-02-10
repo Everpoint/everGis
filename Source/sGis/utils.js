@@ -347,20 +347,6 @@
         }
     };
 
-    utils.getColorObject = function(color) {
-        var canvas = document.createElement('canvas'),
-            ctx = canvas.getContext('2d');
-        ctx.clearRect(0,0,1,1);
-
-        ctx.strokeStyle = color;
-        ctx.rect(0,0,1,1);
-        ctx.stroke();
-
-        var data = ctx.getImageData(0,0,1,1).data;
-
-        return {r: data[0], g: data[1], b: data[2], a: data[3]};
-    };
-
     /*
      * Copyright (c) 2010 Nick Galbreath
      * http://code.google.com/p/stringencoders/source/browse/#svn/trunk/javascript
