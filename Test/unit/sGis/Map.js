@@ -342,16 +342,6 @@ $(document).ready(function() {
                 expect(map.layers[1]).toBe(layer2);
             });
             
-            it('.addLayer() should cause the map to be fully redrawn if wrapper is specified', function() {
-                var map = new sGis.Map({wrapper: 'map'}),
-                    layer = new sGis.FeatureLayer();
-                    
-                spyOn(map, 'update');
-                map.addLayer(layer);
-                expect(map.update).toHaveBeenCalled();
-                expect(map.update.calls.length).toEqual(1);
-            });
-            
             it('.addLayer() should throw an error if the layer is already on the map', function() {
                 var map = new sGis.Map(),
                     layer = new sGis.FeatureLayer();

@@ -104,7 +104,7 @@
                 var feature = new sGis.feature.Polygon([[4100000, 7500000], [4200000, 7500000], [4200000, 7600000], [4100000, 7600000]], { crs: sp.map.crs });
                 
                 dataAccess.createObject({
-                    geometry: feature,
+                    object: feature,
                     templatePath: 'd:\\startup\\public.assetlib\\fb52ab32-c100-4122-8598-95511f50a8e1.asset',
                     layerStorageId: polygonLayerStorage,
                     error: function() {
@@ -117,7 +117,7 @@
                 var feature = new sGis.feature.Polyline([[4100000, 7500000], [4200000, 7500000], [4200000, 7600000], [4100000, 7600000]], { crs: sp.map.crs });
 
                 dataAccess.createObject({
-                    geometry: feature,
+                    object: feature,
                     templatePath: 'd:\\startup\\public.assetlib\\f9fae063-26f8-4de5-b7ba-66358aba8e1b.asset',
                     layerStorageId: polylineLayerStorage,
                     error: function() {
@@ -130,7 +130,7 @@
                 var feature = new sGis.feature.Point([4100000, 7500000], { crs: sp.map.crs });
 
                 dataAccess.createObject({
-                    geometry: feature,
+                    object: feature,
                     templatePath: 'd:\\startup\\public.assetlib\\14d706b9-b701-42fd-8f0c-8f347a7c2a7e.asset',
                     layerStorageId: pointLayerStorage,
                     error: function() {

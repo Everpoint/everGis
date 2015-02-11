@@ -97,19 +97,19 @@
                 map = new sGis.Map({wrapper: 'map'}),
                 osm = new sGis.TileLayer('http://b.tile.openstreetmap.org/{z}/{x}/{y}.png');
             
-//                map.addLayer(osm);
+                map.addLayer(osm);
                 
                 yandexMap = new sGis.TileLayer('http://vec01.maps.yandex.net/tiles?l=map&v=4.16.3&x={x}&y={y}&z={z}&lang=ru_RU', {crs: sGis.CRS.ellipticalMercator, opacity: 0.5, display: false});
-                map.addLayer(yandexMap);
+//                map.addLayer(yandexMap);
 
                 population = new sGis.ESRIDynamicLayer('http://gis.everpoint.ru/arcgis/rest/services/Population_Rosstat/Rosstat_ADM4_local/MapServer/', {display: false});
                 population.opacity = 0.5;
 //                map.addLayer(population);
 
+                map.addListner('click', function(sGisEvent) {
+                    alert(JSON.stringify(map.position.projectTo(sGis.CRS.geo)));
+                } );
 
-                function showAlert(sGisEvent) {
-                    alert(sGisEvent.mouseOffset.x + ', ' + sGisEvent.mouseOffset.y);
-                }
             };
             
             function toggleYandex() {

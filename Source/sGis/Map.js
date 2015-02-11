@@ -278,9 +278,6 @@
             //this._painter.cancelAnimation();
         },
 
-        /**
-         * Updates the display of the map
-         */
         update: function() {
 
         },

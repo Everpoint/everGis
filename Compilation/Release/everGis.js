@@ -1463,7 +1463,113 @@ function getPosition(e) {
         return result;
     };
 
-})();'use strict';
+})();
+
+'use strict';
+
+(function() {
+
+    /**
+     * @namespace
+     */
+    sGis.utils = {
+
+        /**
+         * If the handler sGis.onerror is set, calls this handler with 'message' parameter. Otherwise throws an exception with 'message' description
+         * @param message
+         */
+        error: function(message) {
+            if (sGis.onerror) {
+                sGis.onerror(message);
+            } else {
+                throw new Error(message);
+            }
+        },
+
+        /**
+         * Sets the values of the properties in 'options' to the 'object'. Calls sGis.utils.error() in case of exception
+         * @param {Object} object
+         * @param {Object} options
+         */
+        init: function(object, options) {
+            for (var i in options) {
+                if (options[i] !== undefined) {
+                    try {
+                        object[i] = options[i];
+                    } catch (e) {
+                        if (!(e instanceof TypeError)) sGis.utils.error(e);
+                    }
+                }
+            }
+        },
+
+        /**
+         * Return offset (in pixels) of the cursor relative to the target node
+         * @param {HTMLElement} target
+         * @param event - mouse event object
+         * @returns {{x: number, y: number}}
+         */
+        getMouseOffset: function(target, event) {
+            var docPos = getPosition(target);
+            return {x: event.pageX - docPos.x, y: event.pageY - docPos.y};
+        },
+
+        /**
+         * Returns position of element relative to the left top window corner
+         * @param {HTMLElement} element
+         * @returns {{x: number, y: number}} - position of element relative to the left top window corner
+         */
+        getPosition: function(element) {
+            var clientRect = element.getBoundingClientRect(),
+                x = (window.pageXOffset !== undefined) ? window.pageXOffset : (document.documentElement || document.body.parentNode || document.body).scrollLeft,
+                y = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
+            return {x: clientRect.left + x, y: clientRect.top + y};
+        }
+    };
+
+})();
+
+'use strict';
+
+(function() {
+
+    sGis.utils.validate = {
+        'function': function (obj) {
+            if (!sGis.utils.is.function(obj)) valError('Function', obj);
+        },
+        number: function(obj) {
+            if (!sGis.utils.is.number(obj)) valError('Number', obj);
+        },
+        string: function(obj) {
+            if (!sGis.utils.is.string(obj)) valError('String', obj);
+        },
+        array: function(obj) {
+            if (!sGis.utils.is.array(obj)) valError('Array', obj);
+        }
+    };
+
+    sGis.utils.is = {
+        'function': function(obj) {
+            return obj instanceof Function;
+        },
+        number: function(n) {
+            return !utils.isArray(n) && !isNaN(parseFloat(n)) && isFinite(n);
+        },
+        string: function(s) {
+            return typeof s === 'string';
+        },
+        array: function(obj) {
+            return Object.prototype.toString.call(obj) === '[object Array]';
+        }
+    };
+
+    function valError(type, obj) {
+        utils.error(type + ' is expected but got ' + obj + ' instead');
+    }
+
+})();
+
+'use strict';
 
 (function() {
 
@@ -3852,8 +3958,8 @@ function getPosition(e) {
             },
             matrix: {
                 '0': {
-                    resolution: 156543.03392800014 / 2,
-                    scale: 591657527.591555 / 2
+                    resolution: 156543.03392800014,
+                    scale: 591657527.591555
                 }
             }
         };
@@ -4510,7 +4616,257 @@ function getPosition(e) {
 
     document.head.appendChild(buttonStyle);
 
-})();(function() {
+})();
+
+'use strict';
+
+(function() {
+
+    sGis.decorations.ScaleSlider = function(map, options) {
+        this._map = map;
+        this._createGrid();
+        this._createSlider();
+
+        sGis.utils.init(this, options);
+        this.updateDisplay();
+    };
+
+    sGis.decorations.ScaleSlider.prototype = {
+        _gridCss: 'sGis-decorations-scaleSlider-grid',
+        _gridWidth: 8,
+        _gridHeight: 120,
+        _gridTop: 50,
+        _gridLeft: 50,
+        _sliderCss: 'sGis-decorations-scaleSlider-slider',
+        _sliderWidth: 25,
+        _sliderHeight: 10,
+        _eventNamespace: '.sGis-decorations-scaleSlider',
+
+        updateDisplay: function() {
+            var wrapper = this._map.wrapper;
+            if (wrapper) {
+                wrapper.appendChild(this._grid);
+                wrapper.appendChild(this._slider);
+            }
+        },
+
+        _createGrid: function() {
+            var grid = document.createElement('div');
+            grid.style.position = 'absolute';
+            grid.style.width = this._gridWidth + 'px';
+            grid.style.height = this._gridHeight + 'px';
+            grid.style.top = this._gridTop + 'px';
+            grid.style.left = this._gridLeft + 'px';
+            grid.className = this._gridCss;
+
+            this._grid = grid;
+        },
+
+        _createSlider: function() {
+            var slider = document.createElement('div');
+
+            slider.style.position = 'absolute';
+            slider.style.width = this._sliderWidth + 'px';
+            slider.style.height = this._sliderHeight + 'px';
+            slider.style.top = this._getSliderPosition() +  'px';
+            slider.style.left = this._getSliderLeft() + 'px';
+            slider.className = this._sliderCss;
+
+            this._slider = slider;
+            this._setSliderEvents();
+        },
+
+        _getSliderLeft: function() {
+            return this._gridLeft + (this._gridWidth - this._sliderWidth) / 2;
+        },
+
+        _getSliderPosition: function() {
+            var height = this._gridHeight - this._sliderHeight;
+            var maxResolution = this._map.maxResolution;
+            var minResolution = this._map.minResolution;
+            var curResolution = this._map.resolution;
+
+            var offset = height * Math.log2(curResolution / minResolution) / Math.log2(maxResolution / minResolution) ;
+            if (sGis.utils.is.number(offset)) {
+                return offset + this._gridTop;
+            } else {
+                return this._gridTop;
+            }
+        },
+
+        _setSliderEvents: function() {
+            var self = this;
+            this._map.addListner('dragStart' + this._eventNamespace, function(sGisEvent) {
+                if (sGisEvent.browserEvent.target === self._slider) {
+                    sGisEvent.draggingObject = self;
+                    self._map.painter.prohibitUpdate();
+                    sGisEvent.stopPropagation();
+                }
+            });
+
+            this._map.addListner('layerAdd layerRemove bboxChangeEnd', this._updateSliderPosition.bind(this));
+        },
+
+        _updateSliderPosition: function() {
+            this._slider.style.top = this._getSliderPosition() + 'px';
+        },
+
+        _moveSlider: function(delta) {
+            var offset = parseInt(this._slider.style.top) - this._gridTop;
+            offset -= delta;
+            if (offset < 0) {
+                offset = 0;
+            } else if (offset > this._gridHeight - this._sliderHeight) {
+                offset = this._gridHeight - this._sliderHeight;
+            }
+
+            this._slider.style.top = this._gridTop + offset + 'px';
+
+            var height = this._gridHeight - this._sliderHeight;
+            var maxResolution = this._map.maxResolution;
+            var minResolution = this._map.minResolution;
+
+            var resolution = minResolution * Math.pow(2, offset * Math.log2(maxResolution / minResolution) / height);
+            this._map.resolution = resolution;
+        },
+
+        _defaultHandlers: {
+            drag: function(sGisEvent) {
+                this._moveSlider(sGisEvent.offset.yPx);
+            },
+
+            dragEnd: function() {
+                this._map.painter.allowUpdate();
+                this._map.adjustResolution();
+            }
+        }
+    };
+
+    Object.defineProperties(sGis.decorations.ScaleSlider.prototype, {
+        map: {
+            get: function() {
+                return this._map;
+            }
+        },
+
+        gridCss: {
+            get: function() {
+                return this._gridCss;
+            },
+            set: function(css) {
+                sGis.utils.validate.string(css);
+                this._gridCss = css;
+                this._grid.className = css;
+            }
+        },
+
+        gridWidth: {
+            get: function() {
+                return this._gridWidth;
+            },
+            set: function(w) {
+                sGis.utils.validate.number(w);
+                this._gridWidth = w;
+
+                this._grid.style.width = w + 'px';
+            }
+        },
+
+        gridHeight: {
+            get: function() {
+                return this._gridHeight;
+            },
+            set: function(h) {
+                sGis.utils.validate.number(h);
+                this._gridHeight = h;
+
+                this._grid.style.height = h + 'px';
+            }
+        },
+
+        gridTop: {
+            get: function() {
+                return this._gridTop;
+            },
+            set: function(n) {
+                sGis.utils.validate.number(n);
+                this._gridTop = n;
+                this._grid.style.top = n + 'px';
+            }
+        },
+
+        gridLeft: {
+            get: function() {
+                return this._gridLeft;
+            },
+            set: function(n) {
+                sGis.utils.validate.number(n);
+                this._gridLeft = n;
+                this._grid.style.left = n + 'px';
+            }
+        },
+
+        sliderCss: {
+            get: function() {
+                return this._sliderCss;
+            },
+            set: function(css) {
+                sGis.utils.validate.string(css);
+                this._sliderCss = css;
+                this._slider.className = css;
+            }
+        },
+
+        sliderWidth: {
+            get: function() {
+                return this._sliderWidth;
+            },
+            set: function(w) {
+                sGis.utils.validate.number(w);
+                this._sliderWidth = w;
+
+                this._slider.style.width = w + 'px';
+                this._slider.style.left = this._getSliderLeft() + 'px';
+            }
+        },
+
+        sliderHeight: {
+            get: function() {
+                return this._sliderHeight;
+            },
+            set: function(h) {
+                sGis.utils.validate.number(h);
+                this._sliderHeight = h;
+
+                this._slider.style.height = h + 'px';
+            }
+        }
+    });
+
+    utils.mixin(sGis.decorations.ScaleSlider.prototype, sGis.IEventHandler.prototype);
+
+    var defaultCss = '.sGis-decorations-scaleSlider-grid {' +
+            'border: 1px solid gray; ' +
+            'background-color: #CCCCCC; ' +
+            'border-radius: 5px;} ' +
+            '.sGis-decorations-scaleSlider-slider {' +
+            'border: 1px solid gray;' +
+            'background-color: white;' +
+            'border-radius: 5px;' +
+            'cursor: pointer;}',
+        styles = document.createElement('style');
+    styles.type = 'text/css';
+    if (styles.styleSheet) {
+        styles.styleSheet.cssText = defaultCss;
+    } else {
+        styles.appendChild(document.createTextNode(defaultCss));
+    }
+
+    document.head.appendChild(styles);
+
+})();
+
+(function() {
 
     sGis.geom.Point = function(coordinates, attributes) {
         this.setCoordinates(coordinates);
