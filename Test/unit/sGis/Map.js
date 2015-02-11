@@ -14,7 +14,7 @@ $(document).ready(function() {
         });
 
         afterEach(function() {
-            $('#map').html('').width(0).height(0);;
+            $('#map').html('').width(0).height(0);
         });
         
         describe('creation', function() {
@@ -63,13 +63,39 @@ $(document).ready(function() {
             it('should set the position to 0,0 if map crs cannot be converted to WGS', function() {
                 var map = new sGis.Map({crs: sGis.CRS.plain});
                 
-                expect(map.position.x).toBe(0),
-                expect(map.position.y).toBe(0),
+                expect(map.position.x).toBe(0);
+                expect(map.position.y).toBe(0);
                 expect(map.position.crs).toBe(sGis.CRS.plain);
             });
         });
         
         describe('properties', function() {
+            var map;
+            beforeEach(function() {
+                map = new sGis.Map({wrapper: 'map'});
+            });
+
+            describe('.width and .height', function() {
+                it('should throw an exception if assigned value', function() {
+                    expect(function() { map.width = 200; }).toThrow();
+                    expect(function() { map.height = 200; }).toThrow();
+                });
+
+                it('should return the size of the map wrapper', function() {
+                    expect(map.width).toBe(500);
+                    expect(map.height).toBe(500);
+                });
+
+                it('should return correct value even if the size of the wrapper is changed', function() {
+                    var $wrapper = $('#map');
+                    $wrapper.width(200).height(300);
+
+                    map.updateSize();
+                    expect(map.width).toBe(200);
+                    expect(map.height).toBe(300);
+                });
+            });
+
             it ('getter only properties should throw exceptions', function() {
                 var map = new sGis.Map(),
                     layerWrapper = map.layerWrapper,
@@ -87,7 +113,7 @@ $(document).ready(function() {
                     expect(map.bbox).toBe(bbox);
             });
             
-            it('getter only properties should retrun correct values', function() {
+            it('getter only properties should return correct values', function() {
                 var map = new sGis.Map({wrapper: 'map'});
                 
                 expect(map.eventWrapper).not.toBe(null);
@@ -111,21 +137,22 @@ $(document).ready(function() {
                 expect(map.height).toBe(500);
                 expect(map._painter instanceof utils.Painter).toBeTruthy();
             });
-            
+            //todo: what if two maps are assigned the same wrapper?
             it('.wrapper should remove the map from the old wrapper and add to the new one', function() {
+                map.wrapper = null;
                 var $wrapper = $('<div id="map1" style="height: 400px; width: 400px;"></div>');
                 $(document.body).append($wrapper);
                 
-                var map = new sGis.Map({wrapper: 'map'}),
-                    layerWrapper = map.layerWrapper,
-                    painter = map._painter;
+                var map1 = new sGis.Map({wrapper: 'map'}),
+                    layerWrapper = map1.layerWrapper,
+                    painter = map1._painter;
                     
-                map.wrapper = 'map1';
+                map1.wrapper = 'map1';
                 
-                expect(map.height).toBe(400);
-                expect(map.width).toBe(400);
-                expect(map.layerWrapper).not.toBe(layerWrapper);
-                expect(map._painter).not.toBe(painter);
+                expect(map1.height).toBe(400);
+                expect(map1.width).toBe(400);
+                expect(map1.layerWrapper).not.toBe(layerWrapper);
+                expect(map1._painter).not.toBe(painter);
                 expect($('#map').html()).toBe('');
                 
                 $wrapper.remove();
