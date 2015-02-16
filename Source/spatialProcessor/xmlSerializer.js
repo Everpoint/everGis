@@ -763,6 +763,13 @@
                 Stroke: getBrushIndex(feature.style.strokeColor, resources),
                 type: symbolTypes[feature.type]
             };
+        } else if (feature.symbol instanceof sGis.symbol.polyline.Simple) {
+            newSymbol = {
+                StrokeThickness: feature.style.strokeWidth ? feature.style.strokeWidth : 1,
+                Opacity: 1,
+                Stroke: getBrushIndex(feature.style.strokeColor, resources),
+                type: symbolTypes[feature.type]
+            };
         } else {
             newSymbol = {
                 StrokeThickness: feature.style.strokeWidth ? feature.style.strokeWidth : 1,
@@ -844,6 +851,7 @@
 
         resources.lastKey++;
         resources.brushes[resources.lastKey] = color;
+        if (color === undefined) debugger;
         return resources.lastKey;
     }
 

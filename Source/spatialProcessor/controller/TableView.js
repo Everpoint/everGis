@@ -33,6 +33,7 @@
                             var objects = sGis.spatialProcessor.parseXML(data.content.VisualObjects);
                             objects.pagingInfo = data.content.PagingInfo;
                             objects.queryId = data.content.QueryId;
+                            objects.tableAttributesDefinition = data.content.AttributesDefinition;
 
                             if (properties.success) properties.success(objects);
                         } else if (!errorNotified) {
@@ -91,6 +92,18 @@
                     error: properties.error,
                     requested: properties.requested
                 }
+            });
+        },
+
+        applyAttributeDefinition: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.applyAttributeDefinition',
+                    dataParameters: 'queryId=' + properties.queryId + '&changes=' + encodeURIComponent(JSON.stringify(properties.changes)),
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
             });
         }
     });

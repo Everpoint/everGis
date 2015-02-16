@@ -35,7 +35,9 @@ sGis.browser = (function() {
 
 sGis.isTouch = 'ontouchstart' in document.documentElement;
 
-})();(function() {
+})();'use strict';
+
+(function() {
     
 sGis.geotools = {};
 
@@ -125,6 +127,74 @@ sGis.geotools.pointToLineProjection = function(point, line) {
             x = line[0][0] + t * lx,
             y = line[0][1] + t * ly;
         return [x, y];
+    }
+};
+
+/**
+ * Checks if a point is located inside a polygon.
+ * @param {Number[]} polygon - coordinates of polygon in format [[[x11, y11], [x12, y12], ...], [x21, y21], [x22, y22], ...], ...]. If there is only one counter outer array can be ommited.
+ * @param {[Number, Number]} point - coordinates of the point [x, y]
+ * @param {Number} [tolerance=0] - the tolerance of check. If the point is out of the polygon, but is closer then tolerance, the returned result will be true.
+ * @returns {boolean}
+ */
+sGis.geotools.contains = function(polygon, point, tolerance) {
+    sGis.utils.validate.array(polygon[0]);
+    sGis.utils.validate.array(point);
+    tolerance = tolerance || 0;
+    var intersectionCount = 0;
+
+    var polygonCoord = polygon[0][0][0] === undefined ? [polygon] : polygon;
+    for (var ring = 0, l = polygonCoord.length; ring < l; ring++) {
+        var points = polygonCoord[ring].concat([polygonCoord[ring][0]]),
+            prevD = points[0][0] > point[0],
+            prevH = points[0][1] > point[1];
+
+        for (var i = 1; i < points.length; i++) {
+            if (sGis.geotools.pointToLineDistance(point, [points[i - 1], points[i]]) <= tolerance) {
+                return true;
+            }
+
+            var D = points[i][0] > point[0],
+                H = points[i][1] > point[1];
+
+            if (H !== prevH //otherwise line does not intersect horizontal line
+                && (D > 0 || prevD > 0) //line is to the left from the point, but we look to the right
+            ) {
+                if (!(point[1] === points[i][1] && point[1] === points[i-1][1])) { //checks if line is horizontal and has same Y with point
+                    if (sGis.geotools.intersects([[points[i][0], points[i][1]], [points[i - 1][0], points[i - 1][1]]], [point, [Math.max(points[i][0], points[i - 1][0]), point[1]]])) {
+                        intersectionCount++;
+                    }
+                }
+            }
+            prevD = D;
+            prevH = H;
+        }
+        if (intersectionCount % 2 === 1) return true;
+    }
+
+    return false;
+};
+
+sGis.geotools.pointToLineDistance = function(point, line) {
+    var lx = line[1][0] - line[0][0],
+        ly = line[1][1] - line[0][1],
+        dx = line[0][0] - point[0],
+        dy = line[0][1] - point[1],
+        t = 0 - (dx * lx + dy * ly) / (lx * lx + ly * ly);
+
+    t = t < 0 ? 0 : t > 1 ? 1 : t;
+    return Math.sqrt(Math.pow(lx * t + dx, 2) + Math.pow(ly * t + dy, 2));
+};
+
+sGis.geotools.intersects = function(line1, line2) {
+    if (line1[0][0] === line1[1][0]) {
+        return line1[0][0] > line2[0][0];
+    } else {
+        var k = (line1[0][1] - line1[1][1]) / (line1[0][0] - line1[1][0]),
+            b = line1[0][1] - k * line1[0][0],
+            x = (line2[0][1] - b) / k;
+
+        return x > line2[0][0];
     }
 };
 
@@ -1214,18 +1284,20 @@ function getPosition(e) {
         return copy;
     };
 
-    utils.getColorObject = function(color) {
-        var canvas = document.createElement('canvas'),
-            ctx = canvas.getContext('2d');
-        ctx.clearRect(0,0,1,1);
-
-        ctx.strokeStyle = color;
-        ctx.rect(0,0,1,1);
-        ctx.stroke();
-
-        var data = ctx.getImageData(0,0,1,1).data;
-
-        return {r: data[0], g: data[1], b: data[2], a: data[3]};
+    //TODO: this will not copy the inner arrays properly
+    utils.copyObject = function(obj) {
+        if (obj instanceof Array) {
+            return utils.copyArray(obj);
+        } else if (obj instanceof Object) {
+            var copy = {};
+            var keys = Object.keys(obj);
+            for (var i = 0; i < keys.length; i++) {
+                copy[keys[i]] = utils.copyObject(obj[keys[i]]);
+            }
+            return copy;
+        } else {
+            return obj;
+        }
     };
 
     /*
@@ -1463,9 +1535,7 @@ function getPosition(e) {
         return result;
     };
 
-})();
-
-'use strict';
+})();'use strict';
 
 (function() {
 
@@ -1527,9 +1597,7 @@ function getPosition(e) {
         }
     };
 
-})();
-
-'use strict';
+})();'use strict';
 
 (function() {
 
@@ -1567,9 +1635,7 @@ function getPosition(e) {
         utils.error(type + ' is expected but got ' + obj + ' instead');
     }
 
-})();
-
-'use strict';
+})();'use strict';
 
 (function() {
 
@@ -1962,6 +2028,10 @@ function getPosition(e) {
     sGis.Bbox.prototype = {
         projectTo: function(crs) {
             return new sGis.Bbox(this.p[0].projectTo(crs), this.p[1].projectTo(crs));
+        },
+
+        clone: function() {
+            return this.projectTo(this.crs);
         },
 
         equals: function(bbox) {
@@ -2501,7 +2571,7 @@ function getPosition(e) {
                 displayedObjects = layerData.displayedObjects[feature.id];
                 if (displayedObjects) {
                     while (displayedObjects.length > 0) {
-                        displayedObjects[0].node.parentNode.removeChild(displayedObjects[0].node);
+                        if (displayedObjects[0].node.parentNode) displayedObjects[0].node.parentNode.removeChild(displayedObjects[0].node);
                         displayedObjects.splice(0, 1);
                     }
                 }
@@ -3057,7 +3127,12 @@ function getPosition(e) {
     /**
      *
      * @mixes sGis.IEventHandler.prototype
-     * @param options
+     * @param {Object} options
+     * @param {sGis.Crs} [options.crs=sGis.CRS.webMercator] - setting a crs that cannot be converted into WGS resets default values of position to [0, 0].
+     * @param {sGis.Point|sGis.feature.Point|Array} [options.position] - the start position of the map. If the array is specified as [x, y], it should be in map crs. By default center it is of Moscow.
+     * @param {Number} [options.resolution=305.74811] - initial resolution of the map
+     * @param {HTMLElement} [options.wrapper] - DOM container that will contain the map. It should be block element. If not specified, the map will not be displayed.
+     * @param {sGis.Layer} [options.layers[]] - the list of layers that will be initially on the map. The first in the list will be displayed at the bottom.
      * @constructor
      */
 
@@ -3069,7 +3144,6 @@ function getPosition(e) {
 
     sGis.Map.prototype = {
         _crs: sGis.CRS.webMercator,
-        _animate: true,
         _position: new sGis.Point(55.755831, 37.617673).projectTo(sGis.CRS.webMercator),
         _resolution: 611.4962262812505 / 2,
         _wrapper: null,
@@ -3077,6 +3151,7 @@ function getPosition(e) {
 
         /**
          * Sets the size of map equal to size of its wrapper
+         * TODO: need to get reed of this function
          */
         updateSize: function() {
             var resolution = this.resolution,
@@ -3330,9 +3405,6 @@ function getPosition(e) {
             //this._painter.cancelAnimation();
         },
 
-        /**
-         * Updates the display of the map
-         */
         update: function() {
 
         },
@@ -3857,13 +3929,18 @@ function getPosition(e) {
         }
     }
 
+    var wheelTimer = 0;
+    var minDelay = 50;
     function onwheel(event) {
-        var map = event.currentTarget.map,
-            wheelDirection = getWheelDirection(event),
-            mouseOffset = getMouseOffset(event.currentTarget, event);
+        var time = Date.now();
+        if (time - wheelTimer > minDelay) {
+            wheelTimer = time;
+            var map = event.currentTarget.map,
+                wheelDirection = getWheelDirection(event),
+                mouseOffset = getMouseOffset(event.currentTarget, event);
 
-        map.zoom(wheelDirection, map.getPointFromPxPosition(mouseOffset.x, mouseOffset.y));
-
+            map.zoom(wheelDirection, map.getPointFromPxPosition(mouseOffset.x, mouseOffset.y));
+        }
         event.preventDefault();
         return false;
     }
@@ -4390,235 +4467,233 @@ function getPosition(e) {
 })();'use strict';
 
 (function() {
+    
+sGis.decorations = {};
+    
+sGis.decorations.Scale = function(map, options) {
+    utils.init(this, options);
+    this._map  = map;
+    this.updateDisplay();
+};
 
-    sGis.decorations = {};
+sGis.decorations.Scale.prototype = {
+    _plusImageSrc: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAk0lEQVR4nO2XsQ2EMAxFHycKJrkSxvAETMkEGeMob5KUVFBQGCdCcvN/G8d6kuWnBJIztF4opXyBzSlZzewf7Te2AgATMD+ch/PpAHg1AhCAAAQwwKXXqMEeVQxEVVxPFW/4em2JB3fPnj4CAQggHeBcw5UkD/S8CWfg55QsZrZH+6WPQAACEIAAej6nFfBMV1uaHQE1GEAKbB76AAAAAElFTkSuQmCC',
+    _minusImageSrc: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAFpJREFUeNrs2LENwDAIAEETZTaGZjmsrODGQrkv6E+igejuNblnDQ8AAAAAAAAAAAAA4L+A9xtVNe4sy8ywQgAAAAAAALcLz10AAAAAAAAAAAAAAACAs7YAAwDJuQpbR1QAogAAAABJRU5ErkJggg==',
+    _xAlign: 'left',
+    _yAlign: 'top',
+    _xOffset: 32,
+    _yOffset: 32,
+    _width: 32,
+    _height: 32,
+    _horizontal: false,
+    _css: 'sGis-decorations-button',
+    _plusCss: '',
+    _minusCss: '',
+    
+    updateDisplay: function() {
+        if (this._buttons) {
+            this._map.wrapper.removeChild(this._buttons.plus);
+            this._map.wrapper.removeChild(this._buttons.minus);
+        }
+        
+        var buttons = {
+            plus: getButton(this._plusImageSrc, this, this._plusCss),
+            minus: getButton(this._minusImageSrc, this, this._minusCss)
+        };
+        
+        if (this._horizontal) {
+            var but = this._xAlign === 'right' ? 'plus' : 'minus';
+            buttons[but].style[this._xAlign] = this._xOffset + this._width + 4 + 'px';
+        } else {
+            var but = this._yAlign === 'bottom' ? 'plus' : 'minus';
+            buttons[but].style[this._yAlign] = this._yOffset + this._height + 4 + 'px';
+        }
+        
+        var map = this._map;
+        buttons.plus.onclick = function(e) {
+            map.animateChangeScale(0.5);
+            e.stopPropagation();
+        };
+        buttons.minus.onclick = function(e) {
+            map.animateChangeScale(2);
+            e.stopPropagation();
+        };
 
-    sGis.decorations.Scale = function(map, options) {
-        utils.init(this, options);
-        this._map  = map;
-        this.updateDisplay();
-    };
-
-    sGis.decorations.Scale.prototype = {
-        _plusImageSrc: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAk0lEQVR4nO2XsQ2EMAxFHycKJrkSxvAETMkEGeMob5KUVFBQGCdCcvN/G8d6kuWnBJIztF4opXyBzSlZzewf7Te2AgATMD+ch/PpAHg1AhCAAAQwwKXXqMEeVQxEVVxPFW/4em2JB3fPnj4CAQggHeBcw5UkD/S8CWfg55QsZrZH+6WPQAACEIAAej6nFfBMV1uaHQE1GEAKbB76AAAAAElFTkSuQmCC',
-        _minusImageSrc: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAFpJREFUeNrs2LENwDAIAEETZTaGZjmsrODGQrkv6E+igejuNblnDQ8AAAAAAAAAAAAA4L+A9xtVNe4sy8ywQgAAAAAAALcLz10AAAAAAAAAAAAAAACAs7YAAwDJuQpbR1QAogAAAABJRU5ErkJggg==',
-        _xAlign: 'left',
-        _yAlign: 'top',
-        _xOffset: 32,
-        _yOffset: 32,
-        _width: 32,
-        _height: 32,
-        _horizontal: false,
-        _css: 'sGis-decorations-button',
-        _plusCss: '',
-        _minusCss: '',
-
-        updateDisplay: function() {
-            if (this._buttons) {
-                this._map.wrapper.removeChild(this._buttons.plus);
-                this._map.wrapper.removeChild(this._buttons.minus);
-            }
-
-            var buttons = {
-                plus: getButton(this._plusImageSrc, this, this._plusCss),
-                minus: getButton(this._minusImageSrc, this, this._minusCss)
-            };
-
-            if (this._horizontal) {
-                var but = this._xAlign === 'right' ? 'plus' : 'minus';
-                buttons[but].style[this._xAlign] = this._xOffset + this._width + 4 + 'px';
-            } else {
-                var but = this._yAlign === 'bottom' ? 'plus' : 'minus';
-                buttons[but].style[this._yAlign] = this._yOffset + this._height + 4 + 'px';
-            }
-
-            var map = this._map;
-            buttons.plus.onclick = function(e) {
-                map.animateChangeScale(0.5);
-                e.stopPropagation();
-            };
-            buttons.minus.onclick = function(e) {
-                map.animateChangeScale(2);
-                e.stopPropagation();
-            };
-
-            buttons.plus.ondblclick = function(e) {
-                e.stopPropagation();
-            };
-            buttons.minus.ondblclick = function(e) {
-                e.stopPropagation();
-            };
-
-            if (map.wrapper) {
+        buttons.plus.ondblclick = function(e) {
+            e.stopPropagation();
+        };
+        buttons.minus.ondblclick = function(e) {
+            e.stopPropagation();
+        };
+        
+        if (map.wrapper) {
+            map.wrapper.appendChild(buttons.plus);
+            map.wrapper.appendChild(buttons.minus);
+        } else {
+            map.addListner('wrapperSet', function() {
                 map.wrapper.appendChild(buttons.plus);
                 map.wrapper.appendChild(buttons.minus);
-            } else {
-                map.addListner('wrapperSet', function() {
-                    map.wrapper.appendChild(buttons.plus);
-                    map.wrapper.appendChild(buttons.minus);
-                });
-            }
+            });
         }
-    };
-
-    Object.defineProperties(sGis.decorations.Scale.prototype, {
-        map: {
-            get: function() {
-                return this._map;
-            }
-        },
-
-        plusImageSrc: {
-            get: function() {
-                return this._plusImageSrc;
-            },
-            set: function(src) {
-                utils.validateString(src);
-                this._plusImageSrc = src;
-            }
-        },
-
-        minusImageSrc: {
-            get: function() {
-                return this._minusImageSrc;
-            },
-            set: function(src) {
-                utils.validateString(src);
-                this._minusImageSrc = src;
-            }
-        },
-
-        xAlign: {
-            get: function() {
-                return this._xAlign;
-            },
-            set: function(align) {
-                utils.validateValue(align, ['left', 'right']);
-                this._xAlign = align;
-            }
-        },
-
-        yAlign: {
-            get: function() {
-                return this._yAlign;
-            },
-            set: function(align) {
-                utils.validateValue(align, ['top', 'bottom']);
-                this._yAlign = align;
-            }
-        },
-
-        xOffset: {
-            get: function() {
-                return this._xOffset;
-            },
-            set: function(offset) {
-                utils.validateNumber(offset);
-                this._xOffset = offset;
-            }
-        },
-
-        yOffset: {
-            get: function() {
-                return this._yOffset;
-            },
-            set: function(offset) {
-                utils.validateNumber(offset);
-                this._yOffset = offset;
-            }
-        },
-
-        width: {
-            get: function() {
-                return this._width;
-            },
-            set: function(width) {
-                utils.validatePositiveNumber(width);
-                this._width = width;
-            }
-        },
-
-        height: {
-            get: function() {
-                return this._height;
-            },
-            set: function(height) {
-                utils.validatePositiveNumber(height);
-                this._height = height;
-            }
-        },
-
-        horizontal: {
-            get: function() {
-                return this._horizontal;
-            },
-            set: function(bool) {
-                utils.validateBool(bool);
-                this._horizontal = bool;
-            }
-        },
-
-        css: {
-            get: function() {
-                return this._css;
-            },
-            set: function(css) {
-                utils.validateString(css);
-                this._css = css;
-            }
-        },
-
-        plusCss: {
-            get: function() {
-                return this._plusCss;
-            },
-            set: function(css) {
-                utils.validateString(css);
-                this._plusCss = css;
-            }
-        },
-
-        minusCss: {
-            get: function() {
-                return this._minusCss;
-            },
-            set: function(css) {
-                utils.validateString(css);
-                this._minusCss = css;
-            }
-        }
-    });
-
-    function getButton(src, control, css) {
-        var button = document.createElement('div');
-        button.className = control.css + ' ' + css;
-        button.style[control.xAlign] = control.xOffset + 'px';
-        button.style[control.yAlign] = control.yOffset + 'px';
-        button.style.width = control.width + 'px';
-        button.style.height = control.height + 'px';
-        button.style.position = 'absolute';
-        button.style.backgroundSize = '100%';
-        if (src) {
-            button.style.backgroundImage = 'url(' + src + ')';
-        }
-
-        return button;
     }
+};
 
-    var defaultCss = '.sGis-decorations-button {border: 1px solid gray; background-color: #F0F0F0; border-radius: 5px; font-size: 32px; text-align: center;cursor: pointer;} .sGis-decorations-button:hover {background-color: #E0E0E0;}',
-        buttonStyle = document.createElement('style');
-    buttonStyle.type = 'text/css';
-    if (buttonStyle.styleSheet) {
-        buttonStyle.styleSheet.cssText = defaultCss;
-    } else {
-        buttonStyle.appendChild(document.createTextNode(defaultCss));
+Object.defineProperties(sGis.decorations.Scale.prototype, {
+    map: {
+        get: function() {
+            return this._map;
+        }
+    },
+    
+    plusImageSrc: {
+        get: function() {
+            return this._plusImageSrc;
+        },
+        set: function(src) {
+            utils.validateString(src);
+            this._plusImageSrc = src;
+        }
+    },
+    
+    minusImageSrc: {
+        get: function() {
+            return this._minusImageSrc;
+        },
+        set: function(src) {
+            utils.validateString(src);
+            this._minusImageSrc = src;
+        }
+    },
+    
+    xAlign: {
+        get: function() {
+            return this._xAlign;
+        },
+        set: function(align) {
+            utils.validateValue(align, ['left', 'right']);
+            this._xAlign = align;
+        }
+    },
+    
+    yAlign: {
+        get: function() {
+            return this._yAlign;
+        },
+        set: function(align) {
+            utils.validateValue(align, ['top', 'bottom']);
+            this._yAlign = align;
+        }
+    },
+    
+    xOffset: {
+        get: function() {
+            return this._xOffset;
+        },
+        set: function(offset) {
+            utils.validateNumber(offset);
+            this._xOffset = offset;
+        }
+    },
+    
+    yOffset: {
+        get: function() {
+            return this._yOffset;
+        },
+        set: function(offset) {
+            utils.validateNumber(offset);
+            this._yOffset = offset;
+        }
+    },
+    
+    width: {
+        get: function() {
+            return this._width;
+        },
+        set: function(width) {
+            utils.validatePositiveNumber(width);
+            this._width = width;
+        }
+    },
+    
+    height: {
+        get: function() {
+            return this._height;
+        },
+        set: function(height) {
+            utils.validatePositiveNumber(height);
+            this._height = height;
+        }
+    },
+    
+    horizontal: {
+        get: function() {
+            return this._horizontal;
+        },
+        set: function(bool) {
+            utils.validateBool(bool);
+            this._horizontal = bool;
+        }
+    },
+    
+    css: {
+        get: function() {
+            return this._css;
+        },
+        set: function(css) {
+            utils.validateString(css);
+            this._css = css;
+        }
+    },
+
+    plusCss: {
+        get: function() {
+            return this._plusCss;
+        },
+        set: function(css) {
+            utils.validateString(css);
+            this._plusCss = css;
+        }
+    },
+
+    minusCss: {
+        get: function() {
+            return this._minusCss;
+        },
+        set: function(css) {
+            utils.validateString(css);
+            this._minusCss = css;
+        }
     }
+});
 
-    document.head.appendChild(buttonStyle);
+function getButton(src, control, css) {
+    var button = document.createElement('div');
+    button.className = control.css + ' ' + css;
+    button.style[control.xAlign] = control.xOffset + 'px';
+    button.style[control.yAlign] = control.yOffset + 'px';
+    button.style.width = control.width + 'px';
+    button.style.height = control.height + 'px';
+    button.style.position = 'absolute';
+    button.style.backgroundSize = '100%';
+    if (src) {
+        button.style.backgroundImage = 'url(' + src + ')';
+    }
+    
+    return button;
+}
+    
+var defaultCss = '.sGis-decorations-button {border: 1px solid gray; background-color: #F0F0F0; border-radius: 5px; font-size: 32px; text-align: center;cursor: pointer;} .sGis-decorations-button:hover {background-color: #E0E0E0;}',
+    buttonStyle = document.createElement('style');
+buttonStyle.type = 'text/css';
+if (buttonStyle.styleSheet) {
+    buttonStyle.styleSheet.cssText = defaultCss;
+} else {
+    buttonStyle.appendChild(document.createTextNode(defaultCss));
+}
 
-})();
+document.head.appendChild(buttonStyle);
 
-'use strict';
+})();'use strict';
 
 (function() {
 
@@ -4864,9 +4939,7 @@ function getPosition(e) {
 
     document.head.appendChild(styles);
 
-})();
-
-(function() {
+})();(function() {
 
     sGis.geom.Point = function(coordinates, attributes) {
         this.setCoordinates(coordinates);
@@ -5094,40 +5167,9 @@ function getPosition(e) {
         contains: {
             value: function (a, b) {
                 var position = b && isValidPoint([a, b]) ? [a, b] : utils.isArray(a) && isValidPoint(a) ? a : a.x && a.y ? [a.x, a.y] : utils.error('Point coordinates are expecred but got ' + a + ' instead'),
-                    coordinates = this._coordinates,
-                    intersectionCount = 0;
+                    coordinates = this._coordinates;
 
-                for (var ring = 0, l = coordinates.length; ring < l; ring++) {
-                    var points = coordinates[ring],
-                        prevD = points[0][0] > position[0],
-                        prevH = points[0][1] > position[1];
-
-                    points[points.length] = points[0]; // to include the line between the first and the last points
-
-                    for (var i = 1; i < points.length; i++) {
-                        if (pointToLineDistance(position, [points[i - 1], points[i]]) < this._width / 2 + 2) {
-                            return true;
-                        }
-
-                        var D = points[i][0] > position[0],
-                            H = points[i][1] > position[1];
-
-                        if (H !== prevH //othervise line does not intersect horizontal line
-                            && (D > 0 || prevD > 0) //line is to the left from the point, but we look to the right
-                        ) {
-                            if (points[i - 1][1] !== position[1]) {
-                                if (intersects([[points[i][0], points[i][1]], [points[i - 1][0], points[i - 1][1]]], [position, [Math.max(points[i][0], points[i - 1][0]), position[1]]])) {
-                                    intersectionCount++;
-                                }
-                            }
-
-                        }
-                        prevD = D;
-                        prevH = H;
-                    }
-                }
-
-                return intersectionCount % 2 === 1;
+                return sGis.geotools.contains(coordinates, position, this.width / 2 + 2);
             }
         },
 
@@ -5170,29 +5212,8 @@ function getPosition(e) {
         }
     });
 
-    function intersects(line1, line2) {
-        if (line1[0][0] === line1[1][0]) {
-            return line1[0][0] > line2[0][0];
-        } else {
-            var k = (line1[0][1] - line1[1][1]) / (line1[0][0] - line1[1][0]),
-                b = line1[0][1] - k * line1[0][0],
-                x = (line2[0][1] - b) / k;
-
-            return x > line2[0][0];
-        }
-    }
-
-    function pointToLineDistance(point, line) {
-        var lx = line[1][0] - line[0][0],
-            ly = line[1][1] - line[0][1],
-            dx = line[0][0] - point[0],
-            dy = line[0][1] - point[1],
-            t = 0 - (dx * lx + dy * ly) / (lx * lx + ly * ly);
-
-        t = t < 0 ? 0 : t > 1 ? 1 : t;
-        var distance = Math.sqrt(Math.pow(lx * t + dx, 2) + Math.pow(ly * t + dy, 2));
-
-        return distance;
+    function isValidPoint(point) {
+        return utils.isArray(point) & utils.isNumber(point[0]) && utils.isNumber(point[1]);
     }
 
 })();(function() {
@@ -6224,8 +6245,8 @@ function getPosition(e) {
             if (options && options.symbol) {
                 this.symbol = options.symbol;
                 delete options.symbol;
-            } else {
-                this.symbol = new this._defaultSymbol();
+            } else if (this._defaultSymbol) {
+                this.symbol = this._defaultSymbol;
             }
 
             utils.init(this, options);
@@ -6328,7 +6349,7 @@ function getPosition(e) {
     };
 
     sGis.feature.Point.prototype = new sGis.Feature({
-        _defaultSymbol: sGis.symbol.point.Point,
+        _defaultSymbol: new sGis.symbol.point.Point(),
         _crs: sGis.CRS.geo,
 
         projectTo: function(crs) {
@@ -6436,7 +6457,7 @@ function getPosition(e) {
     };
 
     sGis.feature.Polyline.prototype = new sGis.Feature({
-        _defaultSymbol: sGis.symbol.polyline.Simple,
+        _defaultSymbol: new sGis.symbol.polyline.Simple(),
         _cache: {},
 
         addPoint: function(point, ring) {
@@ -6679,7 +6700,7 @@ function getPosition(e) {
 
     Object.defineProperties(sGis.feature.Polygon.prototype, {
         _defaultSymbol: {
-            value: sGis.symbol.polygon.Simple
+            value: new sGis.symbol.polygon.Simple()
         },
 
         _fillColor: {
@@ -6712,6 +6733,26 @@ function getPosition(e) {
                     symbol: this.symbol
                 });
             }
+        },
+
+        /**
+         * Checks if the point is inside the polygon
+         * @param {sGis.Point|sGis.feature.Point|Array} point - The point to check. Coordinates can be given in [x, y] format (must be in polygon crs)
+         * @return {Boolean}
+         */
+        contains: {
+            value: function(point) {
+                var pointCoordinates;
+                if (point instanceof sGis.Point || point instanceof sGis.feature.Point) {
+                    pointCoordinates = point.projectTo(this.crs).coordinates;
+                } else if (sGis.utils.is.array(point)) {
+                    pointCoordinates = point;
+                } else {
+                    utils.error('Invalid format of the point');
+                }
+
+                return sGis.geotools.contains(this.coordinates, pointCoordinates);
+            }
         }
     });
 
@@ -6729,7 +6770,7 @@ function getPosition(e) {
     };
 
     sGis.feature.Label.prototype = new sGis.Feature({
-        _defaultSymbol: sGis.symbol.label.Label,
+        _defaultSymbol: new sGis.symbol.label.Label(),
         _content: defaultDiv.cloneNode(true),
         _crs: sGis.CRS.geo,
 
@@ -6818,7 +6859,7 @@ function getPosition(e) {
     };
 
     sGis.feature.Maptip.prototype = new sGis.Feature({
-        _defaultSymbol: sGis.symbol.maptip.Simple,
+        _defaultSymbol: new sGis.symbol.maptip.Simple(),
         _content: defaultContent
     });
 
@@ -6884,7 +6925,7 @@ function getPosition(e) {
         _width: 256,
         _height: 256,
         _opacity: 1,
-        _defaultSymbol: sGis.symbol.image.Image
+        _defaultSymbol: new sGis.symbol.image.Image()
     });
 
     Object.defineProperties(sGis.feature.Image.prototype, {
@@ -6910,7 +6951,17 @@ function getPosition(e) {
                 return this._bbox.projectTo(this.crs);
             },
             set: function(bbox) {
-                var adjBbox = bbox instanceof sGis.Bbox ? bbox : new sGis.Bbox(bbox[0], bbox[1], this.crs);
+                var adjBbox;
+                if (bbox instanceof sGis.Bbox) {
+                    if (this._crs) {
+                        adjBbox = bbox.projectTo(this._crs);
+                    } else {
+                        adjBbox = bbox;
+                        this._crs = bbox.crs;
+                    }
+                } else {
+                    adjBbox = new sGis.Bbox(bbox[0], bbox[1], this._crs || sGis.CRS.geo);
+                }
                 if (!this._bbox || !this._bbox.equals(adjBbox)) {
                     this._bbox = adjBbox;
                     this._cache = null;
@@ -6923,12 +6974,11 @@ function getPosition(e) {
                 return this._bbox && this._bbox.crs || this._crs;
             },
             set: function(crs) {
-                if (this.crs !== crs) {
+                if (this._crs !== crs) {
                     if (this._bbox) {
                         this._bbox.crs = crs;
-                    } else {
-                        this._crs = crs;
                     }
+                    this._crs = crs;
                     this._cache = null;
                 }
             }
@@ -9000,6 +9050,356 @@ function finishDrawing(control) {
     }
 
 })();'use strict';
+(function() {
+    sGis.utils.Color = function(string) {
+        this._original = string;
+        this._color = string.trim();
+        this._setChannels();
+    };
+
+    sGis.utils.Color.prototype = {
+        _setChannels: function() {
+            var format = this.format;
+            if (format && formats[format]) {
+                this._channels = formats[format](this._color);
+            } else {
+                this._channels = {};
+            }
+        },
+        toString: function(format) {
+            if (format === 'hex') {
+                return '#' + decToHex(this.a) + decToHex(this.r) + decToHex(this.g) + decToHex(this.b);
+            } else {
+                return 'rgba(' + this.r + ',' + this.g + ',' + this.b + ',' + (this.a / 255).toFixed(7).replace(/\.*0+$/, '') + ')';
+            }
+        }
+    };
+
+    function decToHex(dec) {
+        var hex = Math.floor(dec).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    }
+
+    Object.defineProperties(sGis.utils.Color.prototype, {
+        original: {
+            get: function() {
+                return this._original;
+            }
+        },
+
+        isValid: {
+            get: function() {
+                return !!(utils.isNumber(this._channels.a) && utils.isNumber(this._channels.r) && utils.isNumber(this._channels.g) && utils.isNumber(this._channels.b));
+            }
+        },
+
+        format: {
+            get: function() {
+                if (this._color.substr(0, 1) === '#' && this._color.search(/[^#0-9a-fA-F]/) === -1) {
+                    if (this._color.length === 4) {
+                        return 'hex3';
+                    } else if (this._color.length === 7) {
+                        return 'hex6';
+                    } else if (this._color.length === 5) {
+                        return 'hex4';
+                    } else if (this._color.length === 9) {
+                        return 'hex8';
+                    }
+                } else if (this._color.substr(0, 4) === 'rgb(') {
+                    return 'rgb';
+                } else if (this._color.substr(0, 5) === 'rgba(') {
+                    return 'rgba';
+                } else if (this._color in sGis.utils.Color.names) {
+                    return 'name';
+                }
+            }
+        },
+        r: {
+            get: function() {
+                return this._channels.r;
+            }
+        },
+        g: {
+            get: function() {
+                return this._channels.g;
+            }
+        },
+        b: {
+            get: function() {
+                return this._channels.b;
+            }
+        },
+        a: {
+            get: function() {
+                return this._channels.a;
+            }
+        },
+        channels: {
+            get: function() {
+                return {
+                    a: this._channels.a,
+                    r: this._channels.r,
+                    g: this._channels.g,
+                    b: this._channels.b
+                }
+            }
+        }
+    });
+
+    var formats = {
+        hex3: function(string) {
+            return {
+                r: parseInt(string.substr(1,1) + string.substr(1,1), 16),
+                g: parseInt(string.substr(2,1) + string.substr(2,1), 16),
+                b: parseInt(string.substr(3,1) + string.substr(3,1), 16),
+                a: 255
+            }
+        },
+        hex6: function(string) {
+            return {
+                r: parseInt(string.substr(1,2), 16),
+                g: parseInt(string.substr(3,2), 16),
+                b: parseInt(string.substr(5,2), 16),
+                a: 255
+            }
+        },
+        hex4: function(string) {
+            return {
+                r: parseInt(string.substr(2,1) + string.substr(2,1), 16),
+                g: parseInt(string.substr(3,1) + string.substr(3,1), 16),
+                b: parseInt(string.substr(4,1) + string.substr(4,1), 16),
+                a: parseInt(string.substr(1,1) + string.substr(1,1), 16)
+            }
+        },
+        hex8: function(string) {
+            return {
+                r: parseInt(string.substr(3,2), 16),
+                g: parseInt(string.substr(5,2), 16),
+                b: parseInt(string.substr(7,2), 16),
+                a:  parseInt(string.substr(1,2), 16)
+            }
+        },
+        rgb: function(string) {
+            var percents = string.match(/%/g);
+            if (!percents || percents.length === 3) {
+                var channels = string.substring(string.search(/\(/) + 1, string.length - 1).split(',');
+                for (var i = 0; i < 3; i++) {
+                    if (channels[i]) {
+                        channels[i] = channels[i].trim();
+                        var percent = channels[i].match(/[\.\d\-]+%/);
+                        if (percent) {
+                            var points = channels[i].match(/\./g);
+                            channels[i] = channels[i].search(/[^\d\.\-%]/) === -1 && (!points || points.length < 2) ? parseFloat(percent[0]) : NaN;
+                            if (channels[i] < 0) {
+                                channels[i] = 0;
+                            } else if (channels[i] > 100) {
+                                channels[i] = 100;
+                            }
+                            channels[i] = Math.floor(channels[i] * 255  / 100);
+                        } else {
+                            channels[i] = channels[i] && (channels[i].match(/[^ \-0-9]/) === null) && channels[i].match(/[0-9]+/g).length === 1 ? parseInt(channels[i]) : NaN;
+                            if (channels[i] < 0) {
+                                channels[i] = 0;
+                            } else if (channels[i] > 255) {
+                                channels[i] = 255;
+                            }
+                        }
+                    }
+                }
+            } else {
+                channels = [];
+            }
+            return {
+                r: channels[0],
+                g: channels[1],
+                b: channels[2],
+                a: 255
+            };
+        },
+
+        rgba: function(string) {
+            var channels = formats.rgb(string);
+            channels.a = undefined;
+
+            var match = string.match(/[\-0-9\.]+/g);
+            if (match && match[3]) {
+                var points = match[3].match(/\./g);
+                if (!points || points.length === 1) {
+                    channels.a = parseFloat(match[3]);
+                    if (channels.a < 0) {
+                        channels.a = 0;
+                    } else if (channels.a > 1) {
+                        channels.a = 1;
+                    }
+                    channels.a *= 255;
+                }
+            }
+            return channels;
+        },
+        name: function(string) {
+            var color = new sGis.utils.Color('#' + sGis.utils.Color.names[string]);
+            return color.channels;
+        }
+    };
+
+
+    // Big List of Colors
+// ------------------
+// <http://www.w3.org/TR/css3-color/#svg-color>
+   sGis.utils.Color.names = {
+        aliceblue: "f0f8ff",
+        antiquewhite: "faebd7",
+        aqua: "0ff",
+        aquamarine: "7fffd4",
+        azure: "f0ffff",
+        beige: "f5f5dc",
+        bisque: "ffe4c4",
+        black: "000",
+        blanchedalmond: "ffebcd",
+        blue: "00f",
+        blueviolet: "8a2be2",
+        brown: "a52a2a",
+        burlywood: "deb887",
+        burntsienna: "ea7e5d",
+        cadetblue: "5f9ea0",
+        chartreuse: "7fff00",
+        chocolate: "d2691e",
+        coral: "ff7f50",
+        cornflowerblue: "6495ed",
+        cornsilk: "fff8dc",
+        crimson: "dc143c",
+        cyan: "0ff",
+        darkblue: "00008b",
+        darkcyan: "008b8b",
+        darkgoldenrod: "b8860b",
+        darkgray: "a9a9a9",
+        darkgreen: "006400",
+        darkgrey: "a9a9a9",
+        darkkhaki: "bdb76b",
+        darkmagenta: "8b008b",
+        darkolivegreen: "556b2f",
+        darkorange: "ff8c00",
+        darkorchid: "9932cc",
+        darkred: "8b0000",
+        darksalmon: "e9967a",
+        darkseagreen: "8fbc8f",
+        darkslateblue: "483d8b",
+        darkslategray: "2f4f4f",
+        darkslategrey: "2f4f4f",
+        darkturquoise: "00ced1",
+        darkviolet: "9400d3",
+        deeppink: "ff1493",
+        deepskyblue: "00bfff",
+        dimgray: "696969",
+        dimgrey: "696969",
+        dodgerblue: "1e90ff",
+        firebrick: "b22222",
+        floralwhite: "fffaf0",
+        forestgreen: "228b22",
+        fuchsia: "f0f",
+        gainsboro: "dcdcdc",
+        ghostwhite: "f8f8ff",
+        gold: "ffd700",
+        goldenrod: "daa520",
+        gray: "808080",
+        green: "008000",
+        greenyellow: "adff2f",
+        grey: "808080",
+        honeydew: "f0fff0",
+        hotpink: "ff69b4",
+        indianred: "cd5c5c",
+        indigo: "4b0082",
+        ivory: "fffff0",
+        khaki: "f0e68c",
+        lavender: "e6e6fa",
+        lavenderblush: "fff0f5",
+        lawngreen: "7cfc00",
+        lemonchiffon: "fffacd",
+        lightblue: "add8e6",
+        lightcoral: "f08080",
+        lightcyan: "e0ffff",
+        lightgoldenrodyellow: "fafad2",
+        lightgray: "d3d3d3",
+        lightgreen: "90ee90",
+        lightgrey: "d3d3d3",
+        lightpink: "ffb6c1",
+        lightsalmon: "ffa07a",
+        lightseagreen: "20b2aa",
+        lightskyblue: "87cefa",
+        lightslategray: "789",
+        lightslategrey: "789",
+        lightsteelblue: "b0c4de",
+        lightyellow: "ffffe0",
+        lime: "0f0",
+        limegreen: "32cd32",
+        linen: "faf0e6",
+        magenta: "f0f",
+        maroon: "800000",
+        mediumaquamarine: "66cdaa",
+        mediumblue: "0000cd",
+        mediumorchid: "ba55d3",
+        mediumpurple: "9370db",
+        mediumseagreen: "3cb371",
+        mediumslateblue: "7b68ee",
+        mediumspringgreen: "00fa9a",
+        mediumturquoise: "48d1cc",
+        mediumvioletred: "c71585",
+        midnightblue: "191970",
+        mintcream: "f5fffa",
+        mistyrose: "ffe4e1",
+        moccasin: "ffe4b5",
+        navajowhite: "ffdead",
+        navy: "000080",
+        oldlace: "fdf5e6",
+        olive: "808000",
+        olivedrab: "6b8e23",
+        orange: "ffa500",
+        orangered: "ff4500",
+        orchid: "da70d6",
+        palegoldenrod: "eee8aa",
+        palegreen: "98fb98",
+        paleturquoise: "afeeee",
+        palevioletred: "db7093",
+        papayawhip: "ffefd5",
+        peachpuff: "ffdab9",
+        peru: "cd853f",
+        pink: "ffc0cb",
+        plum: "dda0dd",
+        powderblue: "b0e0e6",
+        purple: "800080",
+        rebeccapurple: "663399",
+        red: "f00",
+        rosybrown: "bc8f8f",
+        royalblue: "4169e1",
+        saddlebrown: "8b4513",
+        salmon: "fa8072",
+        sandybrown: "f4a460",
+        seagreen: "2e8b57",
+        seashell: "fff5ee",
+        sienna: "a0522d",
+        silver: "c0c0c0",
+        skyblue: "87ceeb",
+        slateblue: "6a5acd",
+        slategray: "708090",
+        slategrey: "708090",
+        snow: "fffafa",
+        springgreen: "00ff7f",
+        steelblue: "4682b4",
+        tan: "d2b48c",
+        teal: "008080",
+        thistle: "d8bfd8",
+        tomato: "ff6347",
+        turquoise: "40e0d0",
+        violet: "ee82ee",
+        wheat: "f5deb3",
+        white: "fff",
+        whitesmoke: "f5f5f5",
+        yellow: "ff0",
+        yellowgreen: "9acd32",
+        transparent: 'rgba(0,0,0,0)'
+    };
+
+})();'use strict';
 
 (function() {
 
@@ -9844,14 +10244,14 @@ function finishDrawing(control) {
         return getXML(formatedData);
     };
 
-    sGis.spatialProcessor.serializeGeometryEdit = function(editDescription) {
+    sGis.spatialProcessor.serializeGeometryEdit = function(editDescription, attributesOnly) {
         var featureList = [];
         for (var i in editDescription) {
             if (utils.isArray(editDescription[i])) featureList = featureList.concat(editDescription[i]);
         }
 
-        var formatedData = getFormatedData(featureList);
-        return getXML(formatedData, editDescription);
+        var formatedData = getFormatedData(featureList, attributesOnly);
+        return getXML(formatedData, editDescription, attributesOnly);
     };
 
     sGis.spatialProcessor.serializeSymbols = function(symbols) {
@@ -9872,21 +10272,40 @@ function finishDrawing(control) {
         return text;
     };
 
+    sGis.spatialProcessor.serializeAttributes = function(attributes) {
+        var data = {
+            resources: {
+                attributesDefinitions: {},
+                lastKey: -1
+            },
+            visualObjects: []
+        };
+
+        for (var i in attributes) {
+            if (attributes.hasOwnProperty(i)) {
+                var attributesIndex = getAttributesDefinitionIndex(attributes[i], data.resources);
+                data.visualObjects[i] = {attributesIndex: attributesIndex, feature: {id: i, attributes: attributes[i]}};
+            }
+        }
+
+        return getXML(data);
+    };
+
     var featureClasses = {
         point: sGis.feature.Point,
         polyline: sGis.feature.Polyline,
         polygon: sGis.feature.Polygon
     };
 
-    function getXML(data, editDescription) {
+    function getXML(data, editDescription, attributesOnly) {
         var xml = getNewXMLDocument(),
             dataNode = xml.getElementsByTagName('Data')[0];
 
         dataNode.appendChild(getSerializerGeometricSettingsNode(xml));
         dataNode.appendChild(getSerializerCalloutSettingsNode(xml));
-        dataNode.appendChild(getResourcesNode(data, xml));
-        dataNode.appendChild(getVisualObjectsNode(data, xml));
-        if (editDescription) dataNode.appendChild(getEditCommandsNode(editDescription, xml));
+        dataNode.appendChild(getResourcesNode(data, xml, attributesOnly));
+        dataNode.appendChild(getVisualObjectsNode(data, xml, attributesOnly));
+        if (editDescription) dataNode.appendChild(getEditCommandsNode(editDescription, xml, attributesOnly));
 
         var text = new XMLSerializer().serializeToString(xml);
         return text;
@@ -9898,7 +10317,7 @@ function finishDrawing(control) {
         return parser.parseFromString('<Data />', 'text/xml');
     }
 
-    function getEditCommandsNode(editDescription, xml) {
+    function getEditCommandsNode(editDescription, xml, attributesOnly) {
         var node = xml.createElement('EditCommands');
         if (utils.isArray(editDescription.added)) {
             for (var i in editDescription.added) {
@@ -9907,7 +10326,7 @@ function finishDrawing(control) {
         }
         if (utils.isArray(editDescription.updated)) {
             for (var i in editDescription.updated) {
-                node.appendChild(getUpdateObjectNode(editDescription.updated[i], xml));
+                node.appendChild(getUpdateObjectNode(editDescription.updated[i], xml, attributesOnly));
             }
         }
         if (utils.isArray(editDescription.deleted)) {
@@ -9926,11 +10345,11 @@ function finishDrawing(control) {
         return node;
     }
 
-    function getUpdateObjectNode(feature, xml) {
+    function getUpdateObjectNode(feature, xml, attributesOnly) {
         var node = xml.createElement('UpdateObject');
         setNodeAttributes(node, {
             Id: feature.id,
-            OnlyAttributes: "False"
+            OnlyAttributes: attributesOnly || "False"
         });
         return node;
     }
@@ -9947,7 +10366,7 @@ function finishDrawing(control) {
         var node = xml.createElement('SerializerSettings');
         setNodeAttributes(node, {
             Type: 'Geometric',
-            Version: '0',
+            //Version: '0',
             GeometryVersion: '2'
         });
 
@@ -9965,22 +10384,24 @@ function finishDrawing(control) {
         return node;
     }
 
-    function getResourcesNode(data, xml) {
+    function getResourcesNode(data, xml, attributesOnly) {
         var node = xml.createElement('Resources');
         for (var i in data.resources.attributesDefinitions) {
             node.appendChild(getAttributesDefinitionNode(data.resources.attributesDefinitions[i], i, xml));
         }
 
-        for (var i in data.resources.brushes) {
-            node.appendChild(getBrushNode(data.resources.brushes[i], i, xml));
-        }
+        if (!attributesOnly) {
+            for (var i in data.resources.brushes) {
+                node.appendChild(getBrushNode(data.resources.brushes[i], i, xml));
+            }
 
-        for (var i in data.resources.images) {
-            node.appendChild(getByteArrayNode(data.resources.images[i], i, xml));
-        }
+            for (var i in data.resources.images) {
+                node.appendChild(getByteArrayNode(data.resources.images[i], i, xml));
+            }
 
-        for (var i in data.resources.symbols) {
-            node.appendChild(getSymbolNode(data.resources.symbols[i], i, xml));
+            for (var i in data.resources.symbols) {
+                node.appendChild(getSymbolNode(data.resources.symbols[i], i, xml));
+            }
         }
 
         return node;
@@ -10131,26 +10552,36 @@ function finishDrawing(control) {
         return node;
     }
 
-    function getVisualObjectsNode(data, xml) {
+    function getVisualObjectsNode(data, xml, attributesOnly) {
         var node = xml.createElement('VisualObjects');
         for (var i in data.visualObjects) {
-            node.appendChild(getGeometricNode(data.visualObjects[i], xml));
+            if (data.visualObjects.hasOwnProperty(i)) {
+                node.appendChild(getGeometricNode(data.visualObjects[i], xml, attributesOnly));
+            }
         }
 
         return node;
     }
 
-    function getGeometricNode(visualObject, xml) {
+    function getGeometricNode(visualObject, xml, attributesOnly) {
         var node = xml.createElement('Geometric');
-        setNodeAttributes(node, {
+
+        var nodeAttributes = {
             Id: visualObject.feature.id,
-            VisualDefinition: visualObject.symbolIndex,
-            AttributesDefinition: visualObject.attributesIndex,
-            VisualDefinitionId: visualObject.feature.visualDefinitionId ? visualObject.feature.visualDefinitionId : '00000000-0000-0000-0000-000000000000',
-            GeneratorId: visualObject.feature.generatorId ? visualObject.feature.generatorId : '00000000-0000-0000-0000-000000000000'
-        });
+            AttributesDefinition: visualObject.attributesIndex
+        };
+
+        if (!attributesOnly) {
+            nodeAttributes.VisualDefinition = visualObject.symbolIndex;
+            nodeAttributes.VisualDefinitionId = visualObject.feature.visualDefinitionId ? visualObject.feature.visualDefinitionId : visualObject.feature.visualDefinitionId === undefined ? undefined : '00000000-0000-0000-0000-000000000000';
+            nodeAttributes.GeneratorId = visualObject.feature.generatorId ? visualObject.feature.generatorId : visualObject.feature.generatorId === undefined ? undefined : '00000000-0000-0000-0000-000000000000';
+        }
+
+        setNodeAttributes(node, nodeAttributes);
         node.appendChild(getAttributesNode(visualObject, xml));
-        node.appendChild(getGeometryNode(visualObject.feature, xml));
+        if (!attributesOnly) {
+            node.appendChild(getGeometryNode(visualObject.feature, xml));
+        }
 
         return node;
     }
@@ -10206,11 +10637,11 @@ function finishDrawing(control) {
 
     function setNodeAttributes(node, attributes) {
         for (var i in attributes) {
-            if (attributes[i] !== "") node.setAttribute(i, attributes[i]);
+            if (attributes[i] !== "" && attributes[i] !== undefined) node.setAttribute(i, attributes[i]);
         }
     }
 
-    function getFormatedData(features) {
+    function getFormatedData(features, attributesOnly) {
         var data = {
             resources: {
                 attributesDefinitions: {},
@@ -10222,9 +10653,12 @@ function finishDrawing(control) {
             visualObjects: []
         };
         for (var i in features) {
-            var feature = features[i],
-                attributesIndex = getAttributesDefinitionIndex(feature, data.resources),
-                symbolIndex = getSymbolIndex(feature, data.resources);
+            var feature = features[i];
+            var attributesIndex = getAttributesDefinitionIndex(feature.attributes, data.resources);
+
+            if (!attributesOnly && features[i].symbol) {
+                var symbolIndex = getSymbolIndex(feature, data.resources);
+            }
 
             data.visualObjects[i] = {
                 feature: feature,
@@ -10373,14 +10807,14 @@ function finishDrawing(control) {
         return resources.lastKey;
     }
 
-    function getAttributesDefinitionIndex(feature, resources) {
+    function getAttributesDefinitionIndex(attributes, resources) {
         var attributesDefinitions = resources.attributesDefinitions;
         for (var i in attributesDefinitions) {
             var same = true;
-            for (var j in feature.attributes) {
-                if (!feature.attributes.type || !feature.attributes.title || !feature.attributes.size) continue;
-                if (feature.attributes[j].title !== attributesDefinitions[i][j].title ||
-                    feature.attributes[j].type !== attributesDefinitions[i][j].type) same = false;
+            for (var j in attributes) {
+                if (!attributes.type || !attributes.title || !attributes.size) continue;
+                if (attributes[j].title !== attributesDefinitions[i][j].title ||
+                    attributes[j].type !== attributesDefinitions[i][j].type) same = false;
             }
 
             if (same) {
@@ -10389,7 +10823,7 @@ function finishDrawing(control) {
         }
 
         resources.lastKey++;
-        attributesDefinitions[resources.lastKey] = feature.attributes;
+        attributesDefinitions[resources.lastKey] = attributes;
         return resources.lastKey;
     }
 
@@ -10400,17 +10834,8 @@ function finishDrawing(control) {
     };
 
     function colorToHex(color) {
-        var hex = '#',
-            colorObj = utils.getColorObject(color);
-
-        hex += toHex(colorObj.a) + toHex(colorObj.r) + toHex(colorObj.g) + toHex(colorObj.b);
-        return hex;
-    }
-
-    function toHex(str) {
-        var hex = parseInt(str).toString(16);
-        if (hex.length === 1) hex = '0' + hex;
-        return hex;
+        var c = new sGis.utils.Color(color);
+        return c.toString('hex');
     }
 
 })();'use strict';
@@ -11174,6 +11599,7 @@ sGis.spatialProcessor.Controller.prototype = {
     query: function(properties) {
         this.__operation(function() {
             var data;
+            var self = this;
             if (properties.geometry) {
                 data = JSON.stringify({rings: properties.geometry.coordinates, spatialReference: properties.geometry.crs.getWkidString()});
             } else if (properties.storageId) {
@@ -11191,7 +11617,7 @@ sGis.spatialProcessor.Controller.prototype = {
                 requested: properties.requested,
                 error: properties.error,
                 success: !properties.success ? undefined : function(response) {
-                    properties.success(createFeatures(response, properties.crs || properties.geometry.crs));
+                    properties.success(createFeatures(response, properties.crs || properties.geometry && properties.geometry.crs || self._map && self._map.crs));
                 }
             };
         });
@@ -11245,7 +11671,7 @@ sGis.spatialProcessor.Controller.prototype = {
     autoComplete: function(properties) {
         var coordinates = properties.line.coordinates;
         var crs = properties.line.crs;
-        var dataParameters = 'a=' + encodeURIComponent(JSON.stringify([{paths: coordinates, spatialReference: crs.getWkidString()}])) + '&b=i' + encodeURIComponent(JSON.stringify(properties.ids)) + '&geometryVersion=2';
+        var dataParameters = 'a=' + encodeURIComponent(JSON.stringify([{paths: coordinates, spatialReference: crs.getWkidString()}])) + '&b=i' + encodeURIComponent(JSON.stringify(properties.ids))// + '&geometryVersion=2';
 
         if (properties.layerStorageId) dataParameters += '&id=' + encodeURIComponent(properties.layerStorageId.replace(/-/g, ''));
 
@@ -11431,7 +11857,8 @@ function parseOperationSuccess(data) {
 }
 
 function parseColor(color) {
-    return 'rgba(' + parseInt(color.substring(3, 5), 16) + ', ' + parseInt(color.substring(5, 7), 16) + ', ' + parseInt(color.substring(7, 9), 16) + ', ' + parseInt(color.substring(1, 3), 16) / 255 + ')';
+    var c = new sGis.utils.Color(color);
+    return c.toString();
 }
 
 })();'use strict';
@@ -12040,21 +12467,46 @@ function hexToRGBA(hex) {
         },
 
         highlight: function(properties) {
-            var self = this;
+            var idsString = properties.ids ? '&ids=' + encodeURIComponent(JSON.stringify(properties.ids)) : '';
             this.__operation(function() {
                 return {
                     operation: 'tableView.highlight',
-                    dataParameters: 'queryId=' + properties.queryId + '&ids=' + encodeURIComponent(JSON.stringify(properties.ids)),
+                    dataParameters: 'queryId=' + properties.queryId + idsString,
                     success: properties.success,
                     error: properties.error,
                     requested: properties.requested
                 };
             });
-        }
+        },
 
-        //save: function(properties) {
-        //    var geometryString =
-        //}
+        save: function(properties) {
+            if (!properties.added && !properties.updated && !properties.deleted) utils.error('Edit description must contain at least one feature');
+
+            var edit = {added: properties.added, updated: properties.updated, deleted: properties.deleted},
+                xmlString = encodeURIComponent('<?xml version="1.0" encoding="utf-8"?>' + sGis.spatialProcessor.serializeGeometryEdit(edit, true));
+
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.save',
+                    dataParameters: 'queryId=' + properties.queryId + '&changes=' + xmlString,
+                    requested: properties.requested,
+                    error: properties.error,
+                    success: properties.success
+                };
+            });
+        },
+
+        createDrawingLayer: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.createDrawingLayer',
+                    dataParameters: 'queryId=' + properties.queryId + '&storageId=' + properties.storageId,
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                }
+            });
+        }
     });
 
 })();(function() {
