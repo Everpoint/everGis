@@ -107,6 +107,18 @@
             });
         },
 
+        setAttributeDefinition: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.setAttributeDefinition',
+                    dataParameters: 'queryId=' + properties.queryId + '&changes=' + encodeURIComponent(JSON.stringify(properties.changes)) + '&attributeDefinition=' + encodeURIComponent(JSON.stringify(properties.attributesDefinition)),
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
+        },
+
         validateExpression: function(properties) {
             this.__operation(function() {
                 return {
