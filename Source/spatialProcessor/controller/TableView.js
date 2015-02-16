@@ -105,6 +105,42 @@
                     requested: properties.requested
                 };
             });
+        },
+
+        validateExpression: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.validateFunc',
+                    dataParameters: 'queryId=' + properties.queryId + '&expression=' + encodeURIComponent(properties.expression) + '&resultType=' + encodeURIComponent(properties.resultType),
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
+        },
+
+        batchEdit: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.batchEdit',
+                    dataParameters: 'queryId=' + properties.queryId + '&attribute=' + encodeURIComponent(properties.attribute) + '&newValue=' + encodeURIComponent(properties.value),
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                }
+            });
+        },
+
+        batchFuncEdit: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.batchFuncEdit',
+                    dataParameters: 'queryId=' + properties.queryId + '&attribute=' + encodeURIComponent(properties.attribute) + '&expression=' + encodeURIComponent(properties.expression),
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                }
+            });
         }
     });
 
