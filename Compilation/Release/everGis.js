@@ -1286,10 +1286,9 @@ function getPosition(e) {
 
     //TODO: this will not copy the inner arrays properly
     utils.copyObject = function(obj) {
-        if (obj instanceof Array) {
-            return utils.copyArray(obj);
-        } else if (obj instanceof Object) {
-            var copy = {};
+        if (obj instanceof Object) {
+
+            var copy = utils.isArray(obj) ? [] : {};
             var keys = Object.keys(obj);
             for (var i = 0; i < keys.length; i++) {
                 copy[keys[i]] = utils.copyObject(obj[keys[i]]);
@@ -4205,6 +4204,27 @@ function getPosition(e) {
             set: function(time) {
                 this._transitionTime = time;
             }
+        },
+
+        opacity: {
+            get: function() {
+                return this._opacity;
+            },
+
+            set: function(opacity) {
+                if (!utils.isNumber(opacity)) error('Expected a number but got "' + opacity + '" instead');
+                opacity = opacity < 0 ? 0 : opacity > 1 ? 1 : opacity;
+                this._opacity = opacity;
+
+                for (var scale in this._tiles) {
+                    for (var x in this._tiles[scale]) {
+                        for (var y in this._tiles[scale][x]) {
+                            this._tiles[scale][x][y].opacity = opacity;
+                        }
+                    }
+                }
+                this.fire('propertyChange', {property: 'opacity'});
+            }
         }
     });
 
@@ -4253,13 +4273,12 @@ function getPosition(e) {
             if (!this._features) this._createFeature(bbox);
             var width  = bbox.width / resolution;
             var height = bbox.height / resolution;
-            if (this._forceUpdate || !this._features[0].bbox.equals(bbox) || this._features[0].width !== width || this._features[0].height !== height || this._features[0].opacity !== this.opacity) {
+            if (this._forceUpdate || !this._features[0].bbox.equals(bbox) || this._features[0].width !== width || this._features[0].height !== height) {
                 var url = this.getImageUrl(bbox, resolution);
                 this._features[0].src = url;
                 this._features[0].bbox = bbox;
                 this._features[0].width = bbox.width / resolution;
                 this._features[0].height = bbox.height / resolution;
-                this._features[0].opacity = this.opacity;
             }
 
             return this._features;
@@ -4313,6 +4332,20 @@ function getPosition(e) {
             set: function(crs) {
                 if (crs && !(crs instanceof sGis.Crs)) utils.error('sGis.Crs instance is expected but got ' + crs + ' instead');
                 this._crs = crs;
+            }
+        },
+
+        opacity: {
+            get: function() {
+                return this._opacity;
+            },
+
+            set: function(opacity) {
+                if (!utils.isNumber(opacity)) error('Expected a number but got "' + opacity + '" instead');
+                opacity = opacity < 0 ? 0 : opacity > 1 ? 1 : opacity;
+                this._opacity = opacity;
+                if (this._features && this._features[0]) this._features[0].opacity = opacity;
+                this.fire('propertyChange', {property: 'opacity'});
             }
         }
     });
@@ -7019,7 +7052,7 @@ document.head.appendChild(buttonStyle);
             set: function(opacity) {
                 if (this._opacity !== opacity) {
                     this._opacity = opacity;
-                    this._cache = null;
+                    if (this._cache && this._cache[0].node) this._cache[0].node.style.opacity = opacity;
                 }
             }
         }
@@ -10713,6 +10746,13 @@ function finishDrawing(control) {
                 Stroke: getBrushIndex(feature.style.strokeColor, resources),
                 type: symbolTypes[feature.type]
             };
+        } else if (feature.symbol instanceof sGis.symbol.polyline.Simple) {
+            newSymbol = {
+                StrokeThickness: feature.style.strokeWidth ? feature.style.strokeWidth : 1,
+                Opacity: 1,
+                Stroke: getBrushIndex(feature.style.strokeColor, resources),
+                type: symbolTypes[feature.type]
+            };
         } else {
             newSymbol = {
                 StrokeThickness: feature.style.strokeWidth ? feature.style.strokeWidth : 1,
@@ -10794,6 +10834,7 @@ function finishDrawing(control) {
 
         resources.lastKey++;
         resources.brushes[resources.lastKey] = color;
+        if (color === undefined) debugger;
         return resources.lastKey;
     }
 
@@ -10849,6 +10890,14 @@ function finishDrawing(control) {
     };
 
     sGis.spatialProcessor.Sfs.prototype = {
+        list: function(properties) {
+            this.__operation('list', properties);
+        },
+
+        download: function(properties) {
+            this.__operation('download', properties);
+        },
+
         getFolderList: function(properties) {
             var success = properties.success;
             properties.success = function(data) {
@@ -10926,7 +10975,7 @@ function finishDrawing(control) {
             function requestOperation() {
                 self._spatialProcessor.removeListner('.sfs');
                 utils.ajax({
-                    url: self._spatialProcessor.url + 'sfs/?operation=' + operation + '&path=' + encodeURIComponent(properties.path) + '&_sb=' + self._spatialProcessor.sessionId,
+                    url: self._spatialProcessor.url + 'efs/?operation=' + operation + '&path=' + encodeURIComponent(properties.path) + '&_sb=' + self._spatialProcessor.sessionId,
                     error: function(data) {
                         if (properties.error) properties.error(data);
                     },
@@ -11734,7 +11783,7 @@ sGis.spatialProcessor.Controller.prototype = {
                 requested: properties.requested,
                 error: properties.error,
                 success: function(response) {
-                    debugger;
+                    if (properties.success) properties.success(response.content);
                 }
             };
         });
@@ -12447,6 +12496,7 @@ function hexToRGBA(hex) {
                             var objects = sGis.spatialProcessor.parseXML(data.content.VisualObjects);
                             objects.pagingInfo = data.content.PagingInfo;
                             objects.queryId = data.content.QueryId;
+                            objects.tableAttributesDefinition = data.content.AttributesDefinition;
 
                             if (properties.success) properties.success(objects);
                         } else if (!errorNotified) {
@@ -12501,6 +12551,66 @@ function hexToRGBA(hex) {
                 return {
                     operation: 'tableView.createDrawingLayer',
                     dataParameters: 'queryId=' + properties.queryId + '&storageId=' + properties.storageId,
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                }
+            });
+        },
+
+        applyAttributeDefinition: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.applyAttributeDefinition',
+                    dataParameters: 'queryId=' + properties.queryId + '&changes=' + encodeURIComponent(JSON.stringify(properties.changes)),
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
+        },
+
+        setAttributeDefinition: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.setAttributeDefinition',
+                    dataParameters: 'queryId=' + properties.queryId + '&changes=' + encodeURIComponent(JSON.stringify(properties.changes)) + '&attributeDefinition=' + encodeURIComponent(JSON.stringify(properties.attributesDefinition)),
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
+        },
+
+        validateExpression: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.validateFunc',
+                    dataParameters: 'queryId=' + properties.queryId + '&expression=' + encodeURIComponent(properties.expression) + '&resultType=' + encodeURIComponent(properties.resultType),
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
+        },
+
+        batchEdit: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.batchEdit',
+                    dataParameters: 'queryId=' + properties.queryId + '&attribute=' + encodeURIComponent(properties.attribute) + '&newValue=' + encodeURIComponent(properties.value),
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                }
+            });
+        },
+
+        batchFuncEdit: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.batchFuncEdit',
+                    dataParameters: 'queryId=' + properties.queryId + '&attribute=' + encodeURIComponent(properties.attribute) + '&expression=' + encodeURIComponent(properties.expression),
                     success: properties.success,
                     error: properties.error,
                     requested: properties.requested
