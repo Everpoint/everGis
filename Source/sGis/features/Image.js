@@ -107,7 +107,7 @@
             set: function(opacity) {
                 if (this._opacity !== opacity) {
                     this._opacity = opacity;
-                    this._cache = null;
+                    if (this._cache && this._cache[0].node) this._cache[0].node.style.opacity = opacity;
                 }
             }
         }

@@ -272,7 +272,7 @@ sGis.spatialProcessor.Controller.prototype = {
                 requested: properties.requested,
                 error: properties.error,
                 success: function(response) {
-                    debugger;
+                    if (properties.success) properties.success(response.content);
                 }
             };
         });

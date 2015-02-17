@@ -20,13 +20,12 @@
             if (!this._features) this._createFeature(bbox);
             var width  = bbox.width / resolution;
             var height = bbox.height / resolution;
-            if (this._forceUpdate || !this._features[0].bbox.equals(bbox) || this._features[0].width !== width || this._features[0].height !== height || this._features[0].opacity !== this.opacity) {
+            if (this._forceUpdate || !this._features[0].bbox.equals(bbox) || this._features[0].width !== width || this._features[0].height !== height) {
                 var url = this.getImageUrl(bbox, resolution);
                 this._features[0].src = url;
                 this._features[0].bbox = bbox;
                 this._features[0].width = bbox.width / resolution;
                 this._features[0].height = bbox.height / resolution;
-                this._features[0].opacity = this.opacity;
             }
 
             return this._features;
@@ -80,6 +79,20 @@
             set: function(crs) {
                 if (crs && !(crs instanceof sGis.Crs)) utils.error('sGis.Crs instance is expected but got ' + crs + ' instead');
                 this._crs = crs;
+            }
+        },
+
+        opacity: {
+            get: function() {
+                return this._opacity;
+            },
+
+            set: function(opacity) {
+                if (!utils.isNumber(opacity)) error('Expected a number but got "' + opacity + '" instead');
+                opacity = opacity < 0 ? 0 : opacity > 1 ? 1 : opacity;
+                this._opacity = opacity;
+                if (this._features && this._features[0]) this._features[0].opacity = opacity;
+                this.fire('propertyChange', {property: 'opacity'});
             }
         }
     });

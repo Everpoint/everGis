@@ -183,6 +183,27 @@
             set: function(time) {
                 this._transitionTime = time;
             }
+        },
+
+        opacity: {
+            get: function() {
+                return this._opacity;
+            },
+
+            set: function(opacity) {
+                if (!utils.isNumber(opacity)) error('Expected a number but got "' + opacity + '" instead');
+                opacity = opacity < 0 ? 0 : opacity > 1 ? 1 : opacity;
+                this._opacity = opacity;
+
+                for (var scale in this._tiles) {
+                    for (var x in this._tiles[scale]) {
+                        for (var y in this._tiles[scale][x]) {
+                            this._tiles[scale][x][y].opacity = opacity;
+                        }
+                    }
+                }
+                this.fire('propertyChange', {property: 'opacity'});
+            }
         }
     });
 
