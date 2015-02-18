@@ -129,7 +129,26 @@
                     return null;
                 }
             }
+        },
+
+        geometryType: {
+            get: function() {
+                return this._layerInfo && geometryTypes[this._layerInfo.geometryType];
+            }
+        },
+
+        isEditable: {
+            get: function() {
+                return this._layerInfo && this._layerInfo.CanEdit;
+            }
         }
     });
+
+    var geometryTypes = {
+        esriGeometryPoint: 'point',
+        esriGeometryLine: 'line',
+        esriGeometryPolyline: 'polyline',
+        esriGeometryPolygon: 'polygon'
+    };
 
 })();
