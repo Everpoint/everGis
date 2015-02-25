@@ -84,10 +84,10 @@
         /**
          * Moves the map bounding box by the given number of pixels
          * @param {int} dx - Offset along X axis in pixels, positive direction is right
-         * @param {int} dy - Offset along Y axis in pisels, positive direction is down
+         * @param {int} dy - Offset along Y axis in pixels, positive direction is down
          */
         move: function(dx, dy) {
-            for (var i in this._bbox.p) {
+            for (var i = 0; i < 2; i++) {
                 this._bbox.p[i].x += dx;
                 this._bbox.p[i].y += dy;
             }
@@ -96,8 +96,8 @@
         },
 
         /**
-         * Changes the scle of map by scalingK
-         * @param {float} scalingK - Koefficient of scaling (Ex. 5 -> 5 times zoom in)
+         * Changes the scale of map by scalingK
+         * @param {Number} scalingK - Coefficient of scaling (Ex. 5 -> 5 times zoom in)
          * @param {sGis.Point} basePoint - /optional/ Base point of zooming
          */
         changeScale: function(scalingK, basePoint) {
@@ -106,17 +106,12 @@
         },
 
         /**
-         * Changes the scle of map by scalingK with animation
-         * @param {float} scalingK - Koefficient of scaling (Ex. 5 -> 5 times zoom in)
+         * Changes the scale of map by scalingK with animation
+         * @param {float} scalingK - Coefficient of scaling (Ex. 5 -> 5 times zoom in)
          * @param {sGis.Point} basePoint - /optional/ Base point of zooming
          */
         animateChangeScale: function(scalingK, basePoint) {
-            if (this._animationTargetResolution) {
-                var resolution = this._animationTargetResolution;
-            } else {
-                resolution = this.resolution;
-            }
-            this.animateSetResolution(resolution * scalingK, basePoint);
+            this.animateSetResolution(this.resolution * scalingK, basePoint);
         },
 
         zoom: function(k, basePoint) {
@@ -130,8 +125,9 @@
 
             var resolution;
             if (tileScheme) {
-                for (var i in tileScheme.matrix) {
-                    var ratio = currResolution / tileScheme.matrix[i].resolution;
+                var levels = Object.keys(tileScheme.matrix);
+                for (var i = 0; i < levels.length; i++) {
+                    var ratio = currResolution / tileScheme.matrix[levels[i]].resolution;
                     if (ratio > 0.9) {
                         var newLevel = parseInt(i) + k;
                         while (!tileScheme.matrix[newLevel]) {
@@ -141,7 +137,7 @@
                         break;
                     }
                 }
-                if (!resolution) resolution = tileScheme.matrix[i] && tileScheme.matrix[i].resolution || currResolution;
+                if (!resolution) resolution = tileScheme.matrix[levels[i]] && tileScheme.matrix[levels[i]].resolution || currResolution;
             } else {
                 resolution = currResolution * Math.pow(2, -k);
             }
@@ -167,11 +163,12 @@
             if (tileScheme) {
                 var minDifference = Infinity;
                 var index;
-                for (var i in tileScheme.matrix) {
-                    var difference = Math.abs(resolution - tileScheme.matrix[i].resolution);
+                var levels = Object.keys(tileScheme.matrix);
+                for (var i = 0; i < levels.length; i++) {
+                    var difference = Math.abs(resolution - tileScheme.matrix[levels[i]].resolution);
                     if (difference < minDifference) {
                         minDifference = difference;
-                        index = i;
+                        index = levels[i];
                     }
                 }
                 return tileScheme.matrix[index].resolution;
@@ -182,8 +179,8 @@
 
         /**
          * Sets new resolution to the map with animation
-         * @param {float} resolution
-         * @param {sGis.Point} basePoint - /optional/ Base point of zooming
+         * @param {Number} resolution
+         * @param {sGis.Point} [basePoint] - Base point of zooming
          * @returns {undefined}
          */
         animateSetResolution: function(resolution, basePoint) {
@@ -216,9 +213,7 @@
                     var y1 = self._easeFunction(time, originalBbox.p[0].y, targetBbox.p[0].y - originalBbox.p[0].y, self._animationTime);
                     var x2 = self._easeFunction(time, originalBbox.p[1].x, targetBbox.p[1].x - originalBbox.p[1].x, self._animationTime);
                     var y2 = self._easeFunction(time, originalBbox.p[1].y, targetBbox.p[1].y - originalBbox.p[1].y, self._animationTime);
-                    var bbox = new sGis.Bbox(new sGis.Point(x1, y1, self.crs), new sGis.Point(x2, y2, self.crs));
-
-                    self._bbox = bbox;
+                    self._bbox = new sGis.Bbox(new sGis.Point(x1, y1, self.crs), new sGis.Point(x2, y2, self.crs));
                 }
                 self.fire('bboxChange');
             }, 1000 / 60);
@@ -237,8 +232,8 @@
 
         /**
          * Sets new resolution to the map
-         * @param {float} resolution
-         * @param {sGis.Point} basePoint - /optional/ Base point of zooming
+         * @param {Number} resolution
+         * @param {sGis.Point} [basePoint] - Base point of zooming
          */
         setResolution: function(resolution, basePoint) {
             var bbox = getScaledBbox(this, resolution, basePoint);
@@ -248,18 +243,18 @@
 
         /**
          * Returns the pixel offset of the point from the left top corner of the map
-         * @param {type} point
+         * @param {sGis.Point|Array} point
          * @returns {object} - {x: X offset, y: Y offset}
          */
         getPxPosition: function(point) {
             var p = point instanceof sGis.Point ? point.projectTo(this.crs) : {x: point[0], y: point[1]},
                 resolution = this.resolution,
                 bbox = this.bbox;
-            var pxPosition = {
+
+            return {
                 x: (p.x - bbox.p[0].x) / resolution,
                 y: (bbox.p[1].y - p.y) / resolution
             };
-            return pxPosition;
         },
 
         /**
@@ -279,13 +274,15 @@
         },
 
         /**
-         * If map is in process of animation, the 'animationEnd' event is not fired
+         * TODO: remove
          */
         cancelAnimation: function() {
-            this._cancelAnimation = true;
-            //this._painter.cancelAnimation();
+
         },
 
+        /**
+         * TODO: remove
+         */
         update: function() {
 
         },
@@ -330,7 +327,7 @@
         },
 
         _defaultHandlers: {
-            bboxChange: function(mapEvent) {
+            bboxChange: function() {
                 var map = this;
                 var CHANGE_END_DELAY = 300;
                 if (map._changeTimer) clearTimeout(map._changeTimer);
@@ -368,7 +365,7 @@
 
             },
 
-            layerAdd: function(sGisEvent) {
+            layerAdd: function() {
                 this.update();
             },
 
@@ -376,7 +373,7 @@
 
             },
 
-            layerOrderChange: function(sGisEvent) {
+            layerOrderChange: function() {
                 this.update();
             },
 
@@ -388,7 +385,7 @@
                 this.move(sGisEvent.offset.x, sGisEvent.offset.y);
             },
 
-            dragEnd: function(sGisEvent) {
+            dragEnd: function() {
                 this._draggingObject = null;
             },
 
@@ -425,13 +422,13 @@
                 }
             },
 
-            set: function(layers) {
+            set: function(array) {
                 var layers = this.layers;
                 for (var i = 0; i < layers.length; i++) {
                     this.removeLayer(layers[i]);
                 }
-                for (i = 0; i < layers.length; i++) {
-                    this.addLayer(layers[i]);
+                for (i = 0; i < array.length; i++) {
+                    this.addLayer(array[i]);
                 }
             }
         },
@@ -586,8 +583,9 @@
                 var tileScheme = this.tileScheme;
                 if (tileScheme) {
                     var minResolution = Infinity;
-                    for (var i in tileScheme.matrix) {
-                        minResolution = Math.min(minResolution, tileScheme.matrix[i].resolution);
+                    var levels = Object.keys(tileScheme.matrix);
+                    for (var i = 0; i < levels.length; i++) {
+                        minResolution = Math.min(minResolution, tileScheme.matrix[levels[i]].resolution);
                     }
 
                     return minResolution;
@@ -895,7 +893,7 @@
 
     function isFormElement(e) {
         var formElements = ['BUTTON', 'INPUT', 'LABEL', 'OPTION', 'SELECT', 'TEXTAREA'];
-        for (var i in formElements) {
+        for (var i = 0; i < formElements.length; i++) {
             if (e.tagName === formElements[i]) return true;
         }
         return false;
