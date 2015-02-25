@@ -18,6 +18,8 @@
         toString: function(format) {
             if (format === 'hex') {
                 return '#' + decToHex(this.a) + decToHex(this.r) + decToHex(this.g) + decToHex(this.b);
+            } else if (format === 'rgb') {
+                return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
             } else {
                 return 'rgba(' + this.r + ',' + this.g + ',' + this.b + ',' + (this.a / 255).toFixed(7).replace(/\.*0+$/, '') + ')';
             }
@@ -345,7 +347,7 @@
         whitesmoke: "f5f5f5",
         yellow: "ff0",
         yellowgreen: "9acd32",
-        transparent: 'rgba(0,0,0,0)'
+        transparent: '0000'
     };
 
 })();

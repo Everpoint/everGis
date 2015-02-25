@@ -130,7 +130,15 @@
             layerData.zIndex = zIndex;
         },
 
+        _clearCache: function() {
+            this._width = null;
+            this._height = null;
+            this._resolution = null;
+        },
+
         _repaint: function() {
+            this._clearCache();
+
             if (this._needUpdate && this._updateAllowed) {
                 this._setNewContainer();
                 this._needUpdate = false;
@@ -173,8 +181,8 @@
             var container = document.createElement('div');
             container.style.width = '100%';
             container.style.height = '100%';
-            container.width = this._map.width;
-            container.height = this._map.height;
+            container.width = this.width;
+            container.height = this.height;
             container.style[utils.css.transformOrigin.func] = 'left top';
             container.style.position = 'absolute';
             container.bbox = this._map.bbox;
@@ -251,7 +259,7 @@
 
         _updateLayer: function(layer) {
             var bbox = this._map.bbox;
-            var resolution = this._map.resolution;
+            var resolution = this.resolution;
             var features = layer.getFeatures(bbox, resolution);
             var layerData = this._layerData[layer.id];
             var displayedFeatures = layerData.displayedFeatures.slice();
@@ -346,7 +354,7 @@
         },
 
         _drawFeature: function(feature, layer) {
-            var render = feature.render(this._map.resolution, this._map.crs);
+            var render = feature.render(this.resolution, this._map.crs);
             var displayedObjects = this._layerData[layer.id].displayedObjects[feature.id];
             if (displayedObjects === render) {
                 //TODO
@@ -429,6 +437,7 @@
         _displayNode: function(render, feature, layer, container) {
             var layerData = this._layerData[layer.id];
             container = container || this._container;
+
             if (layerData.displayedFeatures.indexOf(feature) !== -1 && (render.node.position || render.node.bbox.crs === this._container.bbox.crs || render.node.bbox.crs.from && this._container.bbox.crs.to)) {
                 this._resolveLayerOverlay(layer);
                 this._setNodeStyles(render.node, layer);
@@ -503,8 +512,8 @@
 
         _setNewCanvas: function(layerData) {
             var canvas = document.createElement('canvas');
-            canvas.width = this._map.width;
-            canvas.height = this._map.height;
+            canvas.width = this.width;
+            canvas.height = this.height;
             canvas.style.zIndex = layerData.zIndex - 1;
             canvas.style.position = 'absolute';
             canvas.style.transformOrigin = 'left top';
@@ -520,15 +529,15 @@
             if (layerData.canvas.parentNode) {
                 layerData.canvas.parentNode.removeChild(layerData.canvas);
             }
-            layerData.canvas.width = this._map.width;
-            layerData.canvas.height = this._map.height;
+            layerData.canvas.width = this.width;
+            layerData.canvas.height = this.height;
             this._setCanvasOrigin(layerData);
             layerData.canvas.isUsed = false;
         },
 
         _setCanvasOrigin: function(layerData) {
             var bbox = this._map.bbox;
-            var resolution = this._map.resolution;
+            var resolution = this.resolution;
             var xOrigin = bbox.p[0].x / resolution;
             var yOrigin = -bbox.p[1].y / resolution;
             layerData.ctx.translate(-xOrigin, -yOrigin);
@@ -654,6 +663,7 @@
             node.style[utils.css.transformOrigin.func] = 'left top';
             node.style.position = 'absolute';
             node.style.zIndex = this._layerData[layer.id].zIndex;
+            node.style.pointerEvents = 'none';
         },
 
         _handleEvent: function(sGisEvent) {
@@ -709,10 +719,10 @@
 
     function contains(geometry, position) {
         var intersectionType;
-        if (geometry.node) {
-            var geometryPosition = geometry.position || [geometry.bbox.width / geometry.resolution, geometry.bbox.height / geometry.resolution];
-            var width = geometry.node.width || geometry.node.clientWidth;
-            var height = geometry.node.height || geometry.node.clientHeight;
+        if (!(geometry instanceof sGis.geom.Arc || geometry instanceof sGis.geom.Polyline) && geometry.node) {
+            var geometryPosition = geometry.node.position || [geometry.bbox.width / geometry.resolution, geometry.bbox.height / geometry.resolution];
+            var width = geometry.node.clientWidth || geometry.node.width;
+            var height = geometry.node.clientHeight || geometry.node.height;
             intersectionType = geometryPosition[0] < position.x && (geometryPosition[0] + width) > position.x &&
             geometryPosition[1] < position.y && (geometryPosition[1] + height) > position.y;
         } else {
@@ -728,13 +738,34 @@
             get: function() {
                 return this._map.layers;
             }
+        },
+
+        width: {
+            get: function() {
+                if (!this._width) this._width = this._map.width;
+                return this._width;
+            }
+        },
+
+        height: {
+            get: function() {
+                if (!this._height) this._height = this._map.height;
+                return this._height;
+            }
+        },
+
+        resolution: {
+            get: function() {
+                if (!this._resolution) this._resolution = this._map.resolution;
+                return this._resolution;
+            }
         }
     });
 
     utils.mixin(utils.Painter.prototype, sGis.IEventHandler.prototype);
 
     function toDrawOnCanvas(object) {
-        return !object.node || object.renderToCanvas;
+        return sGis.useCanvas && (object instanceof sGis.geom.Arc || object instanceof sGis.geom.Polyline || object.renderToCanvas);
     }
 
 })();

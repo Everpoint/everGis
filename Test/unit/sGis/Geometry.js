@@ -9,7 +9,14 @@ $(document).ready(function() {
     */
     
     describe('Geometry', function() {
-        
+        beforeEach(function() {
+            $('#map').width(500).height(500);
+        });
+
+        afterEach(function() {
+            $('#map').html('').width(0).height(0);
+        });
+
         /*
         * sGis.Point
         */
@@ -488,6 +495,67 @@ $(document).ready(function() {
                     expect(polyline.coordinates).not.toBe(coordinates);
                 });
             });
+
+            describe('properties', function() {
+                describe('.svg', function() {
+                    var polyline;
+                    beforeEach(function() {
+                        polyline = new sGis.geom.Polyline([[0, 10], [20, 30], [30, 20]], {
+                            color: 'red',
+                            width: 7
+                        });
+                    });
+
+                    it('should return an svg element with 1 child - path element', function() {
+                        var svg = polyline.svg;
+                        expect(svg instanceof SVGSVGElement).toBe(true);
+                        expect(svg.childNodes[0] instanceof SVGPathElement).toBe(true);
+                        expect(svg.childNodes.length).toBe(1);
+                    });
+
+                    it('should set the fill color attribute of path to transparent', function() {
+                        var svg = polyline.svg;
+                        expect(svg.childNodes[0].getAttribute('fill')).toBe('rgb(0,0,0)');
+                        expect(svg.childNodes[0].getAttribute('fill-opacity')).toBe('0');
+                    });
+
+                    it('should set the color of the svg path', function() {
+                        var svg = polyline.svg;
+                        expect(svg.childNodes[0].getAttribute('stroke')).toBe(polyline.color);
+                        polyline.color = 'green';
+                        var svg1 = polyline.svg;
+                        expect(svg.childNodes[0].getAttribute('stroke')).not.toBe(polyline.color);
+                        expect(svg1.childNodes[0].getAttribute('stroke')).toBe(polyline.color);
+                    });
+
+                    it('should set the stroke width of the svg path', function() {
+                        var svg = polyline.svg;
+                        expect(svg.childNodes[0].getAttribute('stroke-width')).toBe(polyline.width.toString());
+                        polyline.width = 5;
+                        var svg1 = polyline.svg;
+                        expect(svg.childNodes[0].getAttribute('stroke-width')).not.toBe(polyline.width.toString());
+                        expect(svg1.childNodes[0].getAttribute('stroke-width')).toBe(polyline.width.toString());
+                    });
+
+                    it('should set the viewBox property according to the real position and size of the line', function() {
+                        var svg = polyline.svg;
+                        expect(svg.getAttribute('width')).toBe((37).toString());
+                        expect(svg.getAttribute('height')).toBe((27).toString());
+                        expect(svg.getAttribute('viewBox')).toBe([-3.5, 6.5, 37, 27].join(' '));
+                    });
+
+                    it('should cache the result', function() {
+                        var svg = polyline.svg;
+                        var svg1 = polyline.svg;
+                        expect(svg).toBe(svg1);
+                    });
+
+                    it('should set the d (path) attribute correctly', function() {
+                        var svg = polyline.svg;
+                        expect(svg.childNodes[0].getAttribute('d')).toBe('M0 10 L20 30 L30 20');
+                    });
+                });
+            });
             
             describe('methods', function() {
                 var polyline;
@@ -623,6 +691,67 @@ $(document).ready(function() {
                     expect(polygon.coordinates).not.toBe(coordinates);
                 });
             });
+
+            describe('properties', function() {
+                describe('.svg', function() {
+                    var polygon;
+                    beforeEach(function() {
+                        polygon = new sGis.geom.Polygon([[0, 10], [20, 30], [30, 20]], {
+                            color: 'red',
+                            width: 7,
+                            fillColor: 'blue'
+                        });
+                    });
+
+                    it('should return an svg element with 1 child - path element', function() {
+                        var svg = polygon.svg;
+                        expect(svg instanceof SVGSVGElement).toBe(true);
+                        expect(svg.childNodes[0] instanceof SVGPathElement).toBe(true);
+                        expect(svg.childNodes.length).toBe(1);
+                    });
+
+                    it('should set the fill color attribute of path', function() {
+                        var svg = polygon.svg;
+                        expect(svg.childNodes[0].getAttribute('fill')).toBe('blue');
+                    });
+
+                    it('should set the color of the svg path', function() {
+                        var svg = polygon.svg;
+                        expect(svg.childNodes[0].getAttribute('stroke')).toBe(polygon.color);
+                        polygon.color = 'green';
+                        var svg1 = polygon.svg;
+                        expect(svg.childNodes[0].getAttribute('stroke')).not.toBe(polygon.color);
+                        expect(svg1.childNodes[0].getAttribute('stroke')).toBe(polygon.color);
+                    });
+
+                    it('should set the stroke width of the svg path', function() {
+                        var svg = polygon.svg;
+                        expect(svg.childNodes[0].getAttribute('stroke-width')).toBe(polygon.width.toString());
+                        polygon.width = 5;
+                        var svg1 = polygon.svg;
+                        expect(svg.childNodes[0].getAttribute('stroke-width')).not.toBe(polygon.width.toString());
+                        expect(svg1.childNodes[0].getAttribute('stroke-width')).toBe(polygon.width.toString());
+                    });
+
+                    it('should set the viewBox property according to the real position and size of the line', function() {
+                        var svg = polygon.svg;
+                        expect(svg.getAttribute('width')).toBe((37).toString());
+                        expect(svg.getAttribute('height')).toBe((27).toString());
+                        expect(svg.getAttribute('viewBox')).toBe([-3.5, 6.5, 37, 27].join(' '));
+                    });
+
+                    it('should cache the result', function() {
+                        var svg = polygon.svg;
+                        var svg1 = polygon.svg;
+                        expect(svg).toBe(svg1);
+                    });
+
+                    it('should set the d (path) attribute correctly', function() {
+                        var svg = polygon.svg;
+                        expect(svg.childNodes[0].getAttribute('d')).toBe('M0 10 L20 30 L30 20 Z');
+                    });
+                });
+            });
             
             describe('methods', function() {
                 var polygon;
@@ -709,6 +838,83 @@ $(document).ready(function() {
                     expect(polygon1.contains(150, 150)).not.toBe(false);
                     expect(polygon1.contains(250, 150)).toBe(false);
                     expect(polygon1.contains(150, 250)).toBe(false);
+                });
+            });
+        });
+
+        describe('sGis.geom.Arc', function() {
+            var arc;
+            beforeEach(function() {
+                arc = new sGis.geom.Arc([10, 20], {radius: 10, strokeColor: 'red', strokeWidth: 2, fillColor: 'blue'});
+            });
+
+            describe('.svg', function() {
+                it('should return an svg element with 1 child - circle element', function() {
+                    var svg = arc.svg;
+                    expect(svg instanceof SVGSVGElement).toBe(true);
+                    expect(svg.childNodes[0] instanceof SVGCircleElement).toBe(true);
+                    expect(svg.childNodes.length).toBe(1);
+                });
+
+                it('should set the radius of the svg circle', function() {
+                    var svg = arc.svg;
+                    expect(svg.childNodes[0].getAttribute('r')).toBe(arc.radius.toString());
+                    arc.radius = 20;
+                    var svg1 = arc.svg;
+                    expect(svg.childNodes[0].getAttribute('r')).not.toBe(arc.radius.toString());
+                    expect(svg1.childNodes[0].getAttribute('r')).toBe(arc.radius.toString());
+                });
+
+                it('should set the stroke color of the svg circle', function() {
+                    var svg = arc.svg;
+                    expect(svg.childNodes[0].getAttribute('stroke')).toBe(arc.strokeColor);
+                    arc.strokeColor = 'green';
+                    var svg1 = arc.svg;
+                    expect(svg.childNodes[0].getAttribute('stroke')).not.toBe(arc.strokeColor);
+                    expect(svg1.childNodes[0].getAttribute('stroke')).toBe(arc.strokeColor);
+                });
+
+                it('should set the stroke width of the svg circle', function() {
+                    var svg = arc.svg;
+                    expect(svg.childNodes[0].getAttribute('stroke-width')).toBe(arc.strokeWidth.toString());
+                    arc.strokeWidth = 5;
+                    var svg1 = arc.svg;
+                    expect(svg.childNodes[0].getAttribute('stroke-width')).not.toBe(arc.strokeWidth.toString());
+                    expect(svg1.childNodes[0].getAttribute('stroke-width')).toBe(arc.strokeWidth.toString());
+                });
+
+                it('should set the fill color of the svg circle', function() {
+                    var svg = arc.svg;
+                    expect(svg.childNodes[0].getAttribute('fill')).toBe(arc.fillColor);
+                    arc.fillColor = 'green';
+                    var svg1 = arc.svg;
+                    expect(svg.childNodes[0].getAttribute('fill')).not.toBe(arc.fillColor);
+                    expect(svg1.childNodes[0].getAttribute('fill')).toBe(arc.fillColor);
+                });
+
+                it('should set cx and cy attributes according to the circle coordinates', function() {
+                    var svg = arc.svg;
+                    expect(svg.childNodes[0].getAttribute('cx')).toBe(arc.center[0].toString());
+                    expect(svg.childNodes[0].getAttribute('cy')).toBe(arc.center[1].toString());
+                    arc.center = [30, -40];
+                    var svg1 = arc.svg;
+                    expect(svg1.childNodes[0].getAttribute('cx')).toBe(arc.center[0].toString());
+                    expect(svg1.childNodes[0].getAttribute('cy')).toBe(arc.center[1].toString());
+                    expect(svg.childNodes[0].getAttribute('cx')).not.toBe(arc.center[0].toString());
+                    expect(svg.childNodes[0].getAttribute('cy')).not.toBe(arc.center[1].toString());
+                });
+
+                it('should set the viewBox property according to the real position and size of the circle according to the point coordinates', function() {
+                    var svg = arc.svg;
+                    expect(svg.getAttribute('width')).toBe((arc.radius * 2).toString());
+                    expect(svg.getAttribute('height')).toBe((arc.radius * 2).toString());
+                    expect(svg.getAttribute('viewBox')).toBe([arc.center[0] - arc.radius, arc.center[1] - arc.radius, arc.radius * 2, arc.radius * 2].join(' '));
+                });
+
+                it('should cache the result', function() {
+                    var svg = arc.svg;
+                    var svg1 = arc.svg;
+                    expect(svg).toBe(svg1);
                 });
             });
         });

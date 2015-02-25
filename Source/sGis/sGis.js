@@ -34,5 +34,6 @@ sGis.browser = (function() {
 })();
 
 sGis.isTouch = 'ontouchstart' in document.documentElement;
+sGis.useCanvas = true;
 
 })();

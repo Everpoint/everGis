@@ -59,6 +59,38 @@
             if (!utils.isNumber(n)) utils.error('Number is expected for the point index but got ' + n + ' instead');
 
             this._coordinates[ring][n] = [].concat(point);
+        },
+
+        _clearCache: function() {
+            this._cachedSvg = null;
+        },
+        
+        _getSvgPath: function() {
+            var d = '';
+            var coordinates = this._coordinates;
+            var x = coordinates[0][0][0];
+            var y = coordinates[0][0][1];
+            var xmax = x;
+            var ymax = y;
+
+            for (var ring = 0; ring < coordinates.length; ring++) {
+                d += 'M' + coordinates[ring][0].join(' ') + ' ';
+                for (var i = 1; i < coordinates[ring].length; i++) {
+                    d += 'L' + coordinates[ring][i].join(' ') + ' ';
+                    x = Math.min(x, coordinates[ring][i][0]);
+                    y = Math.min(y, coordinates[ring][i][1]);
+                    xmax = Math.max(xmax, coordinates[ring][i][0]);
+                    ymax = Math.max(ymax, coordinates[ring][i][1]);
+                }
+            }
+
+            var width = xmax - x + this._width;
+            var height = ymax - y + this._width;
+            x -= this._width / 2;
+            y -= this._width / 2;
+            d = d.trim();
+
+            return {width: width, height: height, x: x, y: y, d: d};
         }
     };
 
@@ -71,6 +103,7 @@
             set: function(color) {
                 if (!utils.isString(color)) utils.error('Unexpected value of color: ' + color);
                 this._color = color;
+                this._clearCache();
             }
         },
 
@@ -82,6 +115,7 @@
             set: function(width) {
                 if (!utils.isNumber(width) || width < 0) utils.error('Unexpected value of width: ' + width);
                 this._width = width;
+                this._clearCache();
             }
         },
 
@@ -99,6 +133,46 @@
                         this.setRing(i, coordinates[i]);
                     }
                 }
+
+                if (this._cachedSvg) {
+                    var props = this._getSvgPath();
+                    this._cachedSvg.setAttribute('width', props.width);
+                    this._cachedSvg.setAttribute('height', props.height);
+                    this._cachedSvg.setAttribute('viewBox', [props.x, props.y, props.width, props.height].join(' '));
+                    this._cachedSvg.childNodes[0].setAttribute('d', props.d);
+                }
+            }
+        },
+
+        svg: {
+            get: function() {
+                if (!this._cachedSvg) {
+                    var path = this._getSvgPath();
+                    this._cachedSvg = sGis.utils.svg.path({
+                        stroke: this._color,
+                        'stroke-width': this._width,
+                        fill: 'transparent',
+                        width: path.width,
+                        height: path.height,
+                        x: path.x,
+                        y: path.y,
+                        viewBox: [path.x, path.y, path.width, path.height].join(' '),
+                        d: path.d
+                    });
+                }
+
+                return this._cachedSvg;
+            }
+        },
+
+        node: {
+            get: function() {
+                var svg = this.svg;
+                var x = parseFloat(svg.childNodes[0].getAttribute('x'));
+                var y = parseFloat(svg.childNodes[0].getAttribute('y'));
+
+                svg.position = [x, y];
+                return svg;
             }
         }
     });

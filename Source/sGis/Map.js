@@ -48,6 +48,9 @@
                 this.__setBbox(p1, p2);
                 this.forceUpdate();
             }
+
+            this._width = null;
+            this._height = null;
         },
 
         /**

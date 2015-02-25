@@ -68,6 +68,7 @@
             set: function (color) {
                 if (!utils.isString(color)) utils.error('Color string is expected, but got ' + color + ' instead');
                 this._fillColor = color;
+                this._clearCache();
             }
         },
 
@@ -79,6 +80,29 @@
             set: function (image) {
                 if (!(image instanceof Image)) utils.error('Image is expected but got ' + image + ' istead');
                 this._fillImage = image;
+            }
+        },
+
+        svg: {
+            get: function() {
+                if (!this._cachedSvg) {
+                    var path = this._getSvgPath();
+                    path.d += ' Z';
+
+                    this._cachedSvg = sGis.utils.svg.path({
+                        stroke: this._color,
+                        'stroke-width': this._width,
+                        fill: this._fillColor,
+                        width: path.width,
+                        height: path.height,
+                        x: path.x,
+                        y: path.y,
+                        viewBox: [path.x, path.y, path.width, path.height].join(' '),
+                        d: path.d
+                    });
+                }
+
+                return this._cachedSvg;
             }
         }
     });
