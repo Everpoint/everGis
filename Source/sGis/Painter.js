@@ -585,16 +585,15 @@
                     ctx.fillStyle = geometry.fillColor;
                 } else if (geometry.fillStyle === 'image') {
                     ctx.fillStyle = ctx.createPattern(geometry.fillImage, 'repeat');
-
                     var patternOffsetX = (coordinates[0][0][0]) % geometry.fillImage.width,
                         patternOffsetY = (coordinates[0][0][1]) % geometry.fillImage.height;
                     ctx.translate(patternOffsetX, patternOffsetY);
                 }
                 ctx.fill();
 
-                if (patternOffsetX) {
+                //if (patternOffsetX) {
                     ctx.translate(-patternOffsetX, -patternOffsetY);
-                }
+                //}
             }
 
             ctx.stroke();
@@ -636,7 +635,7 @@
 
             var geometry = [];
             for (var i = 0, len = render.length; i < len; i++) {
-                if (render[i].node && !render[i].node.parent) {
+                if (!toDrawOnCanvas(render[i]) && !render[i].node.parent) {
                     this._drawNode(render[i], feature, layer, subContainer.container);
                 } else {
                     geometry.push(render[i]);
@@ -663,7 +662,6 @@
             node.style[utils.css.transformOrigin.func] = 'left top';
             node.style.position = 'absolute';
             node.style.zIndex = this._layerData[layer.id].zIndex;
-            node.style.pointerEvents = 'none';
         },
 
         _handleEvent: function(sGisEvent) {

@@ -10,7 +10,7 @@
     };
 
     sGis.feature.Point.prototype = new sGis.Feature({
-        _defaultSymbol: new sGis.symbol.point.Point(),
+        _defaultSymbol: sGis.symbol.point.Point,
         _crs: sGis.CRS.geo,
 
         projectTo: function(crs) {
@@ -50,21 +50,21 @@
 
         size: {
             get: function() {
-                return this._style.size;
+                return this._symbol.size;
             },
 
             set: function(size) {
-                this._style.size = size;
+                this._symbol.size = size;
             }
         },
 
         color: {
             get: function() {
-                return this._style.color;
+                return this._symbol.fillColor;
             },
 
             set: function(color) {
-                this._style.color = color;
+                this._symbol.fillColor = color;
             }
         },
 

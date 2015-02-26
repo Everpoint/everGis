@@ -2,34 +2,14 @@
 
     sGis.symbol.polyline = {
         Simple: function(style) {
-            this.setDefaults(style);
+            utils.init(this, style);
         }
     };
 
     sGis.symbol.polyline.Simple.prototype = new sGis.Symbol({
-        type: 'polyline',
-        style: {
-            strokeWidth: {
-                defaultValue: 1,
-                get: function() {
-                    return this._strokeWidth || this.defaults.strokeWidth;
-                },
-                set: function(width) {
-                    if (!utils.isNumber(width) || width < 0) utils.error('Non-negative number is expected but got ' + width + ' instead');
-                    this._strokeWidth = width;
-                }
-            },
-            strokeColor: {
-                defaultValue: 'black',
-                get: function() {
-                    return this._strokeColor || this.defaults.strokeColor;
-                },
-                set: function(color) {
-                    if (!utils.isString(color)) utils.error('String is expected but got ' + color + ' instead');
-                    this._strokeColor = color;
-                }
-            }
-        },
+        _strokeWidth: 1,
+        _strokeColor: 'black',
+
         renderFunction: function(resolution, crs) {
             var coordinates = getPolylineRenderedCoordinates(this, resolution, crs);
 
@@ -37,7 +17,30 @@
         }
     });
 
-    //TODO: this is duplicate function with Polygon
+    Object.defineProperties(sGis.symbol.polyline.Simple.prototype, {
+        type: {
+            value: 'polyline'
+        },
+
+        strokeWidth: {
+            get: function() {
+                return this._strokeWidth;
+            },
+            set: function(width) {
+                this._strokeWidth = width;
+            }
+        },
+
+        strokeColor: {
+            get: function() {
+                return this._strokeColor;
+            },
+            set: function(color) {
+                this._strokeColor = color;
+            }
+        }
+    });
+
 
     function getPolylineRenderedCoordinates(feature, resolution, crs) {
         if (!feature._cache[resolution]) {

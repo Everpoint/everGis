@@ -10,7 +10,7 @@
     };
 
     sGis.feature.Polyline.prototype = new sGis.Feature({
-        _defaultSymbol: new sGis.symbol.polyline.Simple(),
+        _defaultSymbol: sGis.symbol.polyline.Simple,
         _cache: {},
 
         addPoint: function(point, ring) {
@@ -178,21 +178,21 @@
 
         width: {
             get: function() {
-                return this._style.strokeWidth;
+                return this._symbol.strokeWidth;
             },
 
             set: function(width) {
-                this._style.strokeWidth = width;
+                this._symbol.strokeWidth = width;
             }
         },
 
         color: {
             get: function() {
-                return this._style.strokeColor;
+                return this._symbol.strokeColor;
             },
 
             set: function(color) {
-                this._style.strokeColor = color;
+                this._symbol.strokeColor = color;
             }
         },
 

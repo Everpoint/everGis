@@ -2,49 +2,15 @@
 
     sGis.symbol.maptip = {
         Simple: function(style) {
-            this.setDefaults(style);
+            utils.init(this, style);
         }
     };
 
     sGis.symbol.maptip.Simple.prototype = new sGis.Symbol({
-        type: 'maptip',
-        style: {
-            width: {
-                defaultValue: 200,
-                get: function() {
-                    return this._width || this.defaults.width;
-                },
-                set: function(width) {
-                    if (!utils.isNumber(width) || width <=0) utils.error('Positive number is expected but got ' + width + ' instead');
-                    this._width = width;
-                    this._changed = true;
-                }
-            },
+        _width: 200,
+        _height: 200,
+        _offset: {x: -100, y: -220},
 
-            height: {
-                defaultValue: 200,
-                get: function() {
-                    return this._height || this.defaults.height;
-                },
-                set: function(height) {
-                    if (!utils.isNumber(height) || height <= 0) utils.error('Positive number is expected but got ' + height + ' instead');
-                    this._height  = height;
-                    this._changed = true;
-                }
-            },
-
-            offset: {
-                defaultValue: {x: -100, y: -220},
-                get: function() {
-                    return this._offset || this.defaults.offset;
-                },
-                set: function(offset) {
-                    if (!offset || !utils.isNumber(offset.x) || !utils.isNumber(offset.y)) utils.error('{x, y} is expected but got ' + offset + ' instead');
-                    this._offset = offset;
-                    this._changed = true;
-                }
-            }
-        },
         renderFunction: function(resolution, crs) {
             if (this.style._changed) {
                 this._cache = {};
@@ -83,6 +49,43 @@
             return [this._cache[resolution], divRender];
         }
     });
+
+    Object.defineProperties(sGis.symbol.maptip.Simple.prototype, {
+        type: {
+            value: 'maptip'
+        },
+
+        width: {
+            get: function() {
+                return this._width;
+            },
+            set: function(width) {
+                this._width = width;
+                this._changed = true;
+            }
+        },
+
+        height: {
+            get: function() {
+                return this._height;
+            },
+            set: function(height) {
+                this._height = height;
+                this._changed = true;
+            }
+        },
+
+        offset: {
+            get: function() {
+                return this._offset;
+            },
+            set: function(offset) {
+                this._offset = offset;
+                this._changed = true;
+            }
+        }
+    });
+
 
     function getBaloonCoordinates(feature, position) {
         var baloonSquare = getBaloonSquare(feature, position);

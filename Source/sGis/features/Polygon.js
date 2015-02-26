@@ -13,12 +13,7 @@
 
     Object.defineProperties(sGis.feature.Polygon.prototype, {
         _defaultSymbol: {
-            value: new sGis.symbol.polygon.Simple()
-        },
-
-        _fillColor: {
-            value: sGis.geom.Polygon.prototype._fillColor,
-            writable: true
+            value: sGis.symbol.polygon.Simple
         },
 
         type: {
@@ -27,11 +22,11 @@
 
         fillColor: {
             get: function() {
-                return this._style.fillColor;
+                return this._symbol.fillColor;
             },
 
             set: function(color) {
-                this._style.fillColor = color;
+                this._symbol.fillColor = color;
             }
         },
 

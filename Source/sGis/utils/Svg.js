@@ -8,6 +8,7 @@
         base: function(properties) {
             var svg = document.createElementNS(this.ns, 'svg');
             setAttributes(svg, properties);
+            svg.style.pointerEvents = 'none';
 
             return svg;
         },

@@ -40,14 +40,11 @@
                 this._id = utils.getGuid();
             }
 
-            if (options && options.symbol) {
-                this.symbol = options.symbol;
-                delete options.symbol;
-            } else if (this._defaultSymbol) {
-                this.symbol = this._defaultSymbol;
+            if (!options || !options.symbol) {
+                this._symbol = new this._defaultSymbol();
             }
 
-            utils.init(this, options);
+            sGis.utils.init(this, options);
         }
     };
 
@@ -88,25 +85,18 @@
                 if (symbol.type !==  this.type) utils.error('sGis.feature.Point object requere symbol of the type "' + this.type + '" but got ' + symbol.type + ' instead');
 
                 this._symbol = symbol;
-                this._style = {defaults: symbol.defaults};
-                for (var i in symbol.style) {
-                    Object.defineProperty(this._style, i, {
-                        get: symbol.style[i].get,
-                        set: symbol.style[i].set
-                    });
-                }
             }
         },
 
         style: {
             get: function() {
-                return this._style;
+                return this._symbol;
             },
 
             set: function(style) {
-                if (!(style instanceof Object)) utils.error('Object is expected but got ' + style + ' instead');
-                for (var i in style) {
-                    this._style[i] = style[i];
+                var keys = Object.keys(style);
+                for (var i = 0; i < keys.length; i++) {
+                    this._symbol[keys[i]] = style[keys[i]];
                 }
             }
         },

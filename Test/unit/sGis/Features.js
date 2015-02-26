@@ -6,75 +6,6 @@ $(document).ready(function() {
     
     describe('Feature', function() {
 
-        beforeEach(function() {
-            $('#map').width(500).height(500);
-        });
-
-        afterEach(function() {
-            $('#map').html('').width(0).height(0);;
-        });
-
-        describe('Point', function() {
-            it('should be created with default parameters', function() {
-                expect(function() {new sGis.feature.Point();}).toThrow();
-                
-                var point1 = new sGis.feature.Point([55, 37]);
-                    
-                expect(point1).toBeDefined();
-                expect(point1.render(1000, sGis.CRS.webMercator)[0] instanceof sGis.geom.Arc).toBeTruthy();
-            });
-            
-            it('should have unique id', function() {
-                var points = [];
-                for (var i = 0; i < 10; i++) {
-                    points.push(new sGis.feature.Point([55,37]));
-                }
-                
-                expect(points[0].id).toBeDefined();
-                
-                var hasDuplicateId = false;
-                for (var i = 0; i < 10; i++) {
-                    for (var j = i + 1; j < 10; j++) {
-                        if (points[i].id === points[j].id) hasDuplicateId = true;
-                    }
-                }
-                expect(hasDuplicateId).toBeFalsy();
-            });
-            
-            it('should by default render into an array with just one little circle', function() {
-                var point = new sGis.feature.Point([55, 37]),
-                    renderedPoint = point.render(1000, sGis.CRS.webMercator);
-                
-                expect(utils.isArray(renderedPoint)).toBeTruthy();
-                expect(renderedPoint.length).toBe(1);
-                expect(renderedPoint[0] instanceof sGis.geom.Arc).toBeTruthy();
-            });
-            
-            it('should correctly set parameters', function() {
-                var point1 = new sGis.feature.Point([55, 37], {color: 'green', size: 15}),
-                    rendering1 = point1.render(1000, sGis.CRS.webMercator);
-                    
-                expect(rendering1[0].fillColor).toBe('green');
-                expect(rendering1[0].radius).toBe(7.5);
-                
-                point1.color = 'yellow';
-                
-                expect(point1.color).toBe('yellow');
-                expect(rendering1[0].fillColor).toBe('green');
-                
-                rendering1 = point1.render(1000, sGis.CRS.webMercator);
-                expect(rendering1[0].fillColor).toBe('yellow');
-                
-                point1.size = 10;
-                
-                expect(point1.size).toBe(10);
-                expect(rendering1[0].radius).toBe(7.5);
-                
-                rendering1 = point1.render(1000, sGis.CRS.webMercator);
-                expect(rendering1[0].radius).toBe(5);
-            });
-        });
-        
         /*
          * sGis.feature.Polyline
          */
@@ -93,9 +24,6 @@ $(document).ready(function() {
                 it('should throw exception in case of incorrect parameters', function() {
                     expect(function() {new sGis.feature.Polyline(1);}).toThrow();
                     expect(function() {new sGis.feature.Polyline([['not a point']]);}).toThrow();
-                    expect(function() {new sGis.feature.Polyline([[]], {color: 1});}).toThrow();
-                    expect(function() {new sGis.feature.Polyline([[]], {width: 'a'});}).toThrow();
-                    expect(function() {new sGis.feature.Polyline([[]], {width: -1});}).toThrow();
                     expect(function() {new sGis.feature.Polyline([[]], {crs: 'not a crs'});}).toThrow();
                 });
                 
@@ -379,9 +307,6 @@ $(document).ready(function() {
                 it('should throw exception in case of incorrect parameters', function() {
                     expect(function() {new sGis.feature.Polygon(1);}).toThrow();
                     expect(function() {new sGis.feature.Polygon([['not a point']]);}).toThrow();
-                    expect(function() {new sGis.feature.Polygon([[]], {color: 1});}).toThrow();
-                    expect(function() {new sGis.feature.Polygon([[]], {width: 'a'});}).toThrow();
-                    expect(function() {new sGis.feature.Polygon([[]], {width: -1});}).toThrow();
                     expect(function() {new sGis.feature.Polygon([[]], {crs: 'not a crs'});}).toThrow();
                 });
                 

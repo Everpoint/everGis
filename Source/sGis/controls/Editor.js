@@ -409,7 +409,6 @@
             scalingControls = [],
             midX = (bbox.p[0].x + bbox.p[1].x) / 2,
             midY = (bbox.p[0].y + bbox.p[1].y) / 2,
-            symbol = new sGis.symbol.point.Square({size: 7, strokeWidth: 3}),
             coord = [
                 [[bbox.p[0].x, bbox.p[0].y], [bbox.p[0].x, midY], [bbox.p[0].x, bbox.p[1].y]],
                 [[midX, bbox.p[0].y], [midX, midY], [midX, bbox.p[1].y]],
@@ -419,7 +418,7 @@
         for (var i = 0; i < 3; i++) {
             for (var j = 0; j < 3; j++) {
                 if (i !== 1 || j !== 1) {
-                    var point = new sGis.feature.Point(coord[i][j], {crs: feature.crs, symbol: symbol, style: {offset: {x: (i - 1) * 10, y: (1 - j) * 10}}});
+                    var point = new sGis.feature.Point(coord[i][j], {crs: feature.crs, symbol: new sGis.symbol.point.Square({size: 7, strokeWidth: 3, offset: {x: (i - 1) * 10, y: (1 - j) * 10}})});
                     point.scaleX = i !== 1;
                     point.scaleY = j !== 1;
 

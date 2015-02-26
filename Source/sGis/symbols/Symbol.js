@@ -28,68 +28,17 @@
 
     sGis.symbol.label = {
         Label: function(style) {
-            this.setDefaults(style);
+            utils.init(this, style);
         }
     };
 
     sGis.symbol.label.Label.prototype = new sGis.Symbol({
-        type: 'label',
-        style: {
-            width: {
-                defaultValue: 200,
-                get: function() {
-                    return this._width || this.defaults.width;
-                },
-                set: function(width) {
-                    if (!utils.isNumber(width) || width <= 0) utils.error('Positive number is expected but got ' + width + ' instead');
-                    this._width = width;
-                }
-            },
+        _width: 200,
+        _height: 20,
+        _offset: {x: -100, y: -10},
+        _align: 'center',
+        _css: '',
 
-            height: {
-                defaultValue: 20,
-                get: function() {
-                    return this._height || this.defaults.height;
-                },
-                set: function(height) {
-                    if (!utils.isNumber(height) || height <=0) utils.error('Positive number is expected but got ' + height + ' instead');
-                    this._height = height;
-                }
-            },
-
-            offset: {
-                defaultValue: {x: -100, y: -10},
-                get: function() {
-                    return this._offset || this.defaults.offset;
-                },
-                set: function(offset) {
-                    if (!offset || !utils.isNumber(offset.x) || !utils.isNumber(offset.y)) utils.error('{x, y} is expected but got ' + offset + ' instead');
-                    this._offset = offset;
-                }
-            },
-
-            align: {
-                defaultValue: 'center',
-                get: function() {
-                    return this._align || this.defaults.align;
-                },
-                set: function(align) {
-                    if (!utils.isString(align)) utils.error('String is expected but got ' + align + ' instead');
-                    this._align = align;
-                }
-            },
-
-            css: {
-                defaultValue: '',
-                get: function() {
-                    return this._css === undefined ? this.defaults.css : this._css;
-                },
-                set: function(css) {
-                    if (!utils.isString(css)) utils.error('String is expected but got ' + css + ' instead');
-                    this._css = css;
-                }
-            }
-        },
         renderFunction: function(resolution, crs) {
             if (!this._cache || !utils.softEquals(resolution, this._cache[0].resolution)) {
                 var div = document.createElement('div');
@@ -112,25 +61,68 @@
         }
     });
 
+    Object.defineProperties(sGis.symbol.label.Label.prototype, {
+        type: {
+            value: 'label'
+        },
+
+        width: {
+            get: function() {
+                return this._width;
+            },
+            set: function(width) {
+                this._width = width;
+            }
+        },
+
+        height: {
+            get: function() {
+                return this._height;
+            },
+            set: function(height) {
+                this._height = height;
+            }
+        },
+
+        offset: {
+            get: function() {
+                return utils.copyObject(this._offset);
+            },
+            set: function(offset) {
+                this._offset = offset;
+            }
+        },
+
+        align: {
+            get: function() {
+                return this._align;
+            },
+            set: function(align) {
+                this._align = align;
+            }
+        },
+
+        css: {
+            get: function() {
+                return this._css;
+            },
+            set: function(css) {
+                this._css = css;
+            }
+        }
+    });
+
+
+
     sGis.symbol.image = {
         Image: function(style) {
-            this.setDefaults(style)
+            utils.init(this, style);
         }
     };
 
     sGis.symbol.image.Image.prototype = new sGis.Symbol({
-        type: 'image',
-        style: {
-            transitionTime: {
-                defaultValue: 0,
-                get: function() {
-                    return this._transitionTime;
-                },
-                set: function(t) {
-                    this._transitionTime = t;
-                }
-            }
-        },
+        _transitionTime: 0,
+
         renderFunction: function(resolution, crs) {
             if (!this._cache) {
                 var image = new Image();
@@ -160,5 +152,21 @@
             return this._cache;
         }
     });
+
+    Object.defineProperties(sGis.symbol.image.Image.prototype, {
+        type: {
+            value: 'image'
+        },
+
+        transitionTime: {
+            get: function() {
+                return this._transitionTime;
+            },
+            set: function(time) {
+                this._transitionTime = time;
+            }
+        }
+    });
+
 
 })();
