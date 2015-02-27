@@ -9,7 +9,6 @@ $(function() {
 
         afterEach(function () {
             $('#map').html('').width(0).height(0);
-            ;
         });
 
         describe('initialization', function () {
@@ -59,12 +58,48 @@ $(function() {
                     point.symbol = new sGis.symbol.point.Square();
                     expect(point.symbol instanceof sGis.symbol.point.Square).toBe(true);
                 });
+
+                it('should not change the temp symbol if assigned', function() {
+                    var point = new sGis.feature.Point([10, 10]);
+                    var symbol = new sGis.symbol.point.Square();
+                    point.setTempSymbol(symbol);
+
+                    var newSymbol = new sGis.symbol.point.Image();
+                    point.symbol = newSymbol;
+                    expect(point.symbol).toBe(symbol);
+                    expect(point.originalSymbol).toBe(newSymbol);
+                });
             });
         });
 
         describe('methods', function() {
-            describe('.setTempSymbol()', function() {
+            var point;
+            beforeEach(function() {
+                point = new sGis.feature.Point([10, 10]);
+            });
 
+            describe('.setTempSymbol()', function() {
+                it('should set the temporary symbol', function() {
+                    var originalSymbol = point.symbol;
+                    var symbol = new sGis.symbol.point.Square();
+                    point.setTempSymbol(symbol);
+                    expect(point.symbol).toBe(symbol);
+                    expect(point.isTempSymbolSet).toBe(true);
+                    expect(point.originalSymbol).toBe(originalSymbol);
+                });
+            });
+
+            describe('.clearTempSymbol()', function() {
+                it('should restore original symbol of the feature', function() {
+                    var originalSymbol = point.symbol;
+                    var symbol = new sGis.symbol.point.Square();
+                    point.setTempSymbol(symbol);
+
+                    point.clearTempSymbol();
+                    expect(point.symbol).toBe(originalSymbol);
+                    expect(point.isTempSymbolSet).toBe(false);
+                    expect(point.originalSymbol).toBe(originalSymbol);
+                });
             });
         });
     });

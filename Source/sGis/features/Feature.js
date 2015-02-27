@@ -20,7 +20,7 @@
             if (this._hidden) {
                 return [];
             } else {
-                return this._symbol.renderFunction.call(this, resolution, crs);
+                return this.symbol.renderFunction.call(this, resolution, crs);
             }
         },
 
@@ -45,6 +45,14 @@
             }
 
             sGis.utils.init(this, options);
+        },
+
+        setTempSymbol: function(symbol) {
+            this._tempSymbol = symbol;
+        },
+
+        clearTempSymbol: function() {
+            this._tempSymbol = null;
         }
     };
 
@@ -77,7 +85,7 @@
 
         symbol: {
             get: function() {
-                return this._symbol;
+                return this._tempSymbol || this._symbol;
             },
 
             set: function(symbol) {
@@ -90,7 +98,7 @@
 
         style: {
             get: function() {
-                return this._symbol;
+                return this.symbol;
             },
 
             set: function(style) {
@@ -114,11 +122,24 @@
                     utils.error('Boolean is expected but got ' + bool + ' instead');
                 }
             }
+        },
+
+        isTempSymbolSet: {
+            get: function() {
+                return !!this._tempSymbol;
+            }
+        },
+
+        originalSymbol: {
+            get: function() {
+                return this._symbol;
+            }
         }
     });
 
     utils.mixin(sGis.Feature.prototype, sGis.IEventHandler.prototype);
 
+    //todo: remove this
     var id = 0;
 
     sGis.Feature.getNewId = function() {
