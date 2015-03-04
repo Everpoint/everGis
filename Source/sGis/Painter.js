@@ -677,7 +677,7 @@
                 browserEvent: sGisEvent.browserEvent
             };
 
-            for (var i = layers.length - 1; i > 0; i--) {
+            for (var i = layers.length - 1; i >= 0; i--) {
                 if (!this._layerData[layers[i].id]) continue;
 
                 var displayedFeatures = this._layerData[layers[i].id].displayedFeatures;

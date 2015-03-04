@@ -39,20 +39,20 @@
         _align: 'center',
         _css: '',
 
-        renderFunction: function(resolution, crs) {
+        renderFunction: function(feature, resolution, crs) {
             if (!this._cache || !utils.softEquals(resolution, this._cache[0].resolution)) {
                 var div = document.createElement('div');
-                div.className = this.style.css;
-                div.appendChild(this.content);
+                div.className = this.css;
+                div.appendChild(feature.content);
                 div.style.position = 'absolute';
-                div.style.height = this.style.height + 'px';
-                div.style.width = this.style.width + 'px';
+                div.style.height = this.height + 'px';
+                div.style.width = this.width + 'px';
 
-                var point = this.point.projectTo(crs);
-                div.position = [point.x / resolution + this.style.offset.x, -point.y / resolution + this.style.offset.y];
+                var point = feature.point.projectTo(crs);
+                div.position = [point.x / resolution + this.offset.x, -point.y / resolution + this.offset.y];
                 div.style.pointerEvents = 'none';
                 div.style.cursor = 'inherit';
-                div.style.textAlign = this.style.align;
+                div.style.textAlign = this.align;
 
                 this._cache = [{node: div, position: div.position, resolution: resolution}];
             }
@@ -123,25 +123,25 @@
     sGis.symbol.image.Image.prototype = new sGis.Symbol({
         _transitionTime: 0,
 
-        renderFunction: function(resolution, crs) {
+        renderFunction: function(feature, resolution, crs) {
             if (!this._cache) {
                 var image = new Image();
-                image.src = this.src;
-                image.width = this.width;
-                image.height = this.height;
+                image.src = feature.src;
+                image.width = feature.width;
+                image.height = feature.height;
 
-                image.bbox = this.bbox;
+                image.bbox = feature.bbox;
                 this._cache = [{
                     node: image,
-                    bbox: this.bbox,
+                    bbox: feature.bbox,
                     persistent: true
                 }];
 
-                if (this.style.transitionTime > 0) {
+                if (feature.transitionTime > 0) {
                     image.style.opacity = 0;
-                    image.style.transition = 'opacity ' + this.style.transitionTime / 1000 + 's linear';
+                    image.style.transition = 'opacity ' + feature.transitionTime / 1000 + 's linear';
 
-                    var self = this;
+                    var self = feature;
                     this._cache[0].onAfterDisplay = function() {
                         setTimeout(function() { image.style.opacity = self.opacity; }, 0);
                     }

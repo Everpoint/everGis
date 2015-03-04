@@ -16,10 +16,6 @@
         _content: defaultDiv.cloneNode(true),
         _crs: sGis.CRS.geo,
 
-        render: function(resolution, crs) {
-            return this._symbol.renderFunction.call(this, resolution, crs);
-        },
-
         _resetCache: function() {
             this._cache = null;
         }

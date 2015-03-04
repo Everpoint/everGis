@@ -20,7 +20,7 @@
             if (this._hidden) {
                 return [];
             } else {
-                return this.symbol.renderFunction.call(this, resolution, crs);
+                return this.symbol.renderFunction(this, resolution, crs);
             }
         },
 
@@ -90,7 +90,7 @@
 
             set: function(symbol) {
                 if (!(symbol instanceof sGis.Symbol)) utils.error('sGis.Symbol instance is expected but got ' + symbol + ' instead');
-                if (symbol.type !==  this.type) utils.error('sGis.feature.Point object requere symbol of the type "' + this.type + '" but got ' + symbol.type + ' instead');
+                //if (symbol.type !==  this.type) utils.error('sGis.feature.Point object requere symbol of the type "' + this.type + '" but got ' + symbol.type + ' instead');
 
                 this._symbol = symbol;
             }

@@ -114,7 +114,7 @@ sGis.geotools.contains = function(polygon, point, tolerance) {
 
         for (var i = 1; i < points.length; i++) {
             if (sGis.geotools.pointToLineDistance(point, [points[i - 1], points[i]]) <= tolerance) {
-                return true;
+                return [ring, i-1];
             }
 
             var D = points[i][0] > point[0],

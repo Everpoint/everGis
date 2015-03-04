@@ -1,0 +1,514 @@
+'use strict';
+
+$(function() {
+
+    $(document.body).html('<div id="map" style="width: 500px; height: 500px;"></div>');
+
+    describe('sGis.controls.Editor (2)', function () {
+        var map, layer, point, line, polygon;
+        beforeEach(function () {
+            $('#map').width(500).height(500);
+            map = new sGis.Map({wrapper: 'map'});
+            layer = new sGis.FeatureLayer();
+            point = new sGis.feature.Point([10, 10]);
+            line = new sGis.feature.Polyline([[15, 15], [16, 16]]);
+            polygon = new sGis.feature.Polygon([[5, 5], [6, 6], [5, 6]]);
+            layer.add([point, line, polygon]);
+        });
+
+        afterEach(function () {
+            $('#map').html('').width(0).height(0);
+        });
+
+        describe('initialization', function() {
+            it('should throw an exception if map is not specified or is not sGis.Map instance', function() {
+                expect(function() { new sGis.controls.Editor(); }).toThrow();
+                expect(function() { new sGis.controls.Editor(1); }).toThrow();
+                expect(function() { new sGis.controls.Editor('map'); }).toThrow();
+                expect(function() { new sGis.controls.Editor({}); }).toThrow();
+                expect(function() { new sGis.controls.Editor(null); }).toThrow();
+                expect(function() { new sGis.controls.Editor(new sGis.Feature); }).toThrow();
+
+                expect(function() { new sGis.controls.Editor(map); }).not.toThrow();
+            });
+
+            it('should set an unique id', function() {
+                var editor1 = new sGis.controls.Editor(map);
+                var editor2 = new sGis.controls.Editor(map);
+                expect(editor1.id).not.toBe(editor2.id);
+            });
+        });
+
+        describe('properties', function() {
+            var editor;
+            beforeEach(function() {
+                editor = new sGis.controls.Editor(map);
+            });
+
+            describe('.map', function() {
+                it('should return the map of the control', function() {
+                    expect(editor.map).toBe(map);
+                });
+
+                it('should be read only property', function() {
+                    var map2 = new sGis.Map();
+                    expect(function() { editor.map = map2; }).toThrow();
+                    expect(editor.map).toBe(map);
+                });
+            });
+
+            describe('.isActive', function() {
+                it('should be false by default', function() {
+                    expect(editor.isActive).toBe(false);
+                });
+
+                it('should activate the controller if assigned true value', function() {
+                    spyOn(editor, 'activate').and.callThrough();
+                    spyOn(editor, 'deactivate').and.callThrough();
+
+                    editor.isActive = true;
+                    expect(editor.activate).toHaveBeenCalled();
+                    expect(editor.deactivate).not.toHaveBeenCalled();
+                    expect(editor.isActive).toBe(true);
+                });
+
+                it('should deactivate the controller if assigned false value', function() {
+                    spyOn(editor, 'activate').and.callThrough();
+                    spyOn(editor, 'deactivate').and.callThrough();
+
+                    editor.isActive = false;
+                    expect(editor.activate).not.toHaveBeenCalled();
+                    expect(editor.deactivate).toHaveBeenCalled();
+                    expect(editor.isActive).toBe(false);
+                });
+            });
+
+            describe('.activeLayer', function() {
+                it('should not be set by default', function() {
+                    expect(editor.activeLayer).toBeFalsy();
+                });
+
+                it('should throw an exception if assigned value is not a feature layer and not null', function() {
+                    expect(function() { editor.activeLayer = 1; }).toThrow();
+                    expect(function() { editor.activeLayer = 'layer'; }).toThrow();
+                    expect(function() { editor.activeLayer = new sGis.TileLayer(' '); }).toThrow();
+                    expect(function() { editor.activeLayer = new sGis.ESRIDynamicLayer(' '); }).toThrow();
+
+                    expect(function() { editor.activeLayer = null; }).not.toThrow();
+                    expect(function() { editor.activeLayer = layer; }).not.toThrow();
+                });
+
+                it('should set and return the active layer', function() {
+                    editor.activeLayer = layer;
+                    expect(editor.activeLayer).toBe(layer);
+
+                    editor.activeLayer = null;
+                    expect(editor.activeLayer).toBe(null);
+                });
+
+                it('should be set through constructor', function() {
+                    var editor1 = new sGis.controls.Editor(map, {activeLayer: layer});
+                    expect(editor1.activeLayer).toBe(layer);
+                });
+
+                it('should set the feature click handlers if the control is active', function() {
+                    editor.activate();
+
+                    editor.activeLayer = layer;
+                    expect(point.getHandlers('click').length).toBe(1);
+                    expect(line.getHandlers('click').length).toBe(1);
+                    expect(polygon.getHandlers('click').length).toBe(1);
+                });
+
+                it('should not set the feature click handler if the control is not active', function() {
+                    editor.activeLayer = layer;
+                    expect(point.getHandlers('click').length).toBe(0);
+                    expect(line.getHandlers('click').length).toBe(0);
+                    expect(polygon.getHandlers('click').length).toBe(0);
+                });
+
+                it('should remove the listeners for the old active layer', function() {
+                    editor.activate();
+                    editor.activeLayer = layer;
+
+                    var newLayer = new sGis.FeatureLayer();
+                    var newPoint = new sGis.feature.Point([0,0]);
+                    newLayer.add(newPoint);
+                    editor.activeLayer = newLayer;
+
+                    expect(point.getHandlers('click').length).toBe(0);
+                    expect(line.getHandlers('click').length).toBe(0);
+                    expect(polygon.getHandlers('click').length).toBe(0);
+
+                    expect(newPoint.getHandlers('click').length).toBe(1);
+                });
+
+                it('should remove the listeners if null is assigned', function() {
+                    editor.activate();
+                    editor.activeLayer = layer;
+
+                    editor.activeLayer = null;
+
+                    expect(point.getHandlers('click').length).toBe(0);
+                    expect(line.getHandlers('click').length).toBe(0);
+                    expect(polygon.getHandlers('click').length).toBe(0);
+                });
+
+                it('should not set second listeners to the features if assigned the same active layer', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.activeLayer = layer;
+
+                    expect(point.getHandlers('click').length).toBe(1);
+                    expect(line.getHandlers('click').length).toBe(1);
+                    expect(polygon.getHandlers('click').length).toBe(1);
+                });
+
+                it('should deselect the selected feature if different active layer is set', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    var clickListeners = map.getHandlers('click').length;
+
+                    var newLayer = new sGis.FeatureLayer();
+                    editor.activeLayer = newLayer;
+                    expect(editor.selectedFeature).toBe(null);
+                    expect(map.getHandlers('click').length).toBe(clickListeners - 1);
+                });
+
+                it('should deselect the selected feature if null is assigned', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    var clickListeners = map.getHandlers('click').length;
+
+                    var newLayer = new sGis.FeatureLayer();
+                    editor.activeLayer = newLayer;
+                    expect(editor.selectedFeature).toBe(null);
+                    expect(map.getHandlers('click').length).toBe(clickListeners - 1);
+                });
+            });
+
+            describe('.selectedFeature', function() {
+                it('should return null if no feature is selected', function() {
+                    expect(editor.selectedFeature).toBe(null);
+                });
+
+                it('should return the selected feature', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+
+                    expect(editor.selectedFeature).toBe(point);
+                });
+
+                it('should call the .select() method if assigned', function() {
+                    spyOn(editor, 'select');
+
+                    editor.activeLayer = layer;
+                    editor.selectedFeature = null;
+                    editor.selectedFeature = point;
+                    editor.selectedFeature = point;
+                    editor.activate();
+                    editor.selectedFeature = null;
+                    editor.selectedFeature = point;
+                    editor.selectedFeature = point;
+
+                    expect(editor.select.calls.count()).toBe(6);
+                });
+            });
+        });
+
+        describe('methods', function() {
+            var editor;
+            beforeEach(function() {
+                editor = new sGis.controls.Editor(map);
+            });
+
+            describe('.activate()', function() {
+                it('should set active status to true', function() {
+                    editor.activate();
+                    expect(editor.isActive).toBe(true);
+                    editor.activate();
+                    expect(editor.isActive).toBe(true);
+                });
+
+                it('should set the click listeners to the features of active layer', function() {
+                    editor.activeLayer = layer;
+
+                    editor.activate();
+                    expect(point.getHandlers('click').length).toBe(1);
+                    expect(line.getHandlers('click').length).toBe(1);
+                    expect(polygon.getHandlers('click').length).toBe(1);
+                });
+
+                it('should not set second listener if activated an active control', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.activate();
+
+                    expect(point.getHandlers('click').length).toBe(1);
+                    expect(line.getHandlers('click').length).toBe(1);
+                    expect(polygon.getHandlers('click').length).toBe(1);
+                });
+
+                it('should add listeners to all features added to the active layer', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.activeLayer = null;
+                    editor.activeLayer = layer;
+
+                    var newPoint = new sGis.feature.Point([0,0]);
+                    layer.add(newPoint);
+                    expect(newPoint.getHandlers('click').length).toBe(1);
+                });
+            });
+
+            describe('.deactivate()', function() {
+                it('should set active status to false', function() {
+                    editor.activate();
+                    editor.deactivate();
+                    expect(editor.isActive).toBe(false);
+                });
+
+                it('should remove click listeners from the features', function() {
+                    map.addLayer(layer);
+                    editor.activeLayer = layer;
+
+                    editor.activate();
+                    editor.deactivate();
+
+                    expect(point.getHandlers('click').length).toBe(0);
+                    expect(line.getHandlers('click').length).toBe(0);
+                    expect(polygon.getHandlers('click').length).toBe(0);
+                });
+
+                it('should deselect the selected feature', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    var clickListeners = map.getHandlers('click').length;
+
+                    editor.deactivate();
+                    expect(editor.selectedFeature).toBe(null);
+                    expect(map.getHandlers('click').length).toBe(clickListeners - 1);
+                });
+            });
+
+            describe('.select()', function() {
+                it('should select a feature of activeLayer if the control is active', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+
+                    expect(editor.selectedFeature).toBe(point);
+
+                    editor.select(line);
+                    expect(editor.selectedFeature).toBe(line);
+
+                    editor.select(polygon);
+                    expect(editor.selectedFeature).toBe(polygon);
+                });
+
+                it('should not select a feature if the control is not active', function() {
+                    editor.activeLayer = layer;
+                    editor.select(point);
+
+                    expect(editor.selectedFeature).toBe(null);
+                });
+
+                it('should not select a feature if the feature does not belong to the active layer', function() {
+                    var newPoint = new sGis.feature.Point([5, 5]);
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(newPoint);
+
+                    expect(editor.selectedFeature).toBe(null);
+                });
+
+                it('should not select a feature if the control is not active', function() {
+                    editor.activeLayer = layer;
+                    editor.select(point);
+
+                    expect(editor.selectedFeature).toBe(null);
+                });
+
+                it('should deselect selected feature if the given value is not a feature belonging to the active layer', function() {
+                    var newPoint = new sGis.feature.Point([5, 5]);
+                    editor.activeLayer = layer;
+                    editor.activate();
+
+                    editor.select(point);
+                    editor.select(newPoint);
+                    expect(editor.selectedFeature).toBe(null);
+
+                    editor.select(point);
+                    editor.select(null);
+                    expect(editor.selectedFeature).toBe(null);
+                });
+
+                it('should call .deselect() the previously selected feature', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+
+                    spyOn(editor, 'deselect');
+                    editor.select(line);
+
+                    expect(editor.deselect).toHaveBeenCalled();
+                });
+
+                it('should set a click listener to the map for deselecting the feature', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+
+                    var clickListeners = map.getHandlers('click').length;
+                    editor.select(point);
+
+                    expect(map.getHandlers('click').length).toBe(clickListeners + 1);
+                });
+
+                it('should not set an additional listener to the map if already set one', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+
+                    editor.select(point);
+                    var clickListeners = map.getHandlers('click').length;
+
+                    editor.select(line);
+                    expect(map.getHandlers('click').length).toBe(clickListeners);
+                    editor.select(polygon);
+                    expect(map.getHandlers('click').length).toBe(clickListeners);
+                });
+
+                it('should set the temp style for the selected feature', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    var originalSymbol = point.symbol;
+
+                    editor.select(point);
+
+                    expect(point.symbol).not.toBe(originalSymbol);
+                    expect(point.originalSymbol).toBe(originalSymbol);
+                });
+
+                it('should create the temp layer for snapping', function() {
+                    map.addLayer(layer);
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+
+                    expect(map.layers.length).toBe(2);
+                });
+
+                it('should set the mousemove handler for snapping', function() {
+                    map.addLayer(layer);
+                    editor.activeLayer = layer;
+                    editor.activate();
+
+                    var handlers = map.getHandlers('mousemove').length;
+                    editor.select(point);
+
+                    expect(map.getHandlers('mousemove').length).toBe(handlers + 1);
+                });
+            });
+
+            describe('.deselect()', function() {
+                it('should deselect the selected feature', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    editor.deselect();
+
+                    expect(editor.selectedFeature).toBe(null);
+                });
+
+                it('should do nothing if no feature is selected', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.deselect();
+
+                    expect(editor.selectedFeature).toBe(null);
+                });
+
+                it('should remove the click listener from the map', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+
+                    editor.select(point);
+                    var clickListeners = map.getHandlers('click').length;
+                    editor.deselect();
+
+                    expect(map.getHandlers('click').length).toBe(clickListeners - 1);
+                    editor.deselect();
+                    expect(map.getHandlers('click').length).toBe(clickListeners - 1);
+                });
+
+                it('should clear the temp symbol from the feature', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    var originalSymbol = point.symbol;
+
+                    editor.select(point);
+                    editor.deselect();
+
+                    expect(point.symbol).toBe(originalSymbol);
+                });
+
+                it('should remove the snapping layer from the map', function() {
+                    map.addLayer(layer);
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+
+                    editor.deselect();
+                    expect(map.layers.length).toBe(1);
+                });
+
+                it('should remove the mousemove handler from the map', function() {
+                    map.addLayer(layer);
+                    editor.activeLayer = layer;
+                    editor.activate();
+
+                    editor.select(point);
+                    var handlers = map.getHandlers('mousemove').length;
+
+                    editor.deselect();
+                    expect(map.getHandlers('mousemove').length).toBe(handlers - 1);
+                });
+            });
+        });
+
+        describe('user interactions', function() {
+            var editor;
+            beforeEach(function() {
+                editor = new sGis.controls.Editor(map);
+            });
+
+            describe('on clicking a feature of active layer', function() {
+                it('should select the clicked feature', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+
+                    point.fire('click');
+                    expect(editor.selectedFeature).toBe(point);
+                    line.fire('click');
+                    expect(editor.selectedFeature).toBe(line);
+                    polygon.fire('click');
+                    expect(editor.selectedFeature).toBe(polygon);
+                });
+            });
+
+            describe('on clicking an empty map point', function() {
+                it('should deselect the selected feature', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+
+                    map.fire('click');
+                    expect(editor.selectedFeature).toBe(null);
+                });
+            });
+        });
+    });
+});

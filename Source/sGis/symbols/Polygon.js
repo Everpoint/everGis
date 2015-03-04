@@ -30,10 +30,10 @@
         _strokeColor: 'black',
         _fillColor: 'transparent',
 
-        renderFunction: function(resolution, crs) {
-            var coordinates = getPolylineRenderedCoordinates(this, resolution, crs);
+        renderFunction: function(feature, resolution, crs) {
+            var coordinates = getPolylineRenderedCoordinates(feature, resolution, crs);
 
-            return [new sGis.geom.Polygon(coordinates, {color: this.style.strokeColor, width: this.style.strokeWidth, fillColor: this.style.fillColor})];
+            return [new sGis.geom.Polygon(coordinates, {color: this.strokeColor, width: this.strokeWidth, fillColor: this.fillColor})];
         }
     });
 
@@ -78,11 +78,11 @@
         _fillForeground: 'black',
         _fillBackground: 'transparent',
 
-        renderFunction: function(resolution, crs) {
-            if (!this._image) this.symbol.fillBrush = this.style.fillBrush;
-            var coordinates = getPolylineRenderedCoordinates(this, resolution, crs);
+        renderFunction: function(feature, resolution, crs) {
+            if (!this._image) this.fillBrush = this.fillBrush;
+            var coordinates = getPolylineRenderedCoordinates(feature, resolution, crs);
 
-            return [new sGis.geom.Polygon(coordinates, {color: this.style.strokeColor, width: this.style.strokeWidth, fillStyle: 'image', fillImage: this.style._image || this.style.defaults._image})];
+            return [new sGis.geom.Polygon(coordinates, {color: this.strokeColor, width: this.strokeWidth, fillStyle: 'image', fillImage: this._image})];
         }
     });
 
@@ -151,11 +151,11 @@
         _strokeColor: 'black',
         _src: 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==',
 
-        renderFunction: function(resolution, crs) {
-            if (!this._image) this.symbol.fillImage = this.style.fillImage;
-            var coordinates = getPolylineRenderedCoordinates(this, resolution, crs);
+        renderFunction: function(feature, resolution, crs) {
+            if (!this._image) this.fillImage = this.fillImage;
+            var coordinates = getPolylineRenderedCoordinates(feature, resolution, crs);
 
-            return [new sGis.geom.Polygon(coordinates, {color: this.style.strokeColor, width: this.style.strokeWidth, fillStyle: 'image', fillImage: this.style._image || this.style.defaults._image})];
+            return [new sGis.geom.Polygon(coordinates, {color: this.strokeColor, width: this.strokeWidth, fillStyle: 'image', fillImage: this._image})];
         }
     });
 

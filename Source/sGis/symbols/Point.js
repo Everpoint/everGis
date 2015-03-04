@@ -21,11 +21,11 @@
         _strokeWidth: 1,
         _offset: {x: 0, y: 0},
 
-        renderFunction: function(resolution, crs) {
-            var feature = this.projectTo(crs),
-                pxPosition = [feature._point[0] / resolution + this.style.offset.x, - feature._point[1] / resolution + this.style.offset.y];
+        renderFunction: function(feature, resolution, crs) {
+            var f = feature.projectTo(crs),
+                pxPosition = [f._point[0] / resolution + this.offset.x, - f._point[1] / resolution + this.offset.y];
 
-            var point = new sGis.geom.Arc(pxPosition, {fillColor: this.style.fillColor, strokeColor: this.style.strokeColor, strokeWidth: this.style.strokeWidth, radius: this.style.size / 2});
+            var point = new sGis.geom.Arc(pxPosition, {fillColor: this.fillColor, strokeColor: this.strokeColor, strokeWidth: this.strokeWidth, radius: this.size / 2});
             return [point];
         }
     });
@@ -101,27 +101,27 @@
         _anchorPoint: {x: 16, y: 16},
         _renderToCanvas: true,
 
-        renderFunction: function(resolution, crs) {
-            if (!this.symbol._image) this.symbol.source = this.style.source;
+        renderFunction: function(feature, resolution, crs) {
+            if (!this._image) this.source = this.source; //creates the image and saves to cache
 
-            var feature = this.projectTo(crs);
-            var pxPosition = [feature._point[0] / resolution, - feature._point[1] / resolution];
-            var imageCache = this.style._image;
+            var f = feature.projectTo(crs);
+            var pxPosition = [f._point[0] / resolution, - f._point[1] / resolution];
+            var imageCache = this._image;
 
             if (imageCache.complete) {
                 var image = new Image();
-                image.src = this.style.source;
+                image.src = this.source;
 
-                var k = this.style.size / image.width;
-                image.width = this.style.size;
-                image.height = this.style.size / imageCache.width * imageCache.height;
-                image.position = [pxPosition[0] - this.style.anchorPoint.x * k, pxPosition[1] - this.style.anchorPoint.y * k];
+                var k = this.size / image.width;
+                image.width = this.size;
+                image.height = this.size / imageCache.width * imageCache.height;
+                image.position = [pxPosition[0] - this.anchorPoint.x * k, pxPosition[1] - this.anchorPoint.y * k];
 
                 var render = {
                     node: image,
                     position: image.position,
                     persistent: true,
-                    renderToCanvas: this.style.renderToCanvas
+                    renderToCanvas: this.renderToCanvas
                 };
                 return [render];
             } else {
@@ -191,11 +191,11 @@
         _fillColor: 'transparent',
         _offset: {x: 0, y: 0},
 
-        renderFunction: function(resolution, crs) {
-            var feature = this.projectTo(crs),
-                pxPosition = [feature._point[0] / resolution, - feature._point[1] / resolution],
-                halfSize = this.style.size / 2,
-                offset = this.style.offset,
+        renderFunction: function(feature, resolution, crs) {
+            var f = feature.projectTo(crs),
+                pxPosition = [f._point[0] / resolution, - f._point[1] / resolution],
+                halfSize = this.size / 2,
+                offset = this.offset,
                 coordinates = [
                     [pxPosition[0] - halfSize + offset.x, pxPosition[1] - halfSize + offset.y],
                     [pxPosition[0] - halfSize + offset.x, pxPosition[1] + halfSize + offset.y],
@@ -203,7 +203,7 @@
                     [pxPosition[0] + halfSize + offset.x, pxPosition[1] - halfSize + offset.y]
                 ];
 
-            return [new sGis.geom.Polygon(coordinates, {fillColor: this.style.fillColor, color: this.style.strokeColor, width: this.style.strokeWidth})];
+            return [new sGis.geom.Polygon(coordinates, {fillColor: this.fillColor, color: this.strokeColor, width: this.strokeWidth})];
         }
     });
 

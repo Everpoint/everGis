@@ -11,32 +11,32 @@
         _height: 200,
         _offset: {x: -100, y: -220},
 
-        renderFunction: function(resolution, crs) {
-            if (this.style._changed) {
+        renderFunction: function(feature, resolution, crs) {
+            if (this._changed) {
                 this._cache = {};
-                this.style._changed = false;
+                this._changed = false;
             }
 
-            var point = this.position.projectTo(crs),
+            var point = feature.position.projectTo(crs),
                 position = [point.x / resolution, - point.y / resolution];
 
             if (!this._cache[resolution]) {
-                var baloonCoordinates = getBaloonCoordinates(this, position);
+                var baloonCoordinates = getBaloonCoordinates(feature, position);
 
                 this._cache[resolution] = new sGis.geom.Polygon(baloonCoordinates, {fillColor: 'white'});
             }
 
             var div = document.createElement('div'),
-                divPosition = [position[0] + this.style.offset.x, position[1] + this.style.offset.y];
+                divPosition = [position[0] + this.offset.x, position[1] + this.offset.y];
 
-            if (utils.isNode(this.content)) {
-                div.appendChild(this.content);
+            if (utils.isNode(feature.content)) {
+                div.appendChild(feature.content);
             } else {
-                utils.html(div, this.content);
+                utils.html(div, feature.content);
             }
             div.style.position = 'absolute';
-            div.style.height = this.style.height + 'px';
-            div.style.width = this.style.width + 'px';
+            div.style.height = this.height + 'px';
+            div.style.width = this.width + 'px';
             div.style.backgroundColor = 'white';
             div.style.overflow = 'auto';
             div.position = divPosition;
@@ -44,7 +44,7 @@
             var divRender = {
                 node: div,
                 position: position
-            }
+            };
 
             return [this._cache[resolution], divRender];
         }

@@ -13,8 +13,8 @@
     sGis.FeatureLayer.prototype = new sGis.Layer({
         _delayedUpdate: true,
 
-        getFeatures: function(bbox, resolution) {
-            if (!bbox || !(bbox instanceof sGis.Bbox) || !resolution || parseFloat(resolution) === NaN) utils.error('Expected (bbox, resolution), but got (' + bbox + ', ' + resolution + 'instead');
+        getFeatures: function(bbox) {
+            if (!bbox || !(bbox instanceof sGis.Bbox)) utils.error('Expected bbox, but got ' + bbox + 'instead');
             if (!this._display) return {};
             var obj = [];
             for (var i in this._features) {
@@ -48,6 +48,14 @@
 
         has: function(feature) {
             return this._features.indexOf(feature) !== -1;
+        },
+
+        moveToTop: function(feature) {
+            var index = this._features.indexOf(feature);
+            if (index !== -1) {
+                this._features.splice(index, 1);
+                this._features.push(feature);
+            }
         }
     });
 

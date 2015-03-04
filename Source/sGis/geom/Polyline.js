@@ -22,7 +22,7 @@
         },
 
         contains: function(a, b) {
-            var position = b && isValidPoint([a, b]) ? [a, b] : utils.isArray(a) && isValidPoint(a) ? a : a.x && a.y ? [a.x, a.y] : utils.error('Point coordinates are expecred but got ' + a + ' instead'),
+            var position = b && isValidPoint([a, b]) ? [a, b] : utils.isArray(a) && isValidPoint(a) ? a : utils.isNumber(a.x) && utils.isNumber(a.y) ? [a.x, a.y] : utils.error('Point coordinates are expecred but got ' + a + ' instead'),
                 coordinates = this._coordinates;
 
             for (var ring = 0, l = coordinates.length; ring < l; ring++) {

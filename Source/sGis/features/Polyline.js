@@ -114,6 +114,10 @@
                 utils.error('Number or array is expected but got ' + scale + ' instead');
             }
             this.transform([[parseFloat(scale[0]), 0, 0], [0, parseFloat(scale[1]), 0], [0, 0, 1]], center);
+        },
+
+        move: function(x, y) {
+            this.transform([[1, 0 ,0], [0, 1, 1], [x, y, 1]]);
         }
     });
 

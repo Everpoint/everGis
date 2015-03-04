@@ -10,10 +10,10 @@
         _strokeWidth: 1,
         _strokeColor: 'black',
 
-        renderFunction: function(resolution, crs) {
-            var coordinates = getPolylineRenderedCoordinates(this, resolution, crs);
+        renderFunction: function(feature, resolution, crs) {
+            var coordinates = getPolylineRenderedCoordinates(feature, resolution, crs);
 
-            return [new sGis.geom.Polyline(coordinates, {color: this.style.strokeColor, width: this.style.strokeWidth})];
+            return [new sGis.geom.Polyline(coordinates, {color: this.strokeColor, width: this.strokeWidth})];
         }
     });
 

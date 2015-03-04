@@ -861,10 +861,10 @@
 
             if (mouseHandler.clickCatcher) {
                 mouseHandler.clickCatcher = null;
-                map.fire('dragStart', {map: map, mouseOffset: mousePosition, position: position, point: point, ctrlKey: event.ctrlKey, offset: {xPx: dxPx, yPx: dyPx, x: map._lastDrag.x, y: map._lastDrag.y}, browserEvent: event});
+                var originalPoint = map.getPointFromPxPosition(mouseHandler.dragPosition.x, mouseHandler.dragPosition.y);
+                var originalPosition = {x: originalPoint.x / resolution, y: - originalPoint.y / resolution};
+                map.fire('dragStart', {map: map, mouseOffset: mousePosition, position: originalPosition, point: originalPoint, ctrlKey: event.ctrlKey, offset: {xPx: dxPx, yPx: dyPx, x: map._lastDrag.x, y: map._lastDrag.y}, browserEvent: event});
             }
-
-//        map.move(map._lastDrag.x, map._lastDrag.y);
 
             mouseHandler.dragPosition = mousePosition;
             map._draggingObject.fire('drag', {map: map, mouseOffset: mousePosition, position: position, point: point, ctrlKey: event.ctrlKey, offset: {xPx: dxPx, yPx: dyPx, x: map._lastDrag.x, y: map._lastDrag.y}, browserEvent: event});
