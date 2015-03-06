@@ -101,8 +101,8 @@ sGis.geotools.pointToLineProjection = function(point, line) {
  * @returns {boolean}
  */
 sGis.geotools.contains = function(polygon, point, tolerance) {
-    sGis.utils.validate.array(polygon[0]);
-    sGis.utils.validate.array(point);
+    sGis.utils.validate(polygon[0], 'array');
+    sGis.utils.validate(point, 'array');
     tolerance = tolerance || 0;
     var intersectionCount = 0;
 

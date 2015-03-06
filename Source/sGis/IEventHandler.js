@@ -21,7 +21,14 @@
                 }
             }
 
-            if (this._defaultHandlers && this._defaultHandlers[eventType] !== undefined && !sGisEvent._cancelDefault) {
+            if (sGisEvent._cancelDefault) {
+                if (sGisEvent.browserEvent) {
+                    sGisEvent.browserEvent.preventDefault();
+                }
+                return;
+            }
+
+            if (this._defaultHandlers && this._defaultHandlers[eventType] !== undefined) {
                 this._defaultHandlers[eventType].call(this, sGisEvent);
             }
         },

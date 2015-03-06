@@ -2,7 +2,85 @@
 
 (function() {
 
-    sGis.utils.validate = {
+    sGis.utils.proto = {};
+
+    sGis.utils.proto.setProperties = function(obj, properties) {
+        var keys = Object.keys(properties);
+        for (var i = 0; i < keys.length; i++)  {
+            var key = keys[i];
+
+            if (properties[key] instanceof Object) {
+                if (properties[key].get === null && properties[key].set === null) {
+                    obj[key] = properties[key].default;
+                } else {
+                    if (properties[key].default !== undefined) {
+                        var enumerable = true;
+
+                        Object.defineProperty(obj, '_' + key, {
+                            enumerable: false,
+                            writable: true,
+                            value: properties[key].default
+                        });
+                    }
+
+                    Object.defineProperty(obj, key, {
+                        enumerable: enumerable,
+                        get: sGis.utils.proto.getGetter(key, properties[key].get),
+                        set: sGis.utils.proto.getSetter(key, properties[key].set, properties[key].type)
+                    });
+                }
+            } else {
+                Object.defineProperty(obj, '_' + key, {
+                    enumerable: false,
+                    writable: true,
+                    value: properties[key]
+                });
+
+                Object.defineProperty(obj, key, {
+                    enumerable: true,
+                    get: sGis.utils.proto.getGetter(key),
+                    set: sGis.utils.proto.getSetter(key)
+                });
+            }
+        }
+    };
+
+    sGis.utils.proto.getGetter = function(key, getter) {
+        if (getter !== null) {
+            return function () {
+                if (getter) {
+                    return getter.call(this);
+                } else {
+                    return this['_' + key];
+                }
+            };
+        }
+    };
+
+    sGis.utils.proto.getSetter = function(key, setter, type) {
+        if (setter !== null) {
+
+            return function (val) {
+                if (type) sGis.utils.validate(val, type);
+                if (setter) {
+                    setter.call(this, val);
+                } else {
+                    this['_' + key] = val;
+                }
+            };
+        }
+    };
+
+    sGis.utils.validate = function(val, type) {
+        if (val === null) return;
+        if (sGis.utils.is.function(type)) {
+            if (!(val instanceof type)) valError(type.name, val);
+        } else if (sGis.utils.validateFuncs[type]) {
+            sGis.utils.validateFuncs[type](val);
+        }
+    };
+
+    sGis.utils.validateFuncs = {
         'function': function (obj) {
             if (!sGis.utils.is.function(obj)) valError('Function', obj);
         },

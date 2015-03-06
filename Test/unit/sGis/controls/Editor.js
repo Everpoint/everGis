@@ -217,6 +217,24 @@ $(function() {
                     expect(editor.select.calls.count()).toBe(6);
                 });
             });
+
+            describe('.allowDeletion', function() {
+                it('should be true by default', function() {
+                    expect(editor.allowDeletion).toBe(true);
+                });
+
+                it('should set the value properly', function() {
+                    editor.allowDeletion = false;
+                    expect(editor.allowDeletion).toBe(false);
+                    editor.allowDeletion = true;
+                    expect(editor.allowDeletion).toBe(true);
+                });
+
+                it('should be properly set through constructor', function() {
+                    var editor1 = new sGis.controls.Editor(map, {allowDeletion: false});
+                    expect(editor1.allowDeletion).toBe(false);
+                })
+            });
         });
 
         describe('methods', function() {
@@ -400,17 +418,6 @@ $(function() {
 
                     expect(map.layers.length).toBe(2);
                 });
-
-                it('should set the mousemove handler for snapping', function() {
-                    map.addLayer(layer);
-                    editor.activeLayer = layer;
-                    editor.activate();
-
-                    var handlers = map.getHandlers('mousemove').length;
-                    editor.select(point);
-
-                    expect(map.getHandlers('mousemove').length).toBe(handlers + 1);
-                });
             });
 
             describe('.deselect()', function() {
@@ -464,17 +471,305 @@ $(function() {
                     editor.deselect();
                     expect(map.layers.length).toBe(1);
                 });
+            });
 
-                it('should remove the mousemove handler from the map', function() {
-                    map.addLayer(layer);
+            describe('.deleteSelected()', function() {
+                it ('should delete the selected feature', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+
+                    editor.deleteSelected();
+                    expect(layer.has(point)).toBe(false);
+                });
+
+                it ('should do nothing if no feature is selected', function() {
                     editor.activeLayer = layer;
                     editor.activate();
 
-                    editor.select(point);
-                    var handlers = map.getHandlers('mousemove').length;
+                    editor.deleteSelected();
+                    expect(layer.features.length).toBe(3);
+                });
 
+                it('should do nothing if there is no active layer', function() {
+                    editor.activate();
+
+                    editor.deleteSelected();
+                    expect(layer.features.length).toBe(3);
+                });
+
+                it('should do nothing if allowDeltion property is set to false', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    editor.allowDeletion = false;
+
+                    editor.deleteSelected();
+                    expect(layer.has(point)).toBe(true);
+                    expect(layer.features.length).toBe(3);
+                });
+            });
+        });
+
+        describe('events', function() {
+            var editor;
+            beforeEach(function() {
+                editor = new sGis.controls.Editor(map);
+            });
+
+            describe('featureSelect', function() {
+                it('should be fired when a feature is selected', function() {
+                    var fired = false;
+                    editor.addListner('featureSelect', function() {
+                        fired = true;
+                    });
+
+                    editor.activeLayer = layer;
+                    expect(fired).toBe(false);
+                    editor.activate();
+                    editor.select(point);
+
+                    expect(fired).toBe(true);
+                });
+
+                it('should provide the selected feature as a parameter', function() {
+                    var selected;
+                    editor.addListner('featureSelect', function(sGisEvent) {
+                        selected = sGisEvent.feature;
+                    });
+
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+
+                    expect(selected).toBe(point);
+                });
+
+                it('should not be fired if trying to selected already selected feature', function() {
+                    var fired = false;
+                    editor.addListner('featureSelect', function() {
+                        fired = true;
+                    });
+
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    fired = false;
+                    editor.select(point);
+
+                    expect(fired).toBe(false);
+                });
+
+                it('should be fired if select a new feature when there is already a selected feature', function() {
+                    var fired = false;
+                    editor.addListner('featureSelect', function() {
+                        fired = true;
+                    });
+
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    fired = false;
+                    editor.select(polygon);
+
+                    expect(fired).toBe(true);
+                });
+
+                it('should not be fired if trying to select feature when there is no active layer', function() {
+                    var fired = false;
+                    editor.addListner('featureSelect', function() {
+                        fired = true;
+                    });
+
+                    editor.activate();
+                    editor.select(point);
+
+                    expect(fired).toBe(false);
+                });
+
+                it('should not be fired if trying to select feature that is not in the layer', function() {
+                    var fired = false;
+                    editor.addListner('featureSelect', function() {
+                        fired = true;
+                    });
+
+                    editor.activate();
+                    editor.select(new sGis.feature.Point([0,0]));
+
+                    expect(fired).toBe(false);
+                });
+            });
+
+            describe('featureDeselect', function() {
+                it('should be fired when a feature is deselected', function() {
+                    var fired = false;
+                    editor.addListner('featureDeselect', function() {
+                        fired = true;
+                    });
+
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+
+                    expect(fired).toBe(false);
                     editor.deselect();
-                    expect(map.getHandlers('mousemove').length).toBe(handlers - 1);
+                    expect(fired).toBe(true);
+                });
+
+                it('should provide the deselected feature as a parameter', function() {
+                    var selected;
+                    editor.addListner('featureDeselect', function(sGisEvent) {
+                        selected = sGisEvent.feature;
+                    });
+
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    editor.deselect();
+
+                    expect(selected).toBe(point);
+                });
+
+                it('should be fired if another feature is selected', function() {
+                    var selected;
+                    editor.addListner('featureDeselect', function(sGisEvent) {
+                        selected = sGisEvent.feature;
+                    });
+
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    editor.select(polygon);
+
+                    expect(selected).toBe(point);
+                });
+
+                it('should be fired if active layer is changed', function() {
+                    var selected;
+                    editor.addListner('featureDeselect', function(sGisEvent) {
+                        selected = sGisEvent.feature;
+                    });
+
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    editor.activeLayer = new sGis.FeatureLayer();
+
+                    expect(selected).toBe(point);
+                });
+
+                it('should be fired if the active layer is set to null', function() {
+                    var selected;
+                    editor.addListner('featureDeselect', function(sGisEvent) {
+                        selected = sGisEvent.feature;
+                    });
+
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    editor.activeLayer = null;
+
+                    expect(selected).toBe(point);
+                });
+
+                it('should be fired if the editor is deactivated', function() {
+                    var selected;
+                    editor.addListner('featureDeselect', function(sGisEvent) {
+                        selected = sGisEvent.feature;
+                    });
+
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    editor.deactivate();
+
+                    expect(selected).toBe(point);
+                });
+
+                it('should not be fired if trying to select currently selected feature', function() {
+                    var selected;
+                    editor.addListner('featureDeselect', function(sGisEvent) {
+                        selected = sGisEvent.feature;
+                    });
+
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    editor.select(point);
+
+                    expect(selected).toBe(undefined);
+                });
+
+                it('should be fired if trying to select a feature that is not in the active layer', function() {
+                    var selected;
+                    editor.addListner('featureDeselect', function(sGisEvent) {
+                        selected = sGisEvent.feature;
+                    });
+
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    editor.select(new sGis.feature.Point([0,0]));
+
+                    expect(selected).toBe(point);
+                });
+
+                it('should be fired if the feature is being deleted by controller', function() {
+                    var selected;
+                    editor.addListner('featureDeselect', function(sGisEvent) {
+                        selected = sGisEvent.feature;
+                    });
+
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    editor.deleteSelected();
+
+                    expect(selected).toBe(point);
+                });
+            });
+
+            describe('featureRemove', function() {
+                it('should be fired when feature is removed by the controller, and should send the feature as a parameter', function() {
+                    var selected;
+                    editor.addListner('featureRemove', function(sGisEvent) {
+                        selected = sGisEvent.feature;
+                    });
+
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    editor.deleteSelected();
+
+                    expect(selected).toBe(point);
+                });
+
+                it('should not be fired if there is not selected feature', function() {
+                    var fired = false;
+                    editor.addListner('featureRemove', function(sGisEvent) {
+                        fired = true;
+                    });
+
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.deleteSelected();
+
+                    expect(fired).toBe(false);
+                });
+
+                it('should not be fired if the deletion is prohibited', function() {
+                    var fired = false;
+                    editor.addListner('featureRemove', function(sGisEvent) {
+                        fired = true;
+                    });
+
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                    editor.allowDeletion = false;
+                    editor.deleteSelected();
+
+                    expect(fired).toBe(false);
                 });
             });
         });

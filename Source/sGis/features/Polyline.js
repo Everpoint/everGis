@@ -30,6 +30,12 @@
             this._bbox = null;
         },
 
+        removeRing: function(ring) {
+            if (this._coordinates.length > 1 && this._coordinates[ring]) {
+                this._coordinates.splice(ring, 1);
+            }
+        },
+
         clone: function() {
             return new sGis.feature.Polyline(this._coordinates, {crs: this._crs, color: this._color, width: this._width, style: this.style, symbol: this.symbol});
         },

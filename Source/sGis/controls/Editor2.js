@@ -15,14 +15,11 @@
     };
 
     sGis.controls.Editor.prototype = new sGis.Control({
-        _isActive: false,
-        _activeLayer: null,
-        _selectedFeature: null,
-        _snappingDistance: 7,
         _snappingPointSymbol: new sGis.symbol.point.Point({fillColor: 'red', size: 3}),
         _snappingVertexSymbol: new sGis.symbol.point.Point({fillColor: 'blue', size: 6}),
         _pointSnappingFunctions: ['vertex', 'midpoint', 'line'],
         _polylineSnappingFunctions: ['vertex', 'midpoint', 'line', 'axis', 'orthogonal'],
+        _rotationControlSymbol: new sGis.symbol.point.Point({offset: {x: 0, y: -30}}),
         _translateControlSymbol: sGis.symbol.point.Square,
 
         activate: function() {
@@ -50,6 +47,8 @@
                 var self = this;
                 this._activeLayer.addListner('featureAdd.' + this._ns, function(sGisEvent) { self._setFeatureClickHandler(sGisEvent.feature); });
                 this._activeLayer.addListner('featureRemove.' + this._ns, function(sGisEvent) { self._removeFeatureClickHandler(sGisEvent.feature); });
+
+                this._map.addListner('keydown.' + this._ns, this._keydownHandler.bind(this));
             }
         },
 
@@ -61,8 +60,34 @@
                 }
                 this._activeLayer.removeListner('.' + this._ns);
             }
+            this._map.removeListner('keydown.' + this._ns);
         },
 
+        _keydownHandler: function(sGisEvent) {
+            if (this._ignoreEvents) return;
+            var event = sGisEvent.browserEvent;
+            if (event.which === 27) {
+                if (!this._deselectProhibited) this.deselect();
+                sGisEvent.stopPropagation();
+                sGisEvent.preventDefault();
+            } else if (event.which === 46) {
+                this.deleteSelected();
+                sGisEvent.stopPropagation();
+                sGisEvent.preventDefault();
+            } else if (event.which === 9) {
+                this._selectNext();
+                sGisEvent.stopPropagation();
+                sGisEvent.preventDefault();
+            }
+        },
+
+        _selectNext: function() {
+            if (this._activeLayer) {
+                var features = this._activeLayer.features;
+
+                this.select(features[0]);
+            }
+        },
 
         _setFeatureClickHandler: function(feature) {
             var self = this;
@@ -91,17 +116,22 @@
                 this._setTempSymbol();
                 this._setSnappingLayer();
                 this._map.redrawLayer(this._activeLayer);
+
+                this.fire('featureSelect', {feature: feature});
             }
         },
 
         deselect: function() {
             if (this._selectedFeature) {
+                var feature = this._selectedFeature;
                 this._map.removeListner('click.' + this._ns);
                 this._clearTempSymbol();
                 this._removeSelectedListeners();
                 this._removeSnappingLayer();
                 this._selectedFeature = null;
                 if (this._map.getLayerIndex(this._activeLayer) !== -1) this._map.redrawLayer(this._activeLayer);
+
+                this.fire('featureDeselect', {feature: feature});
             }
         },
 
@@ -122,6 +152,8 @@
 
         _removeSnappingLayer: function() {
             this._map.removeLayer(this._snappingLayer);
+            this._snappingPoint.hide();
+            this._hideTransformControls();
         },
 
         _createTransformControls: function() {
@@ -133,19 +165,47 @@
                 this._transformControls.push([]);
                 for (var y = 0; y < 3; y++) {
                     if (x !== 1 || y !== 1) {
-                        var symbol = new this._translateControlSymbol({offset: {x: (x-1)*OFFSET, y: (y-1)*OFFSET}});
-                        var control = new sGis.feature.Point([0,0], {crs: this._map.crs, symbol: symbol, xIndex: x-1, yIndex: y-1});
+                        var symbol = new this._translateControlSymbol({offset: {x: (x-1)*OFFSET, y: -(y-1)*OFFSET}, size: 7});
+                        var control = new sGis.feature.Point([0,0], {crs: this._map.crs, symbol: symbol, xIndex: x, yIndex: y});
                         control.hide();
 
                         control.addListner('dragStart', this._transformControlDragStartHandler);
                         control.addListner('drag', function(sGisEvent) { self._transformControlDragHandler(sGisEvent, this) });
 
                         this._transformControls[x][y] = control;
-                        //this._snappingLayer.add(control);
+                        this._snappingLayer.add(control);
                     }
                 }
             }
 
+            var rotationControl = new sGis.feature.Point([0,0], {crs: this._map.crs, symbol: this._rotationControlSymbol});
+            rotationControl.addListner('dragStart', function(sGisEvent) {
+                self._rotationBase = self._selectedFeature.centroid;
+                self._transformControlDragStartHandler.call(this, sGisEvent);
+                self.fire('rotationStart');
+            });
+            rotationControl.addListner('drag', this._rotationControlDragHandler.bind(this));
+            rotationControl.addListner('dragEnd', function() {
+                self.fire('rotationEnd');
+            });
+
+
+            rotationControl.hide();
+            this._snappingLayer.add(rotationControl);
+            this._transformControls.rotationControl = rotationControl;
+        },
+
+        _hideTransformControls: function() {
+            if (this._transformControls) {
+                for (var i = 0; i < 3; i++) {
+                    for (var j = 0; j < 3; j++) {
+                        if (this._transformControls[i][j]) {
+                            this._transformControls[i][j].hide();
+                        }
+                    }
+                }
+                this._transformControls.rotationControl.hide();
+            }
         },
 
         _transformControlDragStartHandler: function(sGisEvent) {
@@ -154,25 +214,64 @@
         },
 
         _transformControlDragHandler: function(sGisEvent, feature) {
-            //todo
+            var MIN_SIZE = 10;
+
+            var xIndex = feature.xIndex === 0 ? 2 : feature.xIndex === 2 ? 0 : 1;
+            var yIndex = feature.yIndex === 0 ? 2 : feature.yIndex === 2 ? 0 : 1;
+            var basePoint = this._transformControls[xIndex][yIndex].coordinates;
+
+            var bbox = this._selectedFeature.bbox;
+            var resolution = this._map.resolution;
+            var tolerance = MIN_SIZE * resolution;
+            var width = bbox.width;
+            var xScale = xIndex === 1 ? 1 : (width + (xIndex - 1) * sGisEvent.offset.x) / width;
+            if (width < tolerance && xScale < 1) xScale = 1;
+            var height = bbox.height;
+            var yScale = yIndex === 1 ? 1 : (height + (yIndex - 1) * sGisEvent.offset.y) / height;
+            if (height < tolerance && yScale < 1) yScale = 1;
+
+            this._selectedFeature.scale([xScale, yScale], basePoint);
+            this._map.redrawLayer(this._activeLayer);
+            this._updateTransformControls();
+        },
+
+        _rotationControlDragHandler: function(sGisEvent) {
+            var xPrev = sGisEvent.point.x + sGisEvent.offset.x;
+            var yPrev = sGisEvent.point.y + sGisEvent.offset.y;
+
+            var alpha1 = xPrev === this._rotationBase[0] ? Math.PI / 2 : Math.atan2(yPrev - this._rotationBase[1], xPrev - this._rotationBase[0]);
+            var alpha2 = sGisEvent.point.x === this._rotationBase[0] ? Math.PI / 2 : Math.atan2(sGisEvent.point.y - this._rotationBase[1], sGisEvent.point.x - this._rotationBase[0]);
+            var angle = alpha2 - alpha1;
+
+            this._selectedFeature.rotate(angle, this._rotationBase);
+            this._map.redrawLayer(this._activeLayer);
+            this._updateTransformControls();
+
+            this.fire('rotation');
         },
 
         _updateTransformControls: function() {
-            var bbox = this._selectedFeature.bbox.projectTo(this._map.crs);
-            var coordinates = [[bbox.xMin, bbox.yMin], [bbox.xMax, bbox.yMax]];
-            var controls = this._transformControls;
-            for (var i = 0; i < 3; i++) {
-                for (var j = 0; j < 3; j++) {
-                    if (i !== 1 || j !== 1) {
-                        var x = coordinates[0][0] + (coordinates[1][0] - coordinates[0][0]) * i / 2;
-                        var y = coordinates[0][1] + (coordinates[1][1] - coordinates[0][1]) * j / 2;
-                        controls[i][j].coordinates = [x, y];
-                        controls[i][j].show();
+            if (this._selectedFeature) {
+                var bbox = this._selectedFeature.bbox.projectTo(this._map.crs);
+                var coordinates = [[bbox.xMin, bbox.yMin], [bbox.xMax, bbox.yMax]];
+                var controls = this._transformControls;
+                for (var i = 0; i < 3; i++) {
+                    for (var j = 0; j < 3; j++) {
+                        if (i !== 1 || j !== 1) {
+                            var x = coordinates[0][0] + (coordinates[1][0] - coordinates[0][0]) * i / 2;
+                            var y = coordinates[0][1] + (coordinates[1][1] - coordinates[0][1]) * j / 2;
+                            controls[i][j].coordinates = [x, y];
+                            controls[i][j].show();
+
+                            if (i === 1 && j === 2) controls.rotationControl.coordinates = [x, y];
+                        }
                     }
                 }
+                controls.rotationControl.show();
+                this._map.redrawLayer(this._snappingLayer);
+            } else {
+                this._hideTransformControls();
             }
-
-            this._map.redrawLayer(this._snappingLayer);
         },
 
         _mapClickHandler: function(sGisEvent) {
@@ -195,6 +294,7 @@
             if (this._selectedFeature instanceof sGis.feature.Polyline) {
                 this._selectedFeature.addListner('mousemove.' + this._ns, function(sGisEvent) { self._polylineMousemoveHandler(sGisEvent, this); });
                 this._selectedFeature.addListner('mouseout.' + this._ns, function(sGisEvent) { self._polylineMouseoutHandler(sGisEvent, this); });
+                this._selectedFeature.addListner('dblclick.' + this._ns, function(sGisEvent) { self._polylineDblclickHandler(sGisEvent, this); });
             }
         },
 
@@ -203,6 +303,7 @@
             this._selectedFeature.removeListner('drag.' + this._ns);
             this._selectedFeature.removeListner('mousemove.' + this._ns);
             this._selectedFeature.removeListner('mouseout.' + this._ns);
+            this._selectedFeature.removeListner('dblclick.' + this._ns);
         },
 
         _dragStartHandler: function(sGisEvent, feature) {
@@ -235,6 +336,38 @@
                 this._snappingPoint.hide();
             }
             this._map.redrawLayer(this._snappingLayer);
+        },
+
+        _polylineDblclickHandler: function(sGisEvent, feature) {
+            var adjustedEvent = this._getAdjustedEventData(sGisEvent, feature);
+            if (adjustedEvent.type === 'vertex') {
+                var coordinates = feature.coordinates;
+                if (coordinates[adjustedEvent.ring].length > 2) {
+                    feature.removePoint(adjustedEvent.ring, adjustedEvent.index);
+                } else {
+                    if (coordinates.length > 1) {
+                        feature.removeRing(adjustedEvent.ring);
+                    } else {
+                        this.deleteSelected();
+                    }
+                }
+                this._map.redrawLayer(this._activeLayer);
+                this._updateTransformControls();
+                sGisEvent.stopPropagation();
+                sGisEvent.preventDefault();
+
+                this.fire('featurePointRemove', {feature: feature, pointIndex: adjustedEvent.index, ring: adjustedEvent.ring});
+            }
+        },
+
+        deleteSelected: function() {
+            if (this._allowDeletion && this._selectedFeature) {
+                var feature = this._selectedFeature;
+                this._activeLayer.remove(this._selectedFeature);
+                this.deselect();
+
+                this.fire('featureRemove', {feature: feature});
+            }
         },
 
         _getAdjustedEventData: function(sGisEvent, feature) {
@@ -285,13 +418,20 @@
                     });
                 }
                 feature.setPoint(dragInfo.ring, dragInfo.index, snappingPoint || sGisEvent.point);
+
+                this.fire('featurePointChange', {feature: feature, pointIndex: dragInfo.index, ring: dragInfo.ring});
             } else if (dragInfo.type === 'line') {
                 dragInfo.index++;
                 feature.insertPoint(dragInfo.ring, dragInfo.index, sGisEvent.point);
                 dragInfo.type = 'vertex';
+
+                this.fire('featurePointAdd', {feature: feature});
             } else {
                 feature.move(-sGisEvent.offset.x, -sGisEvent.offset.y);
+                this.fire('featureMove', {feature: feature});
             }
+
+            this._updateTransformControls();
             this._map.redrawLayer(this._activeLayer);
         },
 
@@ -310,6 +450,8 @@
 
             feature.coordinates = projected.projectTo(feature.crs).coordinates;
             this._map.redrawLayer(this._activeLayer);
+
+            this.fire('featureMove', {feature: feature});
         },
 
         _getSnappingPoint: function(point, functions, exclude, featureData) {
@@ -321,14 +463,30 @@
         }
     });
 
-    Object.defineProperties(sGis.controls.Editor.prototype, {
-        id: {
-            get: function() {
-                return this._id;
+    sGis.utils.proto.setProperties(sGis.controls.Editor.prototype, {
+        allowDeletion: true,
+        snappingDistance: 7,
+
+        selectedFeature: {
+            default: null,
+            set: function(feature) {
+                this.select(feature);
+            }
+        },
+
+        activeLayer: {
+            default: null,
+            type: sGis.FeatureLayer,
+            set: function(layer) {
+                var isActive = this._isActive;
+                this.deactivate();
+                this._activeLayer = layer;
+                this.isActive = isActive;
             }
         },
 
         isActive: {
+            default: false,
             get: function() {
                 return this._isActive;
             },
@@ -342,30 +500,13 @@
         },
 
         map: {
-            get: function() {
-                return this._map;
-            }
-        },
-        activeLayer: {
-            get: function() {
-                return this._activeLayer;
-            },
-            set: function(layer) {
-                if (!(layer instanceof sGis.FeatureLayer) && layer !== null) utils.error('sGis.FeatureLayer instance or null is expected but got ' + layer + ' instead');
-                var isActive = this._isActive;
-                this.deactivate();
-                this._activeLayer = layer;
-                this.isActive = isActive;
-            }
+            default: null,
+            set: null
         },
 
-        selectedFeature: {
-            get: function() {
-                return this._selectedFeature;
-            },
-            set: function(feature) {
-                this.select(feature);
-            }
+        id: {
+            default: null,
+            set: null
         }
     });
 

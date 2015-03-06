@@ -134,7 +134,7 @@
                 return this._gridCss;
             },
             set: function(css) {
-                sGis.utils.validate.string(css);
+                sGis.utils.validate(css, 'string');
                 this._gridCss = css;
                 this._grid.className = css;
             }
@@ -145,7 +145,7 @@
                 return this._gridWidth;
             },
             set: function(w) {
-                sGis.utils.validate.number(w);
+                sGis.utils.validate(w, 'number');
                 this._gridWidth = w;
 
                 this._grid.style.width = w + 'px';
@@ -157,7 +157,7 @@
                 return this._gridHeight;
             },
             set: function(h) {
-                sGis.utils.validate.number(h);
+                sGis.utils.validate(h, 'number');
                 this._gridHeight = h;
 
                 this._grid.style.height = h + 'px';
@@ -169,7 +169,7 @@
                 return this._gridTop;
             },
             set: function(n) {
-                sGis.utils.validate.number(n);
+                sGis.utils.validate(n, 'number');
                 this._gridTop = n;
                 this._grid.style.top = n + 'px';
             }
@@ -180,7 +180,7 @@
                 return this._gridLeft;
             },
             set: function(n) {
-                sGis.utils.validate.number(n);
+                sGis.utils.validate(n, 'number');
                 this._gridLeft = n;
                 this._grid.style.left = n + 'px';
             }
@@ -191,7 +191,7 @@
                 return this._sliderCss;
             },
             set: function(css) {
-                sGis.utils.validate.string(css);
+                sGis.utils.validate(css, 'string');
                 this._sliderCss = css;
                 this._slider.className = css;
             }
@@ -202,7 +202,7 @@
                 return this._sliderWidth;
             },
             set: function(w) {
-                sGis.utils.validate.number(w);
+                sGis.utils.validate(w, 'number');
                 this._sliderWidth = w;
 
                 this._slider.style.width = w + 'px';
@@ -215,7 +215,7 @@
                 return this._sliderHeight;
             },
             set: function(h) {
-                sGis.utils.validate.number(h);
+                sGis.utils.validate(h, 'number');
                 this._sliderHeight = h;
 
                 this._slider.style.height = h + 'px';
