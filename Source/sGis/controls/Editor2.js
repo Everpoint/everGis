@@ -580,7 +580,8 @@
 
         clearStateList: function() {
             this._states = [];
-            this._currentState = null;
+            this._currentState = -1;
+            this._featureStates = {};
         }
     });
 
