@@ -11,6 +11,10 @@
         this._id = utils.getGuid();
 
         this._ns = PREFIX + this._id;
+        this._currentState = -1;
+        this._states = [];
+        this._featureStates = {};
+
         sGis.utils.init(this, properties);
     };
 
@@ -33,6 +37,7 @@
             if (this._isActive) {
                 this._removeEventListeners();
                 this.deselect();
+                this.clearStateList();
                 this._isActive = false;
             }
         },
@@ -78,6 +83,14 @@
                 this._selectNext();
                 sGisEvent.stopPropagation();
                 sGisEvent.preventDefault();
+            } else if (event.which === 90 && event.ctrlKey) { //ctrl + z
+                this.undo()
+                sGisEvent.stopPropagation();
+                sGisEvent.preventDefault();
+            } else if (event.which === 89 && event.ctrlKey) { //ctrl + y
+                this.redo()
+                sGisEvent.stopPropagation();
+                sGisEvent.preventDefault();
             }
         },
 
@@ -115,6 +128,7 @@
                 this._setSelectedListeners();
                 this._setTempSymbol();
                 this._setSnappingLayer();
+                this._saveOriginalState();
                 this._map.redrawLayer(this._activeLayer);
 
                 this.fire('featureSelect', {feature: feature});
@@ -171,6 +185,7 @@
 
                         control.addListner('dragStart', this._transformControlDragStartHandler);
                         control.addListner('drag', function(sGisEvent) { self._transformControlDragHandler(sGisEvent, this) });
+                        control.addListner('dragEnd', this._saveState.bind(this));
 
                         this._transformControls[x][y] = control;
                         this._snappingLayer.add(control);
@@ -186,6 +201,7 @@
             });
             rotationControl.addListner('drag', this._rotationControlDragHandler.bind(this));
             rotationControl.addListner('dragEnd', function() {
+                self._saveState();
                 self.fire('rotationEnd');
             });
 
@@ -251,7 +267,7 @@
         },
 
         _updateTransformControls: function() {
-            if (this._selectedFeature) {
+            if (this._selectedFeature && this._selectedFeature instanceof sGis.feature.Polyline) {
                 var bbox = this._selectedFeature.bbox.projectTo(this._map.crs);
                 var coordinates = [[bbox.xMin, bbox.yMin], [bbox.xMax, bbox.yMax]];
                 var controls = this._transformControls;
@@ -290,17 +306,20 @@
             var self = this;
             this._selectedFeature.addListner('dragStart.' + this._ns, function(sGisEvent) { self._dragStartHandler(sGisEvent, this); });
             this._selectedFeature.addListner('drag.' + this._ns, function(sGisEvent) { self._dragHandler(sGisEvent, this); });
+            this._selectedFeature.addListner('dragEnd.' + this._ns, this._saveState.bind(this));
 
             if (this._selectedFeature instanceof sGis.feature.Polyline) {
                 this._selectedFeature.addListner('mousemove.' + this._ns, function(sGisEvent) { self._polylineMousemoveHandler(sGisEvent, this); });
                 this._selectedFeature.addListner('mouseout.' + this._ns, function(sGisEvent) { self._polylineMouseoutHandler(sGisEvent, this); });
                 this._selectedFeature.addListner('dblclick.' + this._ns, function(sGisEvent) { self._polylineDblclickHandler(sGisEvent, this); });
             }
+
         },
 
         _removeSelectedListeners: function() {
             this._selectedFeature.removeListner('dragStart.' + this._ns);
             this._selectedFeature.removeListner('drag.' + this._ns);
+            this._selectedFeature.removeListner('dragEnd.' + this._ns);
             this._selectedFeature.removeListner('mousemove.' + this._ns);
             this._selectedFeature.removeListner('mouseout.' + this._ns);
             this._selectedFeature.removeListner('dblclick.' + this._ns);
@@ -351,6 +370,9 @@
                         this.deleteSelected();
                     }
                 }
+
+                this._saveState();
+
                 this._map.redrawLayer(this._activeLayer);
                 this._updateTransformControls();
                 sGisEvent.stopPropagation();
@@ -365,6 +387,8 @@
                 var feature = this._selectedFeature;
                 this._activeLayer.remove(this._selectedFeature);
                 this.deselect();
+
+                this._saveDeletion(feature);
 
                 this.fire('featureRemove', {feature: feature});
             }
@@ -460,12 +484,110 @@
                 if (snapping[functions[i]]) var snappingPoint = snapping[functions[i]](point, this._activeLayer, snappingDistance, exclude, featureData);
                 if (snappingPoint) return snappingPoint;
             }
+        },
+
+        _saveDeletion: function(feature) {
+            this._saveState(null, feature, true)
+        },
+
+        _trimStates: function() {
+            while(this._states.length - 1 > this._currentState) {
+                var state = this._states.pop();
+                this._featureStates[state.feature.id].pop();
+            }
+        },
+
+        _saveOriginalState: function() {
+            var feature = this._selectedFeature;
+            if (!this._featureStates[feature.id]) {
+                this._featureStates[feature.id] = [];
+            }
+
+            if (!this._featureStates[feature.id][0]) {
+                this._featureStates[feature.id].push(feature.coordinates);
+            }
+        },
+
+        _saveState: function(sGisEvent, feature, del) {
+            this._trimStates();
+
+            feature = feature || this._selectedFeature;
+            this._featureStates[feature.id].push(del ? 'del' : feature.coordinates);
+
+            this._states.push({
+                feature: feature,
+                index: this._featureStates[feature.id].length - 1
+            });
+
+            this._limitStateCache();
+            this._currentState = this._states.length - 1;
+        },
+
+
+        _limitStateCache: function() {
+            if (this._states.length > this._maxStatesLength) {
+                var state = this._states.shift();
+                this._featureStates[state.feature.id].splice(state.index, 1);
+            }
+        },
+
+        _setState: function(index) {
+            if (index > this._currentState) {
+                var baseState = this._states[index];
+                if (baseState) var i = baseState.index;
+            } else {
+                baseState = this._states[this._currentState];
+                if (baseState) i = baseState.index - 1;
+            }
+
+            if (baseState) {
+                var feature = baseState.feature;
+                var coordinates = this._featureStates[feature.id][i];
+
+                if (coordinates === 'del') {
+                    if (this._activeLayer.has(feature)) {
+                        this._activeLayer.remove(feature);
+                        this._map.redrawLayer(this._activeLayer);
+                        this._hideTransformControls();
+                        this._map.redrawLayer(this._snappingLayer);
+                    }
+                } else {
+                    if (!this._activeLayer.has(feature)) {
+                        this._activeLayer.add(feature);
+                    }
+
+                    feature.coordinates = coordinates;
+
+                    if (this._selectedFeature !== feature) {
+                        this.select(feature);
+                    } else {
+                        this._map.redrawLayer(this._activeLayer);
+                    }
+                    this._updateTransformControls();
+                }
+
+                this._currentState = index;
+            }
+        },
+
+        undo: function() {
+            this._setState(this._currentState - 1);
+        },
+
+        redo: function() {
+            this._setState(this._currentState + 1);
+        },
+
+        clearStateList: function() {
+            this._states = [];
+            this._currentState = null;
         }
     });
 
     sGis.utils.proto.setProperties(sGis.controls.Editor.prototype, {
         allowDeletion: true,
         snappingDistance: 7,
+        maxStateLength: 32,
 
         selectedFeature: {
             default: null,
