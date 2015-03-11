@@ -92,7 +92,8 @@
                     this._cachedSvg = sGis.utils.svg.path({
                         stroke: this._color,
                         'stroke-width': this._width,
-                        fill: this._fillColor,
+                        fill: this._fillStyle === 'color' ? this._fillColor : undefined,
+                        fillImage: this._fillStyle === 'image' ? this._fillImage : undefined,
                         width: path.width,
                         height: path.height,
                         x: path.x,

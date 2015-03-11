@@ -84,8 +84,8 @@
                 }
             }
 
-            var width = xmax - x + this._width;
-            var height = ymax - y + this._width;
+            var width = xmax - x + 2 * this._width;
+            var height = ymax - y + 2 * this._width;
             x -= this._width / 2;
             y -= this._width / 2;
             d = d.trim();
@@ -168,11 +168,17 @@
         node: {
             get: function() {
                 var svg = this.svg;
-                var x = parseFloat(svg.childNodes[0].getAttribute('x'));
-                var y = parseFloat(svg.childNodes[0].getAttribute('y'));
+                var path;
+                for (var i = 0; i < svg.childNodes.length; i++) {
+                    if (svg.childNodes[i].nodeName === 'path') {
+                        path = svg.childNodes[i];
+                        var x = parseFloat(path.getAttribute('x'));
+                        var y = parseFloat(path.getAttribute('y'));
 
-                svg.position = [x, y];
-                return svg;
+                        svg.position = [x, y];
+                        return svg;
+                    }
+                }
             }
         }
     });

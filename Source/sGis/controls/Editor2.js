@@ -404,6 +404,7 @@
 
                 var snappingType = 'bulk';
                 var snappingPoint;
+                var index;
                 var snappingDistance = this._snappingDistance * this._map.resolution;
                 for (var i = 1; i < coordinates[ring].length; i++) {
                     var distance = sGis.geotools.pointToLineDistance(sGisEvent.point.coordinates, [coordinates[ring][i-1], coordinates[ring][i]]);
@@ -412,6 +413,7 @@
                             if (Math.abs(coordinates[ring][i-1+j][0] - sGisEvent.point.x) < snappingDistance && Math.abs(coordinates[ring][i-1+j][1] - sGisEvent.point.y) < snappingDistance) {
                                 snappingPoint = coordinates[ring][i-1+j];
                                 snappingType = 'vertex';
+                                index = i - 1 + j;
                                 break;
                             }
                         }
@@ -419,8 +421,8 @@
                         if (!snappingPoint) {
                             snappingPoint = sGis.geotools.pointToLineProjection(sGisEvent.point.coordinates, [coordinates[ring][i-1], coordinates[ring][i]]);
                             snappingType = 'line';
+                            index = i - 1;
                         }
-                        var index = i;
                         break;
                     }
                 }

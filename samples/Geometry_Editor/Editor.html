@@ -99,6 +99,8 @@
 <div id="map"></div>
 <script>
     window.onload = function() {
+
+        sGis.useCanvas = false;
         var map = new sGis.Map({wrapper: 'map', crs: sGis.CRS.plain, position: [0, 0], resolution: 1});
 
         var layer = new sGis.FeatureLayer();
@@ -107,16 +109,16 @@
         layer.add(point);
 
         layer.add([
-            new sGis.feature.Point([100, 0], {crs: map.crs, symbol: new sGis.symbol.point.Point({strokeColor: 'blue', strokeWidth: 2, color: 'rgba(0,100,100,0.5)', size: 20})}),
-            new sGis.feature.Point([100, 0], {crs: map.crs, symbol: new sGis.symbol.point.Point({offset: {x: 20, y: 0}})}),
-            new sGis.feature.Point([0, -100], {crs: map.crs, symbol: new sGis.symbol.point.Square({strokeColor: 'green', strokeWidth: 5, fillColor: '#FAA', size: 50})}),
-            new sGis.feature.Point([0, -100], {crs: map.crs, symbol: new sGis.symbol.point.Square({offset: {x: 0, y: 50}})}),
-            new sGis.feature.Point([0, -100], {crs: map.crs, symbol: new sGis.symbol.point.Square({offset: {x: 50, y: 50}})}),
-            new sGis.feature.Point([-100, 0], {crs: map.crs, symbol: new sGis.symbol.point.Image({size: 15})}), // to use custom image use parameter 'source' with url as value
-            new sGis.feature.Point([-100, 0], {crs: map.crs, symbol: new sGis.symbol.point.Image({anchorPoint: {x: 40, y: 16}})}),
-            new sGis.feature.Polyline([[100, 0], [100, 100], [150, 50]], {crs: map.crs, symbol: new sGis.symbol.polyline.Simple({strokeColor: 'blue', strokeWidth: 5})}),
-            new sGis.feature.Polyline([[0,0], [10,10], [0, 20]], {crs: map.crs}),
-            new sGis.feature.Polygon([[100, 0], [100, 100], [150, 50]], {crs: map.crs, symbol: new sGis.symbol.polygon.Simple({strokeWidth: 5, strokeColor: 'red', fillColor: 'rgba(0,255,255,0.5)'})}),
+//            new sGis.feature.Point([100, 0], {crs: map.crs, symbol: new sGis.symbol.point.Point({strokeColor: 'blue', strokeWidth: 2, color: 'rgba(0,100,100,0.5)', size: 20})}),
+//            new sGis.feature.Point([100, 0], {crs: map.crs, symbol: new sGis.symbol.point.Point({offset: {x: 20, y: 0}})}),
+//            new sGis.feature.Point([0, -100], {crs: map.crs, symbol: new sGis.symbol.point.Square({strokeColor: 'green', strokeWidth: 5, fillColor: '#FAA', size: 50})}),
+//            new sGis.feature.Point([0, -100], {crs: map.crs, symbol: new sGis.symbol.point.Square({offset: {x: 0, y: 50}})}),
+//            new sGis.feature.Point([0, -100], {crs: map.crs, symbol: new sGis.symbol.point.Square({offset: {x: 50, y: 50}})}),
+//            new sGis.feature.Point([-100, 0], {crs: map.crs, symbol: new sGis.symbol.point.Image({size: 15})}), // to use custom image use parameter 'source' with url as value
+//            new sGis.feature.Point([-100, 0], {crs: map.crs, symbol: new sGis.symbol.point.Image({anchorPoint: {x: 40, y: 16}})}),
+//            new sGis.feature.Polyline([[100, 0], [100, 100], [150, 50]], {crs: map.crs, symbol: new sGis.symbol.polyline.Simple({strokeColor: 'blue', strokeWidth: 5})}),
+//            new sGis.feature.Polyline([[0,0], [10,10], [0, 20]], {crs: map.crs}),
+//            new sGis.feature.Polygon([[100, 0], [100, 100], [150, 50]], {crs: map.crs, symbol: new sGis.symbol.polygon.Simple({strokeWidth: 5, strokeColor: 'red', fillColor: 'rgba(0,255,255,0.5)'})}),
             new sGis.feature.Polygon([[0, -100], [100, -200], [200, -100]], {crs: map.crs, symbol: new sGis.symbol.polygon.BrushFill({})}),
             new sGis.feature.Polygon([[-100, 0], [-100, -100], [-200, -50]], {crs: map.crs, symbol: new sGis.symbol.polygon.ImageFill({strokeWidth: 3, strokeColor: '#AAA', fillImage: 'http://dev2.everpoint.ru/SandBox/Content/Images/logo1.png'})}),
         ]);
