@@ -124,14 +124,14 @@
         _transitionTime: 0,
 
         renderFunction: function(feature, resolution, crs) {
-            if (!this._cache) {
+            if (!feature._cache) {
                 var image = new Image();
                 image.src = feature.src;
                 image.width = feature.width;
                 image.height = feature.height;
 
                 image.bbox = feature.bbox;
-                this._cache = [{
+                feature._cache = [{
                     node: image,
                     bbox: feature.bbox,
                     persistent: true
@@ -149,7 +149,7 @@
                     image.style.opacity = this.opacity;
                 }
             }
-            return this._cache;
+            return feature._cache;
         }
     });
 
