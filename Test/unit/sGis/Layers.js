@@ -88,49 +88,6 @@ $(document).ready(function() {
         });
     });
 
-    describe('Feature Layer', function() {
-        describe('creation', function() {
-            it('should be created with default options', function() {
-                //TODO
-            });
-            
-            it('should be created with prespecified features', function() {
-                var point1 = new sGis.feature.Point([55, 37]),
-                    point2 = new sGis.feature.Point([56, 38]),
-                    layer = new sGis.FeatureLayer({features: [point1, point2]});
-                    
-                
-                expect(layer._features.length).toBe(2);
-                expect(layer._features[0]).toBe(point1);
-                expect(layer._features[1]).toBe(point2);
-                
-                expect(function() {new sGis.FeatureLayer({features: [1, 2]});}).toThrow();
-                expect(function() {new sGis.FeatureLayer({features: 'abc'});}).toThrow();
-                expect(function() {new sGis.FeatureLayer({features: 55});}).toThrow();
-            });
-        });
-        
-        describe('methods', function() {
-            it('add() method should add features and only features', function() {
-                var layer = new sGis.FeatureLayer(),
-                    point1 = new sGis.feature.Point([55, 37]),
-                    notFeaturePoint = new sGis.Point(55, 37);
-                    
-                expect(function() {layer.add(point1);}).not.toThrow();
-                expect(layer._features.length).toBe(1);
-                expect(layer._features[0]).toBe(point1);
-                
-                expect(function() {layer.add(notFeaturePoint);}).toThrow();
-                expect(layer._features.length).toBe(1);
-                expect(layer._features[0]).toBe(point1);
-                
-                expect(function() {layer.add(1);}).toThrow();
-                expect(function() {layer.add('abc');}).toThrow();
-                expect(function() {layer.add({});}).toThrow();
-            });
-        });
-    });
-    
     describe('Layer Group', function() {
         var layer1, layer2, layer3, layer4, layer5;
 

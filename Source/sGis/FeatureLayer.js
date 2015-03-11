@@ -66,7 +66,12 @@
             },
 
             set: function(features) {
-                this._features = features;
+                var currFeatures = this.features;
+                for (var i = 0; i < currFeatures.length; i++) {
+                    this.remove(currFeatures[i]);
+                }
+
+                this.add(features);
             }
         }
     });
