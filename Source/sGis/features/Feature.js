@@ -40,7 +40,7 @@
                 this._id = utils.getGuid();
             }
 
-            if (!options || !options.symbol) {
+            if (!options || !options.symbol && this._defaultSymbol) {
                 this._symbol = new this._defaultSymbol();
             }
 
