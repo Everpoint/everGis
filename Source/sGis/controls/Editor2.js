@@ -19,11 +19,6 @@
     };
 
     sGis.controls.Editor.prototype = new sGis.Control({
-        _snappingPointSymbol: new sGis.symbol.point.Point({fillColor: 'red', size: 3}),
-        _snappingVertexSymbol: new sGis.symbol.point.Point({fillColor: 'blue', size: 6}),
-        _pointSnappingFunctions: ['vertex', 'midpoint', 'line'],
-        _polylineSnappingFunctions: ['vertex', 'midpoint', 'line', 'axis', 'orthogonal'],
-        _rotationControlSymbol: new sGis.symbol.point.Point({offset: {x: 0, y: -30}}),
         _translateControlSymbol: sGis.symbol.point.Square,
 
         activate: function() {
@@ -51,10 +46,15 @@
 
                 var self = this;
                 this._activeLayer.addListner('featureAdd.' + this._ns, function(sGisEvent) { self._setFeatureClickHandler(sGisEvent.feature); });
-                this._activeLayer.addListner('featureRemove.' + this._ns, function(sGisEvent) { self._removeFeatureClickHandler(sGisEvent.feature); });
+                this._activeLayer.addListner('featureRemove.' + this._ns, this._featureRemoveHandler.bind(this));
 
                 this._map.addListner('keydown.' + this._ns, this._keydownHandler.bind(this));
             }
+        },
+
+        _featureRemoveHandler: function(sGisEvent) {
+            if (this._selectedFeature === sGisEvent.feature) this.deselect();
+            this._removeFeatureClickHandler(sGisEvent.feature);
         },
 
         _removeEventListeners: function() {
@@ -363,15 +363,15 @@
                 var coordinates = feature.coordinates;
                 if (coordinates[adjustedEvent.ring].length > 2) {
                     feature.removePoint(adjustedEvent.ring, adjustedEvent.index);
+                    this._saveState();
                 } else {
                     if (coordinates.length > 1) {
                         feature.removeRing(adjustedEvent.ring);
+                        this._saveState();
                     } else {
                         this.deleteSelected();
                     }
                 }
-
-                this._saveState();
 
                 this._map.redrawLayer(this._activeLayer);
                 this._updateTransformControls();
@@ -383,9 +383,9 @@
         },
 
         deleteSelected: function() {
-            if (this._allowDeletion && this._selectedFeature) {
+            if (this.allowDeletion && this.selectedFeature) {
                 var feature = this._selectedFeature;
-                this._activeLayer.remove(this._selectedFeature);
+                this.activeLayer.remove(this.selectedFeature);
                 this.deselect();
 
                 this._saveDeletion(feature);
@@ -405,7 +405,7 @@
                 var snappingType = 'bulk';
                 var snappingPoint;
                 var index;
-                var snappingDistance = this._snappingDistance * this._map.resolution;
+                var snappingDistance = this.snappingDistance * this._map.resolution;
                 for (var i = 1; i < coordinates[ring].length; i++) {
                     var distance = sGis.geotools.pointToLineDistance(sGisEvent.point.coordinates, [coordinates[ring][i-1], coordinates[ring][i]]);
                     if (distance < snappingDistance) {
@@ -486,7 +486,7 @@
         },
 
         _getSnappingPoint: function(point, functions, exclude, featureData) {
-            var snappingDistance = this._snappingDistance * this._map.resolution;
+            var snappingDistance = this.snappingDistance * this._map.resolution;
             for (var i = 0; i < functions.length; i++) {
                 if (snapping[functions[i]]) var snappingPoint = snapping[functions[i]](point, this._activeLayer, snappingDistance, exclude, featureData);
                 if (snappingPoint) return snappingPoint;
@@ -556,7 +556,7 @@
                         this._activeLayer.remove(feature);
                         this._map.redrawLayer(this._activeLayer);
                         this._hideTransformControls();
-                        this._map.redrawLayer(this._snappingLayer);
+                        this._map.redrawLayer(this.snappingLayer);
                     }
                 } else {
                     if (!this._activeLayer.has(feature)) {
@@ -596,6 +596,11 @@
         allowDeletion: true,
         snappingDistance: 7,
         maxStateLength: 32,
+        snappingPointSymbol: { default: new sGis.symbol.point.Point({fillColor: 'red', size: 3}) },
+        snappingVertexSymbol: { default: new sGis.symbol.point.Point({fillColor: 'blue', size: 6}) },
+        pointSnappingFunctions: { default: ['vertex', 'midpoint', 'line'], get: function() { return this._pointSnappingFunctions.concat(); }},
+        polylineSnappingFunctions: { default: ['vertex', 'midpoint', 'line', 'axis', 'orthogonal'], get: function() { return this._polylineSnappingFunctions.concat(); }},
+        rotationControlSymbol: { default: new sGis.symbol.point.Point({offset: {x: 0, y: -30}}) },
 
         selectedFeature: {
             default: null,

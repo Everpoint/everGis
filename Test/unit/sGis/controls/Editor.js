@@ -235,6 +235,134 @@ $(function() {
                     expect(editor1.allowDeletion).toBe(false);
                 })
             });
+
+            describe('.snappingPointSymbol', function() {
+                it('should have value by default', function() {
+                    expect(editor.snappingPointSymbol instanceof sGis.Symbol).toBe(true);
+                });
+
+                it('should be set in constructor', function() {
+                    var symbol = new sGis.symbol.point.Point();
+                    var editor1 = new sGis.controls.Editor(map, {snappingPointSymbol: symbol});
+
+                    expect(editor1.snappingPointSymbol).toBe(symbol);
+                    expect(editor.snappingPointSymbol).toBe(sGis.controls.Editor.prototype.snappingPointSymbol);
+                });
+
+                it('should be set through setter', function() {
+                    var symbol = new sGis.symbol.point.Point();
+                    var editor1 = new sGis.controls.Editor(map);
+
+                    editor1.snappingPointSymbol = symbol;
+
+                    expect(editor1.snappingPointSymbol).toBe(symbol);
+                    expect(editor.snappingPointSymbol).toBe(sGis.controls.Editor.prototype.snappingPointSymbol);
+                });
+            });
+
+            describe('.snappingVertexSymbol', function() {
+                it('should have value by default', function() {
+                    expect(editor.snappingVertexSymbol instanceof sGis.Symbol).toBe(true);
+                });
+
+                it('should be set in constructor', function() {
+                    var symbol = new sGis.symbol.point.Point();
+                    var editor1 = new sGis.controls.Editor(map, {snappingVertexSymbol: symbol});
+
+                    expect(editor1.snappingVertexSymbol).toBe(symbol);
+                    expect(editor.snappingVertexSymbol).toBe(sGis.controls.Editor.prototype.snappingVertexSymbol);
+                });
+
+                it('should be set through setter', function() {
+                    var symbol = new sGis.symbol.point.Point();
+                    var editor1 = new sGis.controls.Editor(map);
+
+                    editor1.snappingVertexSymbol = symbol;
+
+                    expect(editor1.snappingVertexSymbol).toBe(symbol);
+                    expect(editor.snappingVertexSymbol).toBe(sGis.controls.Editor.prototype.snappingVertexSymbol);
+                });
+            });
+
+            describe('.pointSnappingFunctions', function() {
+                it('should be set by default', function() {
+                    expect(editor.pointSnappingFunctions instanceof Array).toBe(true);
+                });
+
+                it('should be set through constructor', function() {
+                    var originalFunctions = editor.pointSnappingFunctions;
+                    var functions = ['vertex'];
+                    var editor1 = new sGis.controls.Editor(map, {pointSnappingFunctions: functions});
+
+                    expect(editor1.pointSnappingFunctions).toEqual(functions);
+                    expect(editor.pointSnappingFunctions).not.toEqual(functions);
+                    expect(editor.pointSnappingFunctions).toEqual(originalFunctions);
+                });
+
+                it('should be set through setter', function() {
+                    var originalFunctions = editor.pointSnappingFunctions;
+                    var functions = ['vertex'];
+                    var editor1 = new sGis.controls.Editor(map);
+
+                    editor1.pointSnappingFunctions = functions;
+
+                    expect(editor1.pointSnappingFunctions).toEqual(functions);
+                    expect(editor.pointSnappingFunctions).not.toEqual(functions);
+                    expect(editor.pointSnappingFunctions).toEqual(originalFunctions);
+                });
+            });
+
+            describe('.polylineSnappingFunctions', function() {
+                it('should be set by default', function() {
+                    expect(editor.polylineSnappingFunctions instanceof Array).toBe(true);
+                });
+
+                it('should be set through constructor', function() {
+                    var originalFunctions = editor.polylineSnappingFunctions;
+                    var functions = ['vertex'];
+                    var editor1 = new sGis.controls.Editor(map, {polylineSnappingFunctions: functions});
+
+                    expect(editor1.polylineSnappingFunctions).toEqual(functions);
+                    expect(editor.polylineSnappingFunctions).not.toEqual(functions);
+                    expect(editor.polylineSnappingFunctions).toEqual(originalFunctions);
+                });
+
+                it('should be set through setter', function() {
+                    var originalFunctions = editor.polylineSnappingFunctions;
+                    var functions = ['vertex'];
+                    var editor1 = new sGis.controls.Editor(map);
+
+                    editor1.polylineSnappingFunctions = functions;
+
+                    expect(editor1.polylineSnappingFunctions).toEqual(functions);
+                    expect(editor.polylineSnappingFunctions).not.toEqual(functions);
+                    expect(editor.polylineSnappingFunctions).toEqual(originalFunctions);
+                });
+            });
+
+            describe('.rotationControlSymbol', function() {
+                it('should have value by default', function() {
+                    expect(editor.rotationControlSymbol instanceof sGis.Symbol).toBe(true);
+                });
+
+                it('should be set in constructor', function() {
+                    var symbol = new sGis.symbol.point.Point();
+                    var editor1 = new sGis.controls.Editor(map, {rotationControlSymbol: symbol});
+
+                    expect(editor1.rotationControlSymbol).toBe(symbol);
+                    expect(editor.rotationControlSymbol).toBe(sGis.controls.Editor.prototype.rotationControlSymbol);
+                });
+
+                it('should be set through setter', function() {
+                    var symbol = new sGis.symbol.point.Point();
+                    var editor1 = new sGis.controls.Editor(map);
+
+                    editor1.rotationControlSymbol = symbol;
+
+                    expect(editor1.rotationControlSymbol).toBe(symbol);
+                    expect(editor.rotationControlSymbol).toBe(sGis.controls.Editor.prototype.rotationControlSymbol);
+                });
+            });
         });
 
         describe('methods', function() {
@@ -273,12 +401,19 @@ $(function() {
                 it('should add listeners to all features added to the active layer', function() {
                     editor.activeLayer = layer;
                     editor.activate();
-                    editor.activeLayer = null;
-                    editor.activeLayer = layer;
 
                     var newPoint = new sGis.feature.Point([0,0]);
                     layer.add(newPoint);
                     expect(newPoint.getHandlers('click').length).toBe(1);
+                });
+
+                it('should remove the listeners from the features that are removed from the layer', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+
+                    var listeners = polygon.getHandlers('click').length;
+                    layer.remove(polygon);
+                    expect(polygon.getHandlers('click').length).toBe(listeners - 1);
                 });
             });
 
@@ -471,6 +606,64 @@ $(function() {
                     editor.deselect();
                     expect(map.layers.length).toBe(1);
                 });
+
+                it('should be called if the selected feature is removed from the layer', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(polygon);
+
+                    spyOn(editor, 'deselect').and.callThrough();
+
+                    layer.remove(polygon);
+                    expect(editor.deselect).toHaveBeenCalled();
+                    expect(editor.selectedFeature).toBe(null);
+                });
+
+                it('should remove the click handler from the map', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(line);
+
+                    var listeners = map.getHandlers('click').length;
+
+                    editor.deselect();
+                    expect(map.getHandlers('click').length).toBe(listeners - 1);
+                });
+
+                it('should remove the handlers from the selected feature', function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    var handlers = utils.copyObject(point._eventHandlers);
+
+                    editor.select(point);
+
+                    expect(point._eventHandlers).not.toEqual(handlers);
+
+                    editor.deselect();
+
+                    for (var i in point._eventHandlers) {
+                        if (point._eventHandlers[i].length > 0) {
+                            expect(point._eventHandlers[i]).toEqual(handlers[i]);
+                        } else {
+                            expect(handlers[i] === undefined || handlers[i].length === 0).toBe(true);
+                        }
+                    }
+
+                    handlers = utils.copyObject(polygon._eventHandlers);
+
+                    editor.select(polygon);
+
+                    expect(polygon._eventHandlers).not.toEqual(handlers);
+
+                    editor.deselect();
+                    for (i in polygon._eventHandlers) {
+                        if (polygon._eventHandlers[i].length > 0) {
+                            expect(polygon._eventHandlers[i]).toEqual(handlers[i]);
+                        } else {
+                            expect(handlers[i] === undefined || handlers[i].length === 0).toBe(true);
+                        }
+                    }
+                });
             });
 
             describe('.deleteSelected()', function() {
@@ -498,7 +691,7 @@ $(function() {
                     expect(layer.features.length).toBe(3);
                 });
 
-                it('should do nothing if allowDeltion property is set to false', function() {
+                it('should do nothing if allowDeletion property is set to false', function() {
                     editor.activeLayer = layer;
                     editor.activate();
                     editor.select(point);

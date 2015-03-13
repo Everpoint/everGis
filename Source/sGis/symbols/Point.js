@@ -15,7 +15,6 @@
     };
 
     sGis.symbol.point.Point.prototype = new sGis.Symbol({
-        _size: 10,
         _fillColor: 'black',
         _strokeColor: 'transparent',
         _strokeWidth: 1,
@@ -30,20 +29,12 @@
         }
     });
 
+    sGis.utils.proto.setProperties(sGis.symbol.point.Point.prototype, {
+        type: {default: 'point', set: null},
+        size: 10
+    });
+
     Object.defineProperties(sGis.symbol.point.Point.prototype, {
-        type: {
-            value: 'point'
-        },
-
-        size: {
-            get: function() {
-                return this._size;
-            },
-            set: function(size) {
-                this._size = size;
-            }
-        },
-
         fillColor: {
             get: function() {
                 return this._fillColor;

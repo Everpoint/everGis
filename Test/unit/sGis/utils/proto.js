@@ -22,18 +22,15 @@ $(function() {
                 expect(obj.number).toBe(1);
             });
 
-            it('should set the properties through getters and setters', function() {
+            it('should set the properties through values', function() {
                 sGis.utils.proto.setProperties(Class.prototype, {prop: null, text: 'a', number: 1});
 
                 var prop = Object.getOwnPropertyDescriptor(Class.prototype, 'prop');
                 var text = Object.getOwnPropertyDescriptor(Class.prototype, 'text');
                 var number = Object.getOwnPropertyDescriptor(Class.prototype, 'number');
-                expect(prop.get).toBeDefined();
-                expect(prop.set).toBeDefined();
-                expect(text.get).toBeDefined();
-                expect(text.set).toBeDefined();
-                expect(number.get).toBeDefined();
-                expect(number.set).toBeDefined();
+                expect(prop.value).toBeDefined();
+                expect(text.value).toBeDefined();
+                expect(number.value).toBeDefined();
             });
 
             it('should set the enumerable external properties and not enumerable internal', function() {
@@ -46,35 +43,11 @@ $(function() {
                 expect(keys).toEqual(['prop', 'text', 'number']);
             });
 
-            it('should not create the inner property if both getter is setter are null', function() {
-                sGis.utils.proto.setProperties(Class.prototype, {prop: {default: 'abc', get: null, set: null}});
-
-                expect(obj._prop).toBe(undefined);
-                expect(obj.prop).toBe('abc');
-
-                var descriptor = Object.getOwnPropertyDescriptor(Class.prototype, 'prop');
-
-                expect(descriptor.get).not.toBeDefined();
-                expect(descriptor.set).not.toBeDefined();
-
-            });
-
             describe('default', function() {
                 it('should set default value if specified as object property', function() {
                     sGis.utils.proto.setProperties(Class.prototype, {prop: {default: 'abc'}});
 
                     expect(obj.prop).toBe('abc');
-                });
-
-                it('should make the property not enumerable if default value is not specified', function() {
-                    sGis.utils.proto.setProperties(Class.prototype, {text: 'a', prop: {getter: function() {}}});
-
-                    var keys = [];
-                    for (var i in obj) {
-                        keys.push(i);
-                    }
-                    expect(keys.length).toBe(1);
-                    expect(keys[0]).toBe('text');
                 });
 
                 it('should set the false default values except undefined', function() {

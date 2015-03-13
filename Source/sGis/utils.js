@@ -333,8 +333,7 @@
 
     //TODO: this will not copy the inner arrays properly
     utils.copyObject = function(obj) {
-        if (obj instanceof Object) {
-
+        if (!(obj instanceof Function) && obj instanceof Object) {
             var copy = utils.isArray(obj) ? [] : {};
             var keys = Object.keys(obj);
             for (var i = 0; i < keys.length; i++) {

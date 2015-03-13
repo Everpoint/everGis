@@ -34,6 +34,7 @@ sGis.browser = (function() {
 })();
 
 sGis.isTouch = 'ontouchstart' in document.documentElement;
+sGis.useCanvas = true;
 
 })();'use strict';
 
@@ -138,8 +139,8 @@ sGis.geotools.pointToLineProjection = function(point, line) {
  * @returns {boolean}
  */
 sGis.geotools.contains = function(polygon, point, tolerance) {
-    sGis.utils.validate.array(polygon[0]);
-    sGis.utils.validate.array(point);
+    sGis.utils.validate(polygon[0], 'array');
+    sGis.utils.validate(point, 'array');
     tolerance = tolerance || 0;
     var intersectionCount = 0;
 
@@ -151,7 +152,7 @@ sGis.geotools.contains = function(polygon, point, tolerance) {
 
         for (var i = 1; i < points.length; i++) {
             if (sGis.geotools.pointToLineDistance(point, [points[i - 1], points[i]]) <= tolerance) {
-                return true;
+                return [ring, i-1];
             }
 
             var D = points[i][0] > point[0],
@@ -1286,8 +1287,7 @@ function getPosition(e) {
 
     //TODO: this will not copy the inner arrays properly
     utils.copyObject = function(obj) {
-        if (obj instanceof Object) {
-
+        if (!(obj instanceof Function) && obj instanceof Object) {
             var copy = utils.isArray(obj) ? [] : {};
             var keys = Object.keys(obj);
             for (var i = 0; i < keys.length; i++) {
@@ -1600,7 +1600,71 @@ function getPosition(e) {
 
 (function() {
 
-    sGis.utils.validate = {
+    sGis.utils.proto = {};
+
+    sGis.utils.proto.setProperties = function(obj, properties) {
+        var keys = Object.keys(properties);
+        for (var i = 0; i < keys.length; i++)  {
+            var key = keys[i];
+
+            if (!(properties[key] instanceof Object)) {
+                obj[key] = properties[key];
+            } else if (properties.default !== undefined && properties.get === undefined && properties.set === undefined && properties.type === undefined) {
+                obj[key] = properties[key].default;
+            } else {
+                var enumerable = properties.set !== null;
+
+                Object.defineProperty(obj, '_' + key, {
+                    enumerable: false,
+                    writable: true,
+                    value: properties[key].default
+                });
+
+                Object.defineProperty(obj, key, {
+                    enumerable: enumerable,
+                    get: sGis.utils.proto.getGetter(key, properties[key].get),
+                    set: sGis.utils.proto.getSetter(key, properties[key].set, properties[key].type)
+                });
+            }
+        }
+    };
+
+    sGis.utils.proto.getGetter = function(key, getter) {
+        if (getter !== null) {
+            return function () {
+                if (getter) {
+                    return getter.call(this);
+                } else {
+                    return this['_' + key];
+                }
+            };
+        }
+    };
+
+    sGis.utils.proto.getSetter = function(key, setter, type) {
+        if (setter !== null) {
+
+            return function (val) {
+                if (type) sGis.utils.validate(val, type);
+                if (setter) {
+                    setter.call(this, val);
+                } else {
+                    this['_' + key] = val;
+                }
+            };
+        }
+    };
+
+    sGis.utils.validate = function(val, type) {
+        if (val === null) return;
+        if (sGis.utils.is.function(type)) {
+            if (!(val instanceof type)) valError(type.name, val);
+        } else if (sGis.utils.validateFuncs[type]) {
+            sGis.utils.validateFuncs[type](val);
+        }
+    };
+
+    sGis.utils.validateFuncs = {
         'function': function (obj) {
             if (!sGis.utils.is.function(obj)) valError('Function', obj);
         },
@@ -1632,6 +1696,97 @@ function getPosition(e) {
 
     function valError(type, obj) {
         utils.error(type + ' is expected but got ' + obj + ' instead');
+    }
+
+})();'use strict';
+
+(function() {
+
+    sGis.utils.svg = {
+        ns: 'http://www.w3.org/2000/svg',
+
+        base: function(properties) {
+            var svg = document.createElementNS(this.ns, 'svg');
+            setAttributes(svg, properties);
+            svg.style.pointerEvents = 'none';
+
+            return svg;
+        },
+
+        path: function(properties) {
+            if (properties.fillImage) {
+                var defs = document.createElementNS(this.ns, 'defs');
+                var pattern = document.createElementNS(this.ns, 'pattern');
+                var id = utils.getGuid();
+                pattern.setAttribute('id', id);
+                pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+                pattern.setAttribute('x', properties.x);
+                pattern.setAttribute('y', properties.y);
+                pattern.setAttribute('width', properties.fillImage.width);
+                pattern.setAttribute('height', properties.fillImage.height);
+
+                var image = document.createElementNS(this.ns, 'image');
+                image.setAttributeNS("http://www.w3.org/1999/xlink", 'xlink:href', properties.fillImage.src);
+                image.setAttribute('width', properties.fillImage.width);
+                image.setAttribute('height', properties.fillImage.height);
+
+                pattern.appendChild(image);
+                defs.appendChild(pattern);
+            }
+
+            var path = document.createElementNS(this.ns, 'path');
+            var svgAttributes = setAttributes(path, properties);
+            var svg = this.base(svgAttributes);
+
+            if (properties.fillImage) {
+                svg.setAttribute('xmlns', this.ns);
+                svg.setAttribute('xmlns:xlink', "http://www.w3.org/1999/xlink");
+
+                path.setAttribute('fill', 'url(#' + id + ')');
+                svg.appendChild(defs);
+                //svg.appendChild(image);
+            }
+
+            svg.appendChild(path);
+
+            return svg;
+        },
+
+        circle: function(properties) {
+            var circle = document.createElementNS(this.ns, 'circle');
+            var svgAttributes = setAttributes(circle, properties);
+            var svg = this.base(svgAttributes);
+
+            svg.appendChild(circle);
+
+            return svg;
+        }
+    };
+
+    var svgAttributes = ['width', 'height', 'viewBox'];
+    function setAttributes(element, attributes) {
+        var isSvg = element instanceof SVGSVGElement;
+        var notSet = {};
+        for (var i in attributes) {
+            if (attributes.hasOwnProperty(i) && i !== 'fillImage' && attributes[i] !== undefined) {
+                if (!isSvg && svgAttributes.indexOf(i) !== -1) {
+                    notSet[i] = attributes[i];
+                    continue;
+                }
+
+                if (i === 'stroke' || i === 'fill') {
+                    var color = new sGis.utils.Color(attributes[i]);
+                    if (color.a < 255 || color.format === 'rgba') {
+                        element.setAttribute(i, color.toString('rgb'));
+                        if (color.a < 255) element.setAttribute(i + '-opacity', color.a / 255);
+                        continue;
+                    }
+                }
+                element.setAttribute(i, attributes[i]);
+            }
+        }
+
+        return notSet;
     }
 
 })();'use strict';
@@ -1818,7 +1973,14 @@ function getPosition(e) {
                 }
             }
 
-            if (this._defaultHandlers && this._defaultHandlers[eventType] !== undefined && !sGisEvent._cancelDefault) {
+            if (sGisEvent._cancelDefault) {
+                if (sGisEvent.browserEvent) {
+                    sGisEvent.browserEvent.preventDefault();
+                }
+                return;
+            }
+
+            if (this._defaultHandlers && this._defaultHandlers[eventType] !== undefined) {
                 this._defaultHandlers[eventType].call(this, sGisEvent);
             }
         },
@@ -2305,7 +2467,15 @@ function getPosition(e) {
             layerData.zIndex = zIndex;
         },
 
+        _clearCache: function() {
+            this._width = null;
+            this._height = null;
+            this._resolution = null;
+        },
+
         _repaint: function() {
+            this._clearCache();
+
             if (this._needUpdate && this._updateAllowed) {
                 this._setNewContainer();
                 this._needUpdate = false;
@@ -2348,8 +2518,8 @@ function getPosition(e) {
             var container = document.createElement('div');
             container.style.width = '100%';
             container.style.height = '100%';
-            container.width = this._map.width;
-            container.height = this._map.height;
+            container.width = this.width;
+            container.height = this.height;
             container.style[utils.css.transformOrigin.func] = 'left top';
             container.style.position = 'absolute';
             container.bbox = this._map.bbox;
@@ -2426,7 +2596,7 @@ function getPosition(e) {
 
         _updateLayer: function(layer) {
             var bbox = this._map.bbox;
-            var resolution = this._map.resolution;
+            var resolution = this.resolution;
             var features = layer.getFeatures(bbox, resolution);
             var layerData = this._layerData[layer.id];
             var displayedFeatures = layerData.displayedFeatures.slice();
@@ -2521,7 +2691,7 @@ function getPosition(e) {
         },
 
         _drawFeature: function(feature, layer) {
-            var render = feature.render(this._map.resolution, this._map.crs);
+            var render = feature.render(this.resolution, this._map.crs);
             var displayedObjects = this._layerData[layer.id].displayedObjects[feature.id];
             if (displayedObjects === render) {
                 //TODO
@@ -2604,6 +2774,7 @@ function getPosition(e) {
         _displayNode: function(render, feature, layer, container) {
             var layerData = this._layerData[layer.id];
             container = container || this._container;
+
             if (layerData.displayedFeatures.indexOf(feature) !== -1 && (render.node.position || render.node.bbox.crs === this._container.bbox.crs || render.node.bbox.crs.from && this._container.bbox.crs.to)) {
                 this._resolveLayerOverlay(layer);
                 this._setNodeStyles(render.node, layer);
@@ -2678,8 +2849,8 @@ function getPosition(e) {
 
         _setNewCanvas: function(layerData) {
             var canvas = document.createElement('canvas');
-            canvas.width = this._map.width;
-            canvas.height = this._map.height;
+            canvas.width = this.width;
+            canvas.height = this.height;
             canvas.style.zIndex = layerData.zIndex - 1;
             canvas.style.position = 'absolute';
             canvas.style.transformOrigin = 'left top';
@@ -2695,15 +2866,15 @@ function getPosition(e) {
             if (layerData.canvas.parentNode) {
                 layerData.canvas.parentNode.removeChild(layerData.canvas);
             }
-            layerData.canvas.width = this._map.width;
-            layerData.canvas.height = this._map.height;
+            layerData.canvas.width = this.width;
+            layerData.canvas.height = this.height;
             this._setCanvasOrigin(layerData);
             layerData.canvas.isUsed = false;
         },
 
         _setCanvasOrigin: function(layerData) {
             var bbox = this._map.bbox;
-            var resolution = this._map.resolution;
+            var resolution = this.resolution;
             var xOrigin = bbox.p[0].x / resolution;
             var yOrigin = -bbox.p[1].y / resolution;
             layerData.ctx.translate(-xOrigin, -yOrigin);
@@ -2751,16 +2922,15 @@ function getPosition(e) {
                     ctx.fillStyle = geometry.fillColor;
                 } else if (geometry.fillStyle === 'image') {
                     ctx.fillStyle = ctx.createPattern(geometry.fillImage, 'repeat');
-
                     var patternOffsetX = (coordinates[0][0][0]) % geometry.fillImage.width,
                         patternOffsetY = (coordinates[0][0][1]) % geometry.fillImage.height;
                     ctx.translate(patternOffsetX, patternOffsetY);
                 }
                 ctx.fill();
 
-                if (patternOffsetX) {
+                //if (patternOffsetX) {
                     ctx.translate(-patternOffsetX, -patternOffsetY);
-                }
+                //}
             }
 
             ctx.stroke();
@@ -2802,7 +2972,7 @@ function getPosition(e) {
 
             var geometry = [];
             for (var i = 0, len = render.length; i < len; i++) {
-                if (render[i].node && !render[i].node.parent) {
+                if (!toDrawOnCanvas(render[i]) && !render[i].node.parent) {
                     this._drawNode(render[i], feature, layer, subContainer.container);
                 } else {
                     geometry.push(render[i]);
@@ -2844,7 +3014,7 @@ function getPosition(e) {
                 browserEvent: sGisEvent.browserEvent
             };
 
-            for (var i = layers.length - 1; i > 0; i--) {
+            for (var i = layers.length - 1; i >= 0; i--) {
                 if (!this._layerData[layers[i].id]) continue;
 
                 var displayedFeatures = this._layerData[layers[i].id].displayedFeatures;
@@ -2884,10 +3054,10 @@ function getPosition(e) {
 
     function contains(geometry, position) {
         var intersectionType;
-        if (geometry.node) {
-            var geometryPosition = geometry.position || [geometry.bbox.width / geometry.resolution, geometry.bbox.height / geometry.resolution];
-            var width = geometry.node.width || geometry.node.clientWidth;
-            var height = geometry.node.height || geometry.node.clientHeight;
+        if (!(geometry instanceof sGis.geom.Arc || geometry instanceof sGis.geom.Polyline) && geometry.node) {
+            var geometryPosition = geometry.node.position || [geometry.bbox.width / geometry.resolution, geometry.bbox.height / geometry.resolution];
+            var width = geometry.node.clientWidth || geometry.node.width;
+            var height = geometry.node.clientHeight || geometry.node.height;
             intersectionType = geometryPosition[0] < position.x && (geometryPosition[0] + width) > position.x &&
             geometryPosition[1] < position.y && (geometryPosition[1] + height) > position.y;
         } else {
@@ -2903,13 +3073,34 @@ function getPosition(e) {
             get: function() {
                 return this._map.layers;
             }
+        },
+
+        width: {
+            get: function() {
+                if (!this._width) this._width = this._map.width;
+                return this._width;
+            }
+        },
+
+        height: {
+            get: function() {
+                if (!this._height) this._height = this._map.height;
+                return this._height;
+            }
+        },
+
+        resolution: {
+            get: function() {
+                if (!this._resolution) this._resolution = this._map.resolution;
+                return this._resolution;
+            }
         }
     });
 
     utils.mixin(utils.Painter.prototype, sGis.IEventHandler.prototype);
 
     function toDrawOnCanvas(object) {
-        return !object.node || object.renderToCanvas;
+        return sGis.useCanvas && (object instanceof sGis.geom.Arc || object instanceof sGis.geom.Polyline || object.renderToCanvas);
     }
 
 })();'use strict';
@@ -3169,6 +3360,9 @@ function getPosition(e) {
                 this.__setBbox(p1, p2);
                 this.forceUpdate();
             }
+
+            this._width = null;
+            this._height = null;
         },
 
         /**
@@ -3202,10 +3396,10 @@ function getPosition(e) {
         /**
          * Moves the map bounding box by the given number of pixels
          * @param {int} dx - Offset along X axis in pixels, positive direction is right
-         * @param {int} dy - Offset along Y axis in pisels, positive direction is down
+         * @param {int} dy - Offset along Y axis in pixels, positive direction is down
          */
         move: function(dx, dy) {
-            for (var i in this._bbox.p) {
+            for (var i = 0; i < 2; i++) {
                 this._bbox.p[i].x += dx;
                 this._bbox.p[i].y += dy;
             }
@@ -3214,8 +3408,8 @@ function getPosition(e) {
         },
 
         /**
-         * Changes the scle of map by scalingK
-         * @param {float} scalingK - Koefficient of scaling (Ex. 5 -> 5 times zoom in)
+         * Changes the scale of map by scalingK
+         * @param {Number} scalingK - Coefficient of scaling (Ex. 5 -> 5 times zoom in)
          * @param {sGis.Point} basePoint - /optional/ Base point of zooming
          */
         changeScale: function(scalingK, basePoint) {
@@ -3224,17 +3418,12 @@ function getPosition(e) {
         },
 
         /**
-         * Changes the scle of map by scalingK with animation
-         * @param {float} scalingK - Koefficient of scaling (Ex. 5 -> 5 times zoom in)
+         * Changes the scale of map by scalingK with animation
+         * @param {float} scalingK - Coefficient of scaling (Ex. 5 -> 5 times zoom in)
          * @param {sGis.Point} basePoint - /optional/ Base point of zooming
          */
         animateChangeScale: function(scalingK, basePoint) {
-            if (this._animationTargetResolution) {
-                var resolution = this._animationTargetResolution;
-            } else {
-                resolution = this.resolution;
-            }
-            this.animateSetResolution(resolution * scalingK, basePoint);
+            this.animateSetResolution(this.resolution * scalingK, basePoint);
         },
 
         zoom: function(k, basePoint) {
@@ -3248,8 +3437,9 @@ function getPosition(e) {
 
             var resolution;
             if (tileScheme) {
-                for (var i in tileScheme.matrix) {
-                    var ratio = currResolution / tileScheme.matrix[i].resolution;
+                var levels = Object.keys(tileScheme.matrix);
+                for (var i = 0; i < levels.length; i++) {
+                    var ratio = currResolution / tileScheme.matrix[levels[i]].resolution;
                     if (ratio > 0.9) {
                         var newLevel = parseInt(i) + k;
                         while (!tileScheme.matrix[newLevel]) {
@@ -3259,7 +3449,7 @@ function getPosition(e) {
                         break;
                     }
                 }
-                if (!resolution) resolution = tileScheme.matrix[i] && tileScheme.matrix[i].resolution || currResolution;
+                if (!resolution) resolution = tileScheme.matrix[levels[i]] && tileScheme.matrix[levels[i]].resolution || currResolution;
             } else {
                 resolution = currResolution * Math.pow(2, -k);
             }
@@ -3285,11 +3475,12 @@ function getPosition(e) {
             if (tileScheme) {
                 var minDifference = Infinity;
                 var index;
-                for (var i in tileScheme.matrix) {
-                    var difference = Math.abs(resolution - tileScheme.matrix[i].resolution);
+                var levels = Object.keys(tileScheme.matrix);
+                for (var i = 0; i < levels.length; i++) {
+                    var difference = Math.abs(resolution - tileScheme.matrix[levels[i]].resolution);
                     if (difference < minDifference) {
                         minDifference = difference;
-                        index = i;
+                        index = levels[i];
                     }
                 }
                 return tileScheme.matrix[index].resolution;
@@ -3300,8 +3491,8 @@ function getPosition(e) {
 
         /**
          * Sets new resolution to the map with animation
-         * @param {float} resolution
-         * @param {sGis.Point} basePoint - /optional/ Base point of zooming
+         * @param {Number} resolution
+         * @param {sGis.Point} [basePoint] - Base point of zooming
          * @returns {undefined}
          */
         animateSetResolution: function(resolution, basePoint) {
@@ -3334,9 +3525,7 @@ function getPosition(e) {
                     var y1 = self._easeFunction(time, originalBbox.p[0].y, targetBbox.p[0].y - originalBbox.p[0].y, self._animationTime);
                     var x2 = self._easeFunction(time, originalBbox.p[1].x, targetBbox.p[1].x - originalBbox.p[1].x, self._animationTime);
                     var y2 = self._easeFunction(time, originalBbox.p[1].y, targetBbox.p[1].y - originalBbox.p[1].y, self._animationTime);
-                    var bbox = new sGis.Bbox(new sGis.Point(x1, y1, self.crs), new sGis.Point(x2, y2, self.crs));
-
-                    self._bbox = bbox;
+                    self._bbox = new sGis.Bbox(new sGis.Point(x1, y1, self.crs), new sGis.Point(x2, y2, self.crs));
                 }
                 self.fire('bboxChange');
             }, 1000 / 60);
@@ -3355,8 +3544,8 @@ function getPosition(e) {
 
         /**
          * Sets new resolution to the map
-         * @param {float} resolution
-         * @param {sGis.Point} basePoint - /optional/ Base point of zooming
+         * @param {Number} resolution
+         * @param {sGis.Point} [basePoint] - Base point of zooming
          */
         setResolution: function(resolution, basePoint) {
             var bbox = getScaledBbox(this, resolution, basePoint);
@@ -3366,18 +3555,18 @@ function getPosition(e) {
 
         /**
          * Returns the pixel offset of the point from the left top corner of the map
-         * @param {type} point
+         * @param {sGis.Point|Array} point
          * @returns {object} - {x: X offset, y: Y offset}
          */
         getPxPosition: function(point) {
             var p = point instanceof sGis.Point ? point.projectTo(this.crs) : {x: point[0], y: point[1]},
                 resolution = this.resolution,
                 bbox = this.bbox;
-            var pxPosition = {
+
+            return {
                 x: (p.x - bbox.p[0].x) / resolution,
                 y: (bbox.p[1].y - p.y) / resolution
             };
-            return pxPosition;
         },
 
         /**
@@ -3397,13 +3586,15 @@ function getPosition(e) {
         },
 
         /**
-         * If map is in process of animation, the 'animationEnd' event is not fired
+         * TODO: remove
          */
         cancelAnimation: function() {
-            this._cancelAnimation = true;
-            //this._painter.cancelAnimation();
+
         },
 
+        /**
+         * TODO: remove
+         */
         update: function() {
 
         },
@@ -3448,7 +3639,7 @@ function getPosition(e) {
         },
 
         _defaultHandlers: {
-            bboxChange: function(mapEvent) {
+            bboxChange: function() {
                 var map = this;
                 var CHANGE_END_DELAY = 300;
                 if (map._changeTimer) clearTimeout(map._changeTimer);
@@ -3486,7 +3677,7 @@ function getPosition(e) {
 
             },
 
-            layerAdd: function(sGisEvent) {
+            layerAdd: function() {
                 this.update();
             },
 
@@ -3494,7 +3685,7 @@ function getPosition(e) {
 
             },
 
-            layerOrderChange: function(sGisEvent) {
+            layerOrderChange: function() {
                 this.update();
             },
 
@@ -3506,7 +3697,7 @@ function getPosition(e) {
                 this.move(sGisEvent.offset.x, sGisEvent.offset.y);
             },
 
-            dragEnd: function(sGisEvent) {
+            dragEnd: function() {
                 this._draggingObject = null;
             },
 
@@ -3543,13 +3734,13 @@ function getPosition(e) {
                 }
             },
 
-            set: function(layers) {
+            set: function(array) {
                 var layers = this.layers;
                 for (var i = 0; i < layers.length; i++) {
                     this.removeLayer(layers[i]);
                 }
-                for (i = 0; i < layers.length; i++) {
-                    this.addLayer(layers[i]);
+                for (i = 0; i < array.length; i++) {
+                    this.addLayer(array[i]);
                 }
             }
         },
@@ -3704,8 +3895,9 @@ function getPosition(e) {
                 var tileScheme = this.tileScheme;
                 if (tileScheme) {
                     var minResolution = Infinity;
-                    for (var i in tileScheme.matrix) {
-                        minResolution = Math.min(minResolution, tileScheme.matrix[i].resolution);
+                    var levels = Object.keys(tileScheme.matrix);
+                    for (var i = 0; i < levels.length; i++) {
+                        minResolution = Math.min(minResolution, tileScheme.matrix[levels[i]].resolution);
                     }
 
                     return minResolution;
@@ -3981,10 +4173,10 @@ function getPosition(e) {
 
             if (mouseHandler.clickCatcher) {
                 mouseHandler.clickCatcher = null;
-                map.fire('dragStart', {map: map, mouseOffset: mousePosition, position: position, point: point, ctrlKey: event.ctrlKey, offset: {xPx: dxPx, yPx: dyPx, x: map._lastDrag.x, y: map._lastDrag.y}, browserEvent: event});
+                var originalPoint = map.getPointFromPxPosition(mouseHandler.dragPosition.x, mouseHandler.dragPosition.y);
+                var originalPosition = {x: originalPoint.x / resolution, y: - originalPoint.y / resolution};
+                map.fire('dragStart', {map: map, mouseOffset: mousePosition, position: originalPosition, point: originalPoint, ctrlKey: event.ctrlKey, offset: {xPx: dxPx, yPx: dyPx, x: map._lastDrag.x, y: map._lastDrag.y}, browserEvent: event});
             }
-
-//        map.move(map._lastDrag.x, map._lastDrag.y);
 
             mouseHandler.dragPosition = mousePosition;
             map._draggingObject.fire('drag', {map: map, mouseOffset: mousePosition, position: position, point: point, ctrlKey: event.ctrlKey, offset: {xPx: dxPx, yPx: dyPx, x: map._lastDrag.x, y: map._lastDrag.y}, browserEvent: event});
@@ -4013,7 +4205,7 @@ function getPosition(e) {
 
     function isFormElement(e) {
         var formElements = ['BUTTON', 'INPUT', 'LABEL', 'OPTION', 'SELECT', 'TEXTAREA'];
-        for (var i in formElements) {
+        for (var i = 0; i < formElements.length; i++) {
             if (e.tagName === formElements[i]) return true;
         }
         return false;
@@ -4365,8 +4557,8 @@ function getPosition(e) {
     sGis.FeatureLayer.prototype = new sGis.Layer({
         _delayedUpdate: true,
 
-        getFeatures: function(bbox, resolution) {
-            if (!bbox || !(bbox instanceof sGis.Bbox) || !resolution || parseFloat(resolution) === NaN) utils.error('Expected (bbox, resolution), but got (' + bbox + ', ' + resolution + 'instead');
+        getFeatures: function(bbox) {
+            if (!bbox || !(bbox instanceof sGis.Bbox)) utils.error('Expected bbox, but got ' + bbox + 'instead');
             if (!this._display) return {};
             var obj = [];
             for (var i in this._features) {
@@ -4400,6 +4592,14 @@ function getPosition(e) {
 
         has: function(feature) {
             return this._features.indexOf(feature) !== -1;
+        },
+
+        moveToTop: function(feature) {
+            var index = this._features.indexOf(feature);
+            if (index !== -1) {
+                this._features.splice(index, 1);
+                this._features.push(feature);
+            }
         }
     });
 
@@ -4410,7 +4610,12 @@ function getPosition(e) {
             },
 
             set: function(features) {
-                this._features = features;
+                var currFeatures = this.features;
+                for (var i = 0; i < currFeatures.length; i++) {
+                    this.remove(currFeatures[i]);
+                }
+
+                this.add(features);
             }
         }
     });
@@ -4500,477 +4705,358 @@ function getPosition(e) {
 })();'use strict';
 
 (function() {
-    
-sGis.decorations = {};
-    
-sGis.decorations.Scale = function(map, options) {
-    utils.init(this, options);
-    this._map  = map;
-    this.updateDisplay();
-};
 
-sGis.decorations.Scale.prototype = {
-    _plusImageSrc: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAk0lEQVR4nO2XsQ2EMAxFHycKJrkSxvAETMkEGeMob5KUVFBQGCdCcvN/G8d6kuWnBJIztF4opXyBzSlZzewf7Te2AgATMD+ch/PpAHg1AhCAAAQwwKXXqMEeVQxEVVxPFW/4em2JB3fPnj4CAQggHeBcw5UkD/S8CWfg55QsZrZH+6WPQAACEIAAej6nFfBMV1uaHQE1GEAKbB76AAAAAElFTkSuQmCC',
-    _minusImageSrc: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAFpJREFUeNrs2LENwDAIAEETZTaGZjmsrODGQrkv6E+igejuNblnDQ8AAAAAAAAAAAAA4L+A9xtVNe4sy8ywQgAAAAAAALcLz10AAAAAAAAAAAAAAACAs7YAAwDJuQpbR1QAogAAAABJRU5ErkJggg==',
-    _xAlign: 'left',
-    _yAlign: 'top',
-    _xOffset: 32,
-    _yOffset: 32,
-    _width: 32,
-    _height: 32,
-    _horizontal: false,
-    _css: 'sGis-decorations-button',
-    _plusCss: '',
-    _minusCss: '',
-    
-    updateDisplay: function() {
-        if (this._buttons) {
-            this._map.wrapper.removeChild(this._buttons.plus);
-            this._map.wrapper.removeChild(this._buttons.minus);
-        }
-        
-        var buttons = {
-            plus: getButton(this._plusImageSrc, this, this._plusCss),
-            minus: getButton(this._minusImageSrc, this, this._minusCss)
-        };
-        
-        if (this._horizontal) {
-            var but = this._xAlign === 'right' ? 'plus' : 'minus';
-            buttons[but].style[this._xAlign] = this._xOffset + this._width + 4 + 'px';
-        } else {
-            var but = this._yAlign === 'bottom' ? 'plus' : 'minus';
-            buttons[but].style[this._yAlign] = this._yOffset + this._height + 4 + 'px';
-        }
-        
-        var map = this._map;
-        buttons.plus.onclick = function(e) {
-            map.animateChangeScale(0.5);
-            e.stopPropagation();
-        };
-        buttons.minus.onclick = function(e) {
-            map.animateChangeScale(2);
-            e.stopPropagation();
-        };
+    sGis.decorations = {};
 
-        buttons.plus.ondblclick = function(e) {
-            e.stopPropagation();
-        };
-        buttons.minus.ondblclick = function(e) {
-            e.stopPropagation();
-        };
-        
-        if (map.wrapper) {
-            map.wrapper.appendChild(buttons.plus);
-            map.wrapper.appendChild(buttons.minus);
-        } else {
-            map.addListner('wrapperSet', function() {
-                map.wrapper.appendChild(buttons.plus);
-                map.wrapper.appendChild(buttons.minus);
-            });
-        }
-    }
-};
-
-Object.defineProperties(sGis.decorations.Scale.prototype, {
-    map: {
-        get: function() {
-            return this._map;
-        }
-    },
-    
-    plusImageSrc: {
-        get: function() {
-            return this._plusImageSrc;
-        },
-        set: function(src) {
-            utils.validateString(src);
-            this._plusImageSrc = src;
-        }
-    },
-    
-    minusImageSrc: {
-        get: function() {
-            return this._minusImageSrc;
-        },
-        set: function(src) {
-            utils.validateString(src);
-            this._minusImageSrc = src;
-        }
-    },
-    
-    xAlign: {
-        get: function() {
-            return this._xAlign;
-        },
-        set: function(align) {
-            utils.validateValue(align, ['left', 'right']);
-            this._xAlign = align;
-        }
-    },
-    
-    yAlign: {
-        get: function() {
-            return this._yAlign;
-        },
-        set: function(align) {
-            utils.validateValue(align, ['top', 'bottom']);
-            this._yAlign = align;
-        }
-    },
-    
-    xOffset: {
-        get: function() {
-            return this._xOffset;
-        },
-        set: function(offset) {
-            utils.validateNumber(offset);
-            this._xOffset = offset;
-        }
-    },
-    
-    yOffset: {
-        get: function() {
-            return this._yOffset;
-        },
-        set: function(offset) {
-            utils.validateNumber(offset);
-            this._yOffset = offset;
-        }
-    },
-    
-    width: {
-        get: function() {
-            return this._width;
-        },
-        set: function(width) {
-            utils.validatePositiveNumber(width);
-            this._width = width;
-        }
-    },
-    
-    height: {
-        get: function() {
-            return this._height;
-        },
-        set: function(height) {
-            utils.validatePositiveNumber(height);
-            this._height = height;
-        }
-    },
-    
-    horizontal: {
-        get: function() {
-            return this._horizontal;
-        },
-        set: function(bool) {
-            utils.validateBool(bool);
-            this._horizontal = bool;
-        }
-    },
-    
-    css: {
-        get: function() {
-            return this._css;
-        },
-        set: function(css) {
-            utils.validateString(css);
-            this._css = css;
-        }
-    },
-
-    plusCss: {
-        get: function() {
-            return this._plusCss;
-        },
-        set: function(css) {
-            utils.validateString(css);
-            this._plusCss = css;
-        }
-    },
-
-    minusCss: {
-        get: function() {
-            return this._minusCss;
-        },
-        set: function(css) {
-            utils.validateString(css);
-            this._minusCss = css;
-        }
-    }
-});
-
-function getButton(src, control, css) {
-    var button = document.createElement('div');
-    button.className = control.css + ' ' + css;
-    button.style[control.xAlign] = control.xOffset + 'px';
-    button.style[control.yAlign] = control.yOffset + 'px';
-    button.style.width = control.width + 'px';
-    button.style.height = control.height + 'px';
-    button.style.position = 'absolute';
-    button.style.backgroundSize = '100%';
-    if (src) {
-        button.style.backgroundImage = 'url(' + src + ')';
-    }
-    
-    return button;
-}
-    
-var defaultCss = '.sGis-decorations-button {border: 1px solid gray; background-color: #F0F0F0; border-radius: 5px; font-size: 32px; text-align: center;cursor: pointer;} .sGis-decorations-button:hover {background-color: #E0E0E0;}',
-    buttonStyle = document.createElement('style');
-buttonStyle.type = 'text/css';
-if (buttonStyle.styleSheet) {
-    buttonStyle.styleSheet.cssText = defaultCss;
-} else {
-    buttonStyle.appendChild(document.createTextNode(defaultCss));
-}
-
-document.head.appendChild(buttonStyle);
-
-})();'use strict';
-
-(function() {
-
-    sGis.decorations.ScaleSlider = function(map, options) {
-        this._map = map;
-        this._createGrid();
-        this._createSlider();
-
-        sGis.utils.init(this, options);
+    sGis.decorations.Scale = function(map, options) {
+        utils.init(this, options);
+        this._map  = map;
         this.updateDisplay();
     };
 
-    sGis.decorations.ScaleSlider.prototype = {
-        _gridCss: 'sGis-decorations-scaleSlider-grid',
-        _gridWidth: 8,
-        _gridHeight: 120,
-        _gridTop: 50,
-        _gridLeft: 50,
-        _sliderCss: 'sGis-decorations-scaleSlider-slider',
-        _sliderWidth: 25,
-        _sliderHeight: 10,
-        _eventNamespace: '.sGis-decorations-scaleSlider',
+    sGis.decorations.Scale.prototype = {
+        _plusImageSrc: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAk0lEQVR4nO2XsQ2EMAxFHycKJrkSxvAETMkEGeMob5KUVFBQGCdCcvN/G8d6kuWnBJIztF4opXyBzSlZzewf7Te2AgATMD+ch/PpAHg1AhCAAAQwwKXXqMEeVQxEVVxPFW/4em2JB3fPnj4CAQggHeBcw5UkD/S8CWfg55QsZrZH+6WPQAACEIAAej6nFfBMV1uaHQE1GEAKbB76AAAAAElFTkSuQmCC',
+        _minusImageSrc: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAFpJREFUeNrs2LENwDAIAEETZTaGZjmsrODGQrkv6E+igejuNblnDQ8AAAAAAAAAAAAA4L+A9xtVNe4sy8ywQgAAAAAAALcLz10AAAAAAAAAAAAAAACAs7YAAwDJuQpbR1QAogAAAABJRU5ErkJggg==',
+        _xAlign: 'left',
+        _yAlign: 'top',
+        _xOffset: 32,
+        _yOffset: 32,
+        _width: 32,
+        _height: 32,
+        _horizontal: false,
+        _css: 'sGis-decorations-button',
+        _plusCss: '',
+        _minusCss: '',
 
         updateDisplay: function() {
-            var wrapper = this._map.wrapper;
-            if (wrapper) {
-                wrapper.appendChild(this._grid);
-                wrapper.appendChild(this._slider);
+            if (this._buttons) {
+                this._map.wrapper.removeChild(this._buttons.plus);
+                this._map.wrapper.removeChild(this._buttons.minus);
             }
-        },
 
-        _createGrid: function() {
-            var grid = document.createElement('div');
-            grid.style.position = 'absolute';
-            grid.style.width = this._gridWidth + 'px';
-            grid.style.height = this._gridHeight + 'px';
-            grid.style.top = this._gridTop + 'px';
-            grid.style.left = this._gridLeft + 'px';
-            grid.className = this._gridCss;
+            var buttons = {
+                plus: getButton(this._plusImageSrc, this, this._plusCss),
+                minus: getButton(this._minusImageSrc, this, this._minusCss)
+            };
 
-            this._grid = grid;
-        },
-
-        _createSlider: function() {
-            var slider = document.createElement('div');
-
-            slider.style.position = 'absolute';
-            slider.style.width = this._sliderWidth + 'px';
-            slider.style.height = this._sliderHeight + 'px';
-            slider.style.top = this._getSliderPosition() +  'px';
-            slider.style.left = this._getSliderLeft() + 'px';
-            slider.className = this._sliderCss;
-
-            this._slider = slider;
-            this._setSliderEvents();
-        },
-
-        _getSliderLeft: function() {
-            return this._gridLeft + (this._gridWidth - this._sliderWidth) / 2;
-        },
-
-        _getSliderPosition: function() {
-            var height = this._gridHeight - this._sliderHeight;
-            var maxResolution = this._map.maxResolution;
-            var minResolution = this._map.minResolution;
-            var curResolution = this._map.resolution;
-
-            var offset = height * Math.log2(curResolution / minResolution) / Math.log2(maxResolution / minResolution) ;
-            if (sGis.utils.is.number(offset)) {
-                return offset + this._gridTop;
+            if (this._horizontal) {
+                var but = this._xAlign === 'right' ? 'plus' : 'minus';
+                buttons[but].style[this._xAlign] = this._xOffset + this._width + 4 + 'px';
             } else {
-                return this._gridTop;
-            }
-        },
-
-        _setSliderEvents: function() {
-            var self = this;
-            this._map.addListner('dragStart' + this._eventNamespace, function(sGisEvent) {
-                if (sGisEvent.browserEvent.target === self._slider) {
-                    sGisEvent.draggingObject = self;
-                    self._map.painter.prohibitUpdate();
-                    sGisEvent.stopPropagation();
-                }
-            });
-
-            this._map.addListner('layerAdd layerRemove bboxChangeEnd', this._updateSliderPosition.bind(this));
-        },
-
-        _updateSliderPosition: function() {
-            this._slider.style.top = this._getSliderPosition() + 'px';
-        },
-
-        _moveSlider: function(delta) {
-            var offset = parseInt(this._slider.style.top) - this._gridTop;
-            offset -= delta;
-            if (offset < 0) {
-                offset = 0;
-            } else if (offset > this._gridHeight - this._sliderHeight) {
-                offset = this._gridHeight - this._sliderHeight;
+                var but = this._yAlign === 'bottom' ? 'plus' : 'minus';
+                buttons[but].style[this._yAlign] = this._yOffset + this._height + 4 + 'px';
             }
 
-            this._slider.style.top = this._gridTop + offset + 'px';
+            var map = this._map;
+            buttons.plus.onclick = function(e) {
+                map.animateChangeScale(0.5);
+                e.stopPropagation();
+            };
+            buttons.minus.onclick = function(e) {
+                map.animateChangeScale(2);
+                e.stopPropagation();
+            };
 
-            var height = this._gridHeight - this._sliderHeight;
-            var maxResolution = this._map.maxResolution;
-            var minResolution = this._map.minResolution;
+            buttons.plus.ondblclick = function(e) {
+                e.stopPropagation();
+            };
+            buttons.minus.ondblclick = function(e) {
+                e.stopPropagation();
+            };
 
-            var resolution = minResolution * Math.pow(2, offset * Math.log2(maxResolution / minResolution) / height);
-            this._map.resolution = resolution;
-        },
-
-        _defaultHandlers: {
-            drag: function(sGisEvent) {
-                this._moveSlider(sGisEvent.offset.yPx);
-            },
-
-            dragEnd: function() {
-                this._map.painter.allowUpdate();
-                this._map.adjustResolution();
+            if (map.wrapper) {
+                map.wrapper.appendChild(buttons.plus);
+                map.wrapper.appendChild(buttons.minus);
+            } else {
+                map.addListner('wrapperSet', function() {
+                    map.wrapper.appendChild(buttons.plus);
+                    map.wrapper.appendChild(buttons.minus);
+                });
             }
         }
     };
 
-    Object.defineProperties(sGis.decorations.ScaleSlider.prototype, {
+    Object.defineProperties(sGis.decorations.Scale.prototype, {
         map: {
             get: function() {
                 return this._map;
             }
         },
 
-        gridCss: {
+        plusImageSrc: {
             get: function() {
-                return this._gridCss;
+                return this._plusImageSrc;
+            },
+            set: function(src) {
+                utils.validateString(src);
+                this._plusImageSrc = src;
+            }
+        },
+
+        minusImageSrc: {
+            get: function() {
+                return this._minusImageSrc;
+            },
+            set: function(src) {
+                utils.validateString(src);
+                this._minusImageSrc = src;
+            }
+        },
+
+        xAlign: {
+            get: function() {
+                return this._xAlign;
+            },
+            set: function(align) {
+                utils.validateValue(align, ['left', 'right']);
+                this._xAlign = align;
+            }
+        },
+
+        yAlign: {
+            get: function() {
+                return this._yAlign;
+            },
+            set: function(align) {
+                utils.validateValue(align, ['top', 'bottom']);
+                this._yAlign = align;
+            }
+        },
+
+        xOffset: {
+            get: function() {
+                return this._xOffset;
+            },
+            set: function(offset) {
+                utils.validateNumber(offset);
+                this._xOffset = offset;
+            }
+        },
+
+        yOffset: {
+            get: function() {
+                return this._yOffset;
+            },
+            set: function(offset) {
+                utils.validateNumber(offset);
+                this._yOffset = offset;
+            }
+        },
+
+        width: {
+            get: function() {
+                return this._width;
+            },
+            set: function(width) {
+                utils.validatePositiveNumber(width);
+                this._width = width;
+            }
+        },
+
+        height: {
+            get: function() {
+                return this._height;
+            },
+            set: function(height) {
+                utils.validatePositiveNumber(height);
+                this._height = height;
+            }
+        },
+
+        horizontal: {
+            get: function() {
+                return this._horizontal;
+            },
+            set: function(bool) {
+                utils.validateBool(bool);
+                this._horizontal = bool;
+            }
+        },
+
+        css: {
+            get: function() {
+                return this._css;
             },
             set: function(css) {
-                sGis.utils.validate.string(css);
-                this._gridCss = css;
-                this._grid.className = css;
+                utils.validateString(css);
+                this._css = css;
             }
         },
 
-        gridWidth: {
+        plusCss: {
             get: function() {
-                return this._gridWidth;
-            },
-            set: function(w) {
-                sGis.utils.validate.number(w);
-                this._gridWidth = w;
-
-                this._grid.style.width = w + 'px';
-            }
-        },
-
-        gridHeight: {
-            get: function() {
-                return this._gridHeight;
-            },
-            set: function(h) {
-                sGis.utils.validate.number(h);
-                this._gridHeight = h;
-
-                this._grid.style.height = h + 'px';
-            }
-        },
-
-        gridTop: {
-            get: function() {
-                return this._gridTop;
-            },
-            set: function(n) {
-                sGis.utils.validate.number(n);
-                this._gridTop = n;
-                this._grid.style.top = n + 'px';
-            }
-        },
-
-        gridLeft: {
-            get: function() {
-                return this._gridLeft;
-            },
-            set: function(n) {
-                sGis.utils.validate.number(n);
-                this._gridLeft = n;
-                this._grid.style.left = n + 'px';
-            }
-        },
-
-        sliderCss: {
-            get: function() {
-                return this._sliderCss;
+                return this._plusCss;
             },
             set: function(css) {
-                sGis.utils.validate.string(css);
-                this._sliderCss = css;
-                this._slider.className = css;
+                utils.validateString(css);
+                this._plusCss = css;
             }
         },
 
-        sliderWidth: {
+        minusCss: {
             get: function() {
-                return this._sliderWidth;
+                return this._minusCss;
             },
-            set: function(w) {
-                sGis.utils.validate.number(w);
-                this._sliderWidth = w;
-
-                this._slider.style.width = w + 'px';
-                this._slider.style.left = this._getSliderLeft() + 'px';
-            }
-        },
-
-        sliderHeight: {
-            get: function() {
-                return this._sliderHeight;
-            },
-            set: function(h) {
-                sGis.utils.validate.number(h);
-                this._sliderHeight = h;
-
-                this._slider.style.height = h + 'px';
+            set: function(css) {
+                utils.validateString(css);
+                this._minusCss = css;
             }
         }
     });
 
-    utils.mixin(sGis.decorations.ScaleSlider.prototype, sGis.IEventHandler.prototype);
+    function getButton(src, control, css) {
+        var button = document.createElement('div');
+        button.className = control.css + ' ' + css;
+        button.style[control.xAlign] = control.xOffset + 'px';
+        button.style[control.yAlign] = control.yOffset + 'px';
+        button.style.width = control.width + 'px';
+        button.style.height = control.height + 'px';
+        button.style.position = 'absolute';
+        button.style.backgroundSize = '100%';
+        if (src) {
+            button.style.backgroundImage = 'url(' + src + ')';
+        }
 
-    var defaultCss = '.sGis-decorations-scaleSlider-grid {' +
-            'border: 1px solid gray; ' +
-            'background-color: #CCCCCC; ' +
-            'border-radius: 5px;} ' +
-            '.sGis-decorations-scaleSlider-slider {' +
-            'border: 1px solid gray;' +
-            'background-color: white;' +
-            'border-radius: 5px;' +
-            'cursor: pointer;}',
-        styles = document.createElement('style');
-    styles.type = 'text/css';
-    if (styles.styleSheet) {
-        styles.styleSheet.cssText = defaultCss;
-    } else {
-        styles.appendChild(document.createTextNode(defaultCss));
+        return button;
     }
 
-    document.head.appendChild(styles);
+    var defaultCss = '.sGis-decorations-button {border: 1px solid gray; background-color: #F0F0F0; border-radius: 5px; font-size: 32px; text-align: center;cursor: pointer;} .sGis-decorations-button:hover {background-color: #E0E0E0;}',
+        buttonStyle = document.createElement('style');
+    buttonStyle.type = 'text/css';
+    if (buttonStyle.styleSheet) {
+        buttonStyle.styleSheet.cssText = defaultCss;
+    } else {
+        buttonStyle.appendChild(document.createTextNode(defaultCss));
+    }
+
+    document.head.appendChild(buttonStyle);
+
+})();(function() {
+
+    sGis.geom.Arc = function(center, options) {
+        utils.init(this, options);
+
+        this.center = center;
+    };
+
+    sGis.geom.Arc.prototype = {
+        _radius: 5,
+        _strokeColor: 'black',
+        _strokeWidth: 1,
+        _fillColor: 'transparent',
+
+        contains: function(position) {
+            var dx = position.x - this._center[0],
+                dy = position.y - this._center[1],
+                distance2 = dx * dx + dy * dy;
+            return Math.sqrt(distance2) < this._radius + 2;
+        },
+
+        _resetCache: function() {
+            this._cachedSvg = null;
+        }
+    };
+
+    Object.defineProperties(sGis.geom.Arc.prototype, {
+        center: {
+            get: function() {
+                return this._center;
+            },
+            set: function(coordinates) {
+                this._center = [parseFloat(coordinates[0]), parseFloat(coordinates[1])];
+
+                if (this._cachedSvg) {
+                    this._cachedSvg.childNodes[0].setAttribute('cx', coordinates[0]);
+                    this._cachedSvg.childNodes[0].setAttribute('cy', coordinates[1]);
+                    this._cachedSvg.position = coordinates;
+
+                    this._cachedSvg.setAttribute('viewBox', [
+                        this._center[0] - this._radius - this._strokeWidth / 2,
+                        this._center[1] - this._radius - this._strokeWidth / 2,
+                        r2 + this._strokeWidth,
+                        r2 + this._strokeWidth
+                    ].join(' '));
+                }
+            }
+        },
+
+        radius: {
+            get: function() {
+                return this._radius;
+            },
+            set: function(r) {
+                this._radius = parseFloat(r);
+                this._resetCache();
+            }
+        },
+
+        strokeColor: {
+            get: function() {
+                return this._strokeColor;
+            },
+            set: function(color) {
+                this._strokeColor = color;
+                this._resetCache();
+            }
+        },
+
+        strokeWidth: {
+            get: function() {
+                return this._strokeWidth;
+            },
+            set: function(w) {
+                this._strokeWidth = parseFloat(w);
+                this._resetCache();
+            }
+        },
+
+        fillColor: {
+            get: function() {
+                return this._fillColor;
+            },
+            set: function(color) {
+                this._fillColor = color;
+                this._resetCache();
+            }
+        },
+        svg: {
+            get: function() {
+                var r2 = this._radius * 2;
+                if (!this._cachedSvg) {
+                    this._cachedSvg = sGis.utils.svg.circle({
+                        r: this._radius,
+                        cx: this.center[0],
+                        cy: this.center[1],
+                        stroke: this._strokeColor,
+                        'stroke-width': this._strokeWidth,
+                        fill: this._fillColor,
+
+                        width: r2 + this._strokeWidth,
+                        height: r2 + this._strokeWidth,
+                        viewBox: [
+                            this._center[0] - this._radius - this._strokeWidth / 2,
+                            this._center[1] - this._radius - this._strokeWidth / 2,
+                            r2 + this._strokeWidth,
+                            r2 + this._strokeWidth
+                        ].join(' ')
+                    });
+                }
+
+                return this._cachedSvg;
+            }
+        },
+
+        node: {
+            get: function() {
+                var svg = this.svg;
+                var x = this._center[0] - this._radius - this._strokeWidth / 2;
+                var y = this._center[1] - this._radius - this._strokeWidth / 2;
+
+                svg.position = [x, y];
+                return svg;
+            }
+        }
+    });
 
 })();(function() {
 
@@ -5062,7 +5148,7 @@ document.head.appendChild(buttonStyle);
         },
 
         contains: function(a, b) {
-            var position = b && isValidPoint([a, b]) ? [a, b] : utils.isArray(a) && isValidPoint(a) ? a : a.x && a.y ? [a.x, a.y] : utils.error('Point coordinates are expecred but got ' + a + ' instead'),
+            var position = b && isValidPoint([a, b]) ? [a, b] : utils.isArray(a) && isValidPoint(a) ? a : utils.isNumber(a.x) && utils.isNumber(a.y) ? [a.x, a.y] : utils.error('Point coordinates are expecred but got ' + a + ' instead'),
                 coordinates = this._coordinates;
 
             for (var ring = 0, l = coordinates.length; ring < l; ring++) {
@@ -5099,6 +5185,38 @@ document.head.appendChild(buttonStyle);
             if (!utils.isNumber(n)) utils.error('Number is expected for the point index but got ' + n + ' instead');
 
             this._coordinates[ring][n] = [].concat(point);
+        },
+
+        _clearCache: function() {
+            this._cachedSvg = null;
+        },
+        
+        _getSvgPath: function() {
+            var d = '';
+            var coordinates = this._coordinates;
+            var x = coordinates[0][0][0];
+            var y = coordinates[0][0][1];
+            var xmax = x;
+            var ymax = y;
+
+            for (var ring = 0; ring < coordinates.length; ring++) {
+                d += 'M' + coordinates[ring][0].join(' ') + ' ';
+                for (var i = 1; i < coordinates[ring].length; i++) {
+                    d += 'L' + coordinates[ring][i].join(' ') + ' ';
+                    x = Math.min(x, coordinates[ring][i][0]);
+                    y = Math.min(y, coordinates[ring][i][1]);
+                    xmax = Math.max(xmax, coordinates[ring][i][0]);
+                    ymax = Math.max(ymax, coordinates[ring][i][1]);
+                }
+            }
+
+            var width = xmax - x + 2 * this._width;
+            var height = ymax - y + 2 * this._width;
+            x -= this._width / 2;
+            y -= this._width / 2;
+            d = d.trim();
+
+            return {width: width, height: height, x: x, y: y, d: d};
         }
     };
 
@@ -5111,6 +5229,7 @@ document.head.appendChild(buttonStyle);
             set: function(color) {
                 if (!utils.isString(color)) utils.error('Unexpected value of color: ' + color);
                 this._color = color;
+                this._clearCache();
             }
         },
 
@@ -5122,6 +5241,7 @@ document.head.appendChild(buttonStyle);
             set: function(width) {
                 if (!utils.isNumber(width) || width < 0) utils.error('Unexpected value of width: ' + width);
                 this._width = width;
+                this._clearCache();
             }
         },
 
@@ -5137,6 +5257,52 @@ document.head.appendChild(buttonStyle);
                 } else {
                     for (var i = 0, l = coordinates.length; i < l; i++) {
                         this.setRing(i, coordinates[i]);
+                    }
+                }
+
+                if (this._cachedSvg) {
+                    var props = this._getSvgPath();
+                    this._cachedSvg.setAttribute('width', props.width);
+                    this._cachedSvg.setAttribute('height', props.height);
+                    this._cachedSvg.setAttribute('viewBox', [props.x, props.y, props.width, props.height].join(' '));
+                    this._cachedSvg.childNodes[0].setAttribute('d', props.d);
+                }
+            }
+        },
+
+        svg: {
+            get: function() {
+                if (!this._cachedSvg) {
+                    var path = this._getSvgPath();
+                    this._cachedSvg = sGis.utils.svg.path({
+                        stroke: this._color,
+                        'stroke-width': this._width,
+                        fill: 'transparent',
+                        width: path.width,
+                        height: path.height,
+                        x: path.x,
+                        y: path.y,
+                        viewBox: [path.x, path.y, path.width, path.height].join(' '),
+                        d: path.d
+                    });
+                }
+
+                return this._cachedSvg;
+            }
+        },
+
+        node: {
+            get: function() {
+                var svg = this.svg;
+                var path;
+                for (var i = 0; i < svg.childNodes.length; i++) {
+                    if (svg.childNodes[i].nodeName === 'path') {
+                        path = svg.childNodes[i];
+                        var x = parseFloat(path.getAttribute('x'));
+                        var y = parseFloat(path.getAttribute('y'));
+
+                        svg.position = [x, y];
+                        return svg;
                     }
                 }
             }
@@ -5230,6 +5396,7 @@ document.head.appendChild(buttonStyle);
             set: function (color) {
                 if (!utils.isString(color)) utils.error('Color string is expected, but got ' + color + ' instead');
                 this._fillColor = color;
+                this._clearCache();
             }
         },
 
@@ -5242,81 +5409,36 @@ document.head.appendChild(buttonStyle);
                 if (!(image instanceof Image)) utils.error('Image is expected but got ' + image + ' istead');
                 this._fillImage = image;
             }
+        },
+
+        svg: {
+            get: function() {
+                if (!this._cachedSvg) {
+                    var path = this._getSvgPath();
+                    path.d += ' Z';
+
+                    this._cachedSvg = sGis.utils.svg.path({
+                        stroke: this._color,
+                        'stroke-width': this._width,
+                        fill: this._fillStyle === 'color' ? this._fillColor : undefined,
+                        fillImage: this._fillStyle === 'image' ? this._fillImage : undefined,
+                        width: path.width,
+                        height: path.height,
+                        x: path.x,
+                        y: path.y,
+                        viewBox: [path.x, path.y, path.width, path.height].join(' '),
+                        d: path.d
+                    });
+                }
+
+                return this._cachedSvg;
+            }
         }
     });
 
     function isValidPoint(point) {
         return utils.isArray(point) & utils.isNumber(point[0]) && utils.isNumber(point[1]);
     }
-
-})();(function() {
-
-    sGis.geom.Arc = function(center, options) {
-        utils.init(this, options);
-
-        this.center = center;
-    };
-
-    sGis.geom.Arc.prototype = {
-        _radius: 5,
-        _strokeColor: 'black',
-        _strokeWidth: 1,
-        _fillColor: 'transparent',
-
-        contains: function(position) {
-            var dx = position.x - this._center[0],
-                dy = position.y - this._center[1],
-                distance2 = dx * dx + dy * dy;
-            return Math.sqrt(distance2) < this._radius + 2;
-        }
-    };
-
-    Object.defineProperties(sGis.geom.Arc.prototype, {
-        center: {
-            get: function() {
-                return this._center;
-            },
-            set: function(coordinates) {
-                this._center = coordinates;
-            }
-        },
-
-        radius: {
-            get: function() {
-                return this._radius;
-            },
-            set: function(r) {
-                this._radius = r;
-            }
-        },
-
-        strokeColor: {
-            get: function() {
-                return this._strokeColor;
-            },
-            set: function(color) {
-                this._strokeColor = color;
-            }
-        },
-
-        strokeWidth: {
-            get: function() {
-                return this._strokeWidth;
-            },
-            set: function(w) {
-                this._strokeWidth = w;
-            }
-        },
-
-        fillColor: {
-            get: function() {
-                return this._fillColor;
-            },
-            set: function(color) {
-                this._fillColor = color;
-            }
-        }
-    });
 
 })();(function() {
 
@@ -5348,82 +5470,31 @@ document.head.appendChild(buttonStyle);
 
     sGis.symbol.label = {
         Label: function(style) {
-            this.setDefaults(style);
+            utils.init(this, style);
         }
     };
 
     sGis.symbol.label.Label.prototype = new sGis.Symbol({
-        type: 'label',
-        style: {
-            width: {
-                defaultValue: 200,
-                get: function() {
-                    return this._width || this.defaults.width;
-                },
-                set: function(width) {
-                    if (!utils.isNumber(width) || width <= 0) utils.error('Positive number is expected but got ' + width + ' instead');
-                    this._width = width;
-                }
-            },
+        _width: 200,
+        _height: 20,
+        _offset: {x: -100, y: -10},
+        _align: 'center',
+        _css: '',
 
-            height: {
-                defaultValue: 20,
-                get: function() {
-                    return this._height || this.defaults.height;
-                },
-                set: function(height) {
-                    if (!utils.isNumber(height) || height <=0) utils.error('Positive number is expected but got ' + height + ' instead');
-                    this._height = height;
-                }
-            },
-
-            offset: {
-                defaultValue: {x: -100, y: -10},
-                get: function() {
-                    return this._offset || this.defaults.offset;
-                },
-                set: function(offset) {
-                    if (!offset || !utils.isNumber(offset.x) || !utils.isNumber(offset.y)) utils.error('{x, y} is expected but got ' + offset + ' instead');
-                    this._offset = offset;
-                }
-            },
-
-            align: {
-                defaultValue: 'center',
-                get: function() {
-                    return this._align || this.defaults.align;
-                },
-                set: function(align) {
-                    if (!utils.isString(align)) utils.error('String is expected but got ' + align + ' instead');
-                    this._align = align;
-                }
-            },
-
-            css: {
-                defaultValue: '',
-                get: function() {
-                    return this._css === undefined ? this.defaults.css : this._css;
-                },
-                set: function(css) {
-                    if (!utils.isString(css)) utils.error('String is expected but got ' + css + ' instead');
-                    this._css = css;
-                }
-            }
-        },
-        renderFunction: function(resolution, crs) {
+        renderFunction: function(feature, resolution, crs) {
             if (!this._cache || !utils.softEquals(resolution, this._cache[0].resolution)) {
                 var div = document.createElement('div');
-                div.className = this.style.css;
-                div.appendChild(this.content);
+                div.className = this.css;
+                div.appendChild(feature.content);
                 div.style.position = 'absolute';
-                div.style.height = this.style.height + 'px';
-                div.style.width = this.style.width + 'px';
+                div.style.height = this.height + 'px';
+                div.style.width = this.width + 'px';
 
-                var point = this.point.projectTo(crs);
-                div.position = [point.x / resolution + this.style.offset.x, -point.y / resolution + this.style.offset.y];
+                var point = feature.point.projectTo(crs);
+                div.position = [point.x / resolution + this.offset.x, -point.y / resolution + this.offset.y];
                 div.style.pointerEvents = 'none';
                 div.style.cursor = 'inherit';
-                div.style.textAlign = this.style.align;
+                div.style.textAlign = this.align;
 
                 this._cache = [{node: div, position: div.position, resolution: resolution}];
             }
@@ -5432,44 +5503,87 @@ document.head.appendChild(buttonStyle);
         }
     });
 
+    Object.defineProperties(sGis.symbol.label.Label.prototype, {
+        type: {
+            value: 'label'
+        },
+
+        width: {
+            get: function() {
+                return this._width;
+            },
+            set: function(width) {
+                this._width = width;
+            }
+        },
+
+        height: {
+            get: function() {
+                return this._height;
+            },
+            set: function(height) {
+                this._height = height;
+            }
+        },
+
+        offset: {
+            get: function() {
+                return utils.copyObject(this._offset);
+            },
+            set: function(offset) {
+                this._offset = offset;
+            }
+        },
+
+        align: {
+            get: function() {
+                return this._align;
+            },
+            set: function(align) {
+                this._align = align;
+            }
+        },
+
+        css: {
+            get: function() {
+                return this._css;
+            },
+            set: function(css) {
+                this._css = css;
+            }
+        }
+    });
+
+
+
     sGis.symbol.image = {
         Image: function(style) {
-            this.setDefaults(style)
+            utils.init(this, style);
         }
     };
 
     sGis.symbol.image.Image.prototype = new sGis.Symbol({
-        type: 'image',
-        style: {
-            transitionTime: {
-                defaultValue: 0,
-                get: function() {
-                    return this._transitionTime;
-                },
-                set: function(t) {
-                    this._transitionTime = t;
-                }
-            }
-        },
-        renderFunction: function(resolution, crs) {
-            if (!this._cache) {
-                var image = new Image();
-                image.src = this.src;
-                image.width = this.width;
-                image.height = this.height;
+        _transitionTime: 0,
 
-                image.bbox = this.bbox;
-                this._cache = [{
+        renderFunction: function(feature, resolution, crs) {
+            if (!feature._cache) {
+                var image = new Image();
+                image.src = feature.src;
+                image.width = feature.width;
+                image.height = feature.height;
+
+                image.bbox = feature.bbox;
+                feature._cache = [{
                     node: image,
-                    bbox: this.bbox,
+                    bbox: feature.bbox,
                     persistent: true
                 }];
 
-                if (this.style.transitionTime > 0) {
+                if (feature.transitionTime > 0) {
                     image.style.opacity = 0;
-                    image.style.transition = 'opacity ' + this.style.transitionTime / 1000 + 's linear';
+                    image.style.transition = 'opacity ' + feature.transitionTime / 1000 + 's linear';
 
-                    var self = this;
+                    var self = feature;
                     this._cache[0].onAfterDisplay = function() {
                         setTimeout(function() { image.style.opacity = self.opacity; }, 0);
                     }
@@ -5477,639 +5591,65 @@ document.head.appendChild(buttonStyle);
                     image.style.opacity = this.opacity;
                 }
             }
-            return this._cache;
+            return feature._cache;
         }
     });
 
-})();(function() {
-
-    sGis.symbol.point = {
-        Point: function(style) {
-            this.setDefaults(style);
+    Object.defineProperties(sGis.symbol.image.Image.prototype, {
+        type: {
+            value: 'image'
         },
 
-        Image: function(style) {
-            this.setDefaults(style);
-        },
-
-        Square: function(style) {
-            this.setDefaults(style);
-        },
-
-        MaskedImage: function(style) {
-            this.setDefaults(style);
-        }
-    };
-
-    sGis.symbol.point.MaskedImage.prototype = new sGis.Symbol({
-        type: 'point',
-        style: {
-            size: {
-                defaultValue: 32,
-                get: function() {
-                    return this._size || this.defaults.size;
-                },
-                set: function(size) {
-                    if (!utils.isNumber(size) || size <= 0) utils.error('Positive')
-                }
+        transitionTime: {
+            get: function() {
+                return this._transitionTime;
+            },
+            set: function(time) {
+                this._transitionTime = time;
             }
         }
     });
 
-    sGis.symbol.point.Point.prototype = new sGis.Symbol({
-        type: 'point',
-        style: {
-            size: {
-                defaultValue: 10,
-                get: function() {
-                    return this._size || this.defaults.size;
-                },
-
-                set: function(size) {
-                    if (!utils.isNumber(size) || size <=0) utils.error('Positive number is expected but got ' + size + ' instead');
-                    this._size = size;
-                }
-            },
-
-            color: {
-                defaultValue: 'black',
-                get: function() {
-                    return this._color || this.defaults.color;
-                },
-
-                set: function(color) {
-                    if (!utils.isString(color)) utils.error('String is expected but got ' + color + ' instead');
-                    this._color = color;
-                }
-            },
-
-            strokeWidth: {
-                defaultValue: 1,
-                get: function() {
-                    return this._strokeWidth === undefined ?  this.defaults.strokeWidth : this._strokeWidth;
-                },
-                set: function(width) {
-                    if (!utils.isNumber(width) || width < 0) utils.error('Positive number is expected but got ' + width + ' instead');
-                    this._strokeWidth = width;
-                }
-            },
-
-            strokeColor: {
-                defaultValue: 'transparent',
-                get: function() {
-                    return this._strokeColor || this.defaults.strokeColor;
-                },
-
-                set: function(color) {
-                    if (!utils.isString(color)) utils.error('String is expected but got ' + color + ' instead');
-                    this._strokeColor = color;
-                }
-            },
-
-            offset: {
-                defaultValue: {x: 0, y: 0},
-                get: function() {
-                    return this._offset || this.defaults.offset;
-                },
-                set: function(point) {
-                    if (!point || !utils.isNumber(point.x) || !utils.isNumber(point.y)) utils.error('{x, y} is expected but got ' + point + ' instead');
-                    this._offset = point;
-                }
-            }
-        },
-        renderFunction: function(resolution, crs) {
-            var feature = this.projectTo(crs),
-                pxPosition = [feature._point[0] / resolution + this.style.offset.x, - feature._point[1] / resolution + this.style.offset.y];
-
-            var point = new sGis.geom.Arc(pxPosition, {fillColor: this.style.color, strokeColor: this.style.strokeColor, strokeWidth: this.style.strokeWidth, radius: this.style.size / 2});
-            return [point];
-        }
-    });
-
-    sGis.symbol.point.Image.prototype = new sGis.Symbol({
-        type: 'point',
-        style: {
-            source: {
-                defaultValue: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAN5QTFRFAAAAAAAAAAAAAAAAji4jiCwhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKg4KJgwJxEAw20o040Up41hE5EYq5Ugs5kov50wx6E406GNR6GNS6GZV6GpY6G1c6G9f6HBg6HNj6HZm6Hlq6VA26X1t6YBx6Yd56lI56oN16ot96o6A6pGE61Q765WI65mN7J2R7KCV7VY+7aWa7lhA7qme7q2j71pC77Ko8FxF8Lat8Lqx8V5H8mBK8r+38sS982JM9GRO9WZR9mhT+GtW+W1Y+m9b+3Fd/HNf/XVi+RwEUgAAABF0Uk5TAAYHERYXHB0eIiM3OD1JSlRYXujgAAABPUlEQVQ4y2WS2ULCMBBFE0qxlWIdwI19EZBFFhFEUHBX/v+HTJtOmAnnqTn3hodwhYiQAFIwuJGw2/EGNxK2hcKW36AmDZuCYkNvUOPC+iJmjQ3JjITVZcJKNyzjwPIKWeobVDjCycLiGlmAlOyYdYTM5GB+g8yBHXKZ6CdVY3aL5PPmc6Zz3ZjeHTHFXDcm9xaTQ64b4wfGmOa6MXokjHiuG8Mnw9DOVcOHwbNhAL6Vq/frvRB6x/vovzL69j66bxZd2khD5/2IzqHhQvsDKRbNZxsbLrQ+kRawQ7Ko5hfShPMzdoz30fhG6hCe+jmoG9GIF1X7SahB6KWiNyUmXlT1N6Ya5frVjUkWVflTVHQuqDGLKu/3ZcyJIYsqlQ55ZMLIsEXRXBkvVIYuKhvQXIiUFwQndFGOY/+9aP4B2y1gaNteoqgAAAAASUVORK5CYII=',
-                get: function() {
-                    return this._source || this.defaults.source;
-                },
-                set: function(source) {
-                    if (!utils.isString(source)) utils.error('String is expected but got ' + source + ' instead');
-
-                    this._image = new Image();
-                    this._image.src = source;
-                    this._source = source;
-                }
-            },
-
-            size: {
-                defaultValue: 32,
-                get: function() {
-                    return this._size || this.defaults.size;
-                },
-
-                set: function(size) {
-                    if (!utils.isNumber(size) || size <= 0) utils.error('Positive number is expected but got ' + size + ' instead');
-
-                    this._size = size;
-                }
-            },
-
-            anchorPoint: {
-                defaultValue: {x: 16, y: 16},
-                get: function() {
-                    return this._anchorPoint || this.defaults.anchorPoint;
-                },
-                set: function(point) {
-                    if (!point || !utils.isNumber(point.x) || !utils.isNumber(point.y)) utils.error('{x, y} is expected but got ' + point + ' instead');
-                    this._anchorPoint = point;
-                }
-            },
-
-            color: {
-                defaultValue: 'black',
-                get: function() {
-                    return this._color || this.defaults.color;
-                },
-                set: function(color) {
-                    if (!utils.isString(color)) utils.error('String is expected but got ' + color + ' instead');
-                    this._color = color;
-                }
-            },
-
-            renderToCanvas: {
-                defaultValue: true,
-                get: function() {
-                    return this._renderToCanvas || this.defaults.renderToCanvas;
-                },
-                set: function(renderToCanvas) {
-                    this._renderToCanvas = renderToCanvas;
-                }
-            }
-        },
-        renderFunction: function(resolution, crs) {
-            // TODO: the result of this function must be cached!
-            var feature = this.projectTo(crs),
-                pxPosition = [feature._point[0] / resolution, - feature._point[1] / resolution],
-                imageCache = this.style._image || this.style.defaults._image;
-
-            if (imageCache.complete) {
-                var image = new Image();
-                image.src = this.style.source;
-
-                var k = this.style.size / image.width;
-                image.width = this.style.size;
-                image.height = this.style.size / imageCache.width * imageCache.height;
-                image.position = [pxPosition[0] - this.style.anchorPoint.x * k, pxPosition[1] - this.style.anchorPoint.y * k];
-
-                var render = {
-                    node: image,
-                    position: image.position,
-                    persistent: true,
-                    renderToCanvas: this.style.renderToCanvas
-                };
-                return [render];
-            } else {
-                return [];
-            }
-        }
-    });
-
-    sGis.symbol.point.Square.prototype = new sGis.Symbol({
-        type: 'point',
-        style: {
-            size: {
-                defaultValue: 10,
-                get: function() {
-                    return this._size || this.defaults.size;
-                },
-                set: function(size) {
-                    if (!utils.isNumber(size) || size <=0) utils.error('Positive number is expected but got ' + size + ' instead');
-                    this._size = size;
-                }
-            },
-
-            strokeWidth: {
-                defaultValue: 2,
-                get: function() {
-                    return this._strokeWidth || this.defaults.strokeWidth;
-                },
-                set: function(width) {
-                    if (!utils.isNumber(width) || width < 0) utils.error('Non-negative number is expected but got ' + width + ' instead');
-                    this._strokeWidth = width;
-                }
-            },
-
-            strokeColor: {
-                defaultValue: 'black',
-                get: function() {
-                    return this._strokeColor || this.defaults.strokeColor;
-                },
-                set: function(color) {
-                    if (!utils.isString(color)) utils.error('String is expected but got ' + color + ' instead');
-                    this._strokeColor = color;
-                }
-            },
-
-            fillColor: {
-                defaultValue: 'transparent',
-                get: function() {
-                    return this._fillColor || this.defaults.fillColor;
-                },
-                set: function(color) {
-                    if (!utils.isString(color)) utils.error('String is expected but got ' + color + ' instead');
-                    this._fillColor = color;
-                }
-            },
-
-            offset: {
-                defaultValue: {x: 0, y: 0},
-                get: function() {
-                    return this._offset || this.defaults.offset;
-                },
-                set: function(point) {
-                    if (!point || !utils.isNumber(point.x) || !utils.isNumber(point.y)) utils.error('{x, y} is expected but got ' + point + ' instead');
-                    this._offset = point;
-                }
-            }
-        },
-
-        renderFunction: function(resolution, crs) {
-            var feature = this.projectTo(crs),
-                pxPosition = [feature._point[0] / resolution, - feature._point[1] / resolution],
-                halfSize = this.style.size / 2,
-                offset = this.style.offset,
-                coordinates = [
-                    [pxPosition[0] - halfSize + offset.x, pxPosition[1] - halfSize + offset.y],
-                    [pxPosition[0] - halfSize + offset.x, pxPosition[1] + halfSize + offset.y],
-                    [pxPosition[0] + halfSize + offset.x, pxPosition[1] + halfSize + offset.y],
-                    [pxPosition[0] + halfSize + offset.x, pxPosition[1] - halfSize + offset.y]
-                ];
-
-            return [new sGis.geom.Polygon(coordinates, {fillColor: this.style.fillColor, color: this.style.strokeColor, width: this.style.strokeWidth})];
-        }
-    });
-
-})();(function() {
-
-    sGis.symbol.polyline = {
-        Simple: function(style) {
-            this.setDefaults(style);
-        }
-    };
-
-    sGis.symbol.polyline.Simple.prototype = new sGis.Symbol({
-        type: 'polyline',
-        style: {
-            strokeWidth: {
-                defaultValue: 1,
-                get: function() {
-                    return this._strokeWidth || this.defaults.strokeWidth;
-                },
-                set: function(width) {
-                    if (!utils.isNumber(width) || width < 0) utils.error('Non-negative number is expected but got ' + width + ' instead');
-                    this._strokeWidth = width;
-                }
-            },
-            strokeColor: {
-                defaultValue: 'black',
-                get: function() {
-                    return this._strokeColor || this.defaults.strokeColor;
-                },
-                set: function(color) {
-                    if (!utils.isString(color)) utils.error('String is expected but got ' + color + ' instead');
-                    this._strokeColor = color;
-                }
-            }
-        },
-        renderFunction: function(resolution, crs) {
-            var coordinates = getPolylineRenderedCoordinates(this, resolution, crs);
-
-            return [new sGis.geom.Polyline(coordinates, {color: this.style.strokeColor, width: this.style.strokeWidth})];
-        }
-    });
-
-    //TODO: this is duplicate function with Polygon
-
-    function getPolylineRenderedCoordinates(feature, resolution, crs) {
-        if (!feature._cache[resolution]) {
-            var projected = feature.projectTo(crs).coordinates;
-
-            for (var ring = 0, l = projected.length; ring < l; ring++) {
-                for (var i = 0, m = projected[ring].length; i < m; i++) {
-                    projected[ring][i][0] /= resolution;
-                    projected[ring][i][1] /= -resolution;
-                }
-            }
-
-            var simpl = utils.simplify(projected, 0.5);
-            feature._cache[resolution] = simpl;
-        } else {
-            simpl = feature._cache[resolution];
-        }
-        return simpl;
-    }
-
-})();(function() {
-
-    sGis.symbol.polygon = {
-        Simple: function(style) {
-            this.setDefaults(style);
-        },
-        BrushFill: function(style) {
-            this.setDefaults(style);
-        },
-        ImageFill: function(style) {
-            this.setDefaults(style);
-        }
-    };
-
-    var defaultBrush = [[255,255,  0,  0,  0,   0,  0,  0,  0,  0],
-        [255,255,255,  0,  0,   0,  0,  0,  0,  0],
-        [255,255,255,255,  0,   0,  0,  0,  0,  0],
-        [  0,255,255,255,255,   0,  0,  0,  0,  0],
-        [  0,  0,255,255,255, 255,  0,  0,  0,  0],
-        [  0,  0,  0,255,255, 255,255,  0,  0,  0],
-        [  0,  0,  0,  0,255, 255,255,255,  0,  0],
-        [  0,  0,  0,  0,  0, 255,255,255,255,  0],
-        [  0,  0,  0,  0,  0,   0,255,255,255,255],
-        [  0,  0,  0,  0,  0,   0,  0,255,255,255]];
-
-    sGis.symbol.polygon.Simple.prototype = new sGis.Symbol({
-        type: 'polygon',
-        style: {
-            strokeWidth: {
-                defaultValue: 1,
-                get: function() {
-                    return this._strokeWidth || this.defaults.strokeWidth;
-                },
-                set: function(width) {
-                    if (!utils.isNumber(width) || width < 0) utils.error('Non-negative number is expected but got ' + width + ' instead');
-                    this._strokeWidth = width;
-                }
-            },
-            strokeColor: {
-                defaultValue: 'black',
-                get: function() {
-                    return this._strokeColor || this.defaults.strokeColor;
-                },
-                set: function(color) {
-                    if (!utils.isString(color)) utils.error('String is expected but got ' + color + ' instead');
-                    this._strokeColor = color;
-                }
-            },
-            fillColor: {
-                defaultValue: 'transparent',
-                get: function() {
-                    return this._fillColor || this.defaults.fillColor;
-                },
-                set: function(color) {
-                    if (!utils.isString(color)) utils.error('String is expected but got ' + color + ' instead');
-                    this._fillColor = color;
-                }
-            }
-        },
-        renderFunction: function(resolution, crs) {
-            var coordinates = getPolylineRenderedCoordinates(this, resolution, crs);
-
-            return [new sGis.geom.Polygon(coordinates, {color: this.style.strokeColor, width: this.style.strokeWidth, fillColor: this.style.fillColor})];
-        }
-    });
-
-    sGis.symbol.polygon.BrushFill.prototype = new sGis.Symbol({
-        type: 'polygon',
-        style: {
-            strokeWidth: {
-                defaultValue: 1,
-                get: function() {
-                    return this._strokeWidth || this.defaults.strokeWidth;
-                },
-                set: function(width) {
-                    if (!utils.isNumber(width) || width < 0) utils.error('Non-negative number is expected but got ' + width + ' instead');
-                    this._strokeWidth = width;
-                }
-            },
-            strokeColor: {
-                defaultValue: 'black',
-                get: function() {
-                    return this._strokeColor || this.defaults.strokeColor;
-                },
-                set: function(color) {
-                    if (!utils.isString(color)) utils.error('String is expected but got ' + color + ' instead');
-                    this._strokeColor = color;
-                }
-            },
-            fillBrush: {
-                defaultValue: defaultBrush,
-                get: function() {
-                    return utils.copyArray(this._fillBrush || this.defaults.fillBrush);
-                },
-                set: function(brush) {
-                    if (!utils.isArray(brush)) utils.error('Array is expected but got ' + brush + ' instead');
-                    this._fillBrush = utils.copyArray(brush);
-                    this._imageSrc = getBrushImage(this);
-                    if (!this._image) this._image = new Image();
-                    this._image.src = this._imageSrc;
-                }
-            },
-            fillForeground: {
-                defaultValue: 'black',
-                get: function() {
-                    return this._fillForeground || this.defaults.fillForeground;
-                },
-                set: function(color) {
-                    if (!utils.isString(color)) utils.error('String is expected but got ' + color + ' instead');
-                    this._fillForeground = color;
-                    this._imageSrc = getBrushImage(this);
-                    if (!this._image) this._image = new Image();
-                    this._image.src = this._imageSrc;
-                }
-            },
-            fillBackground: {
-                defaultValue: 'transparent',
-                get: function() {
-                    return this._fillBackground || this.defaults.fillBackground;
-                },
-                set: function(color) {
-                    if (!utils.isString(color)) utils.error('String is expected but got ' + color + ' instead');
-                    this._fillBackground = color;
-                    this._imageSrc = getBrushImage(this);
-                    if (!this._image) this._image = new Image();
-                    this._image.src = this._imageSrc;
-                }
-            }
-        },
-        renderFunction: function(resolution, crs) {
-            var coordinates = getPolylineRenderedCoordinates(this, resolution, crs);
-
-            return [new sGis.geom.Polygon(coordinates, {color: this.style.strokeColor, width: this.style.strokeWidth, fillStyle: 'image', fillImage: this.style._image || this.style.defaults._image})];
-        }
-    });
-
-    sGis.symbol.polygon.ImageFill.prototype = new sGis.Symbol({
-        type: 'polygon',
-        style: {
-            strokeWidth: {
-                defaultValue: 1,
-                get: function() {
-                    return this._strokeWidth || this.defaults.strokeWidth;
-                },
-                set: function(width) {
-                    if (!utils.isNumber(width) || width < 0) utils.error('Non-negative number is expected but got ' + width + ' instead');
-                    this._strokeWidth = width;
-                }
-            },
-            strokeColor: {
-                defaultValue: 'black',
-                get: function() {
-                    return this._strokeColor || this.defaults.strokeColor;
-                },
-                set: function(color) {
-                    if (!utils.isString(color)) utils.error('String is expected but got ' + color + ' instead');
-                    this._strokeColor = color;
-                }
-            },
-            fillImage: {
-                defaultValue: 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==',
-                get: function() {
-                    return this._src;
-                },
-                set: function(src) {
-                    if (!utils.isString(src)) utils.error('String is expected but got ' + src + ' instead');
-                    this._src = src;
-                    if (!this._image) this._image = new Image();
-                    this._image.src = this._src;
-                }
-            }
-        },
-        renderFunction: function(resolution, crs) {
-            var coordinates = getPolylineRenderedCoordinates(this, resolution, crs);
-
-            return [new sGis.geom.Polygon(coordinates, {color: this.style.strokeColor, width: this.style.strokeWidth, fillStyle: 'image', fillImage: this.style._image || this.style.defaults._image})];
-        }
-    });
-
-    function getPolylineRenderedCoordinates(feature, resolution, crs) {
-        if (!feature._cache[resolution]) {
-            var projected = feature.projectTo(crs).coordinates;
-
-            for (var ring = 0, l = projected.length; ring < l; ring++) {
-                for (var i = 0, m = projected[ring].length; i < m; i++) {
-                    projected[ring][i][0] /= resolution;
-                    projected[ring][i][1] /= -resolution;
-                }
-            }
-
-            var simpl = utils.simplify(projected, 0.5);
-            feature._cache[resolution] = simpl;
-        } else {
-            simpl = feature._cache[resolution];
-        }
-        return simpl;
-    }
-
-    function getBrushImage(style) {
-        var canvas = document.createElement('canvas'),
-            ctx = canvas.getContext('2d'),
-            brush = style.fillBrush,
-            foreground = utils.getColorObject(style.fillForeground),
-            background = utils.getColorObject(style.fillBackground),
-            alphaNormalizer = 65025;
-
-        canvas.height = brush.length;
-        canvas.width = brush[0].length;
-
-        for (var i = 0, l = brush.length; i < l; i++) {
-            for (var j = 0, m = brush[i].length; j < m; j++) {
-                var srcA = brush[i][j] * foreground.a / alphaNormalizer,
-                    dstA = background.a / 255 * (1 - srcA),
-                    a = + Math.min(1, (srcA + dstA)).toFixed(2),
-                    r = Math.round(Math.min(255, background.r * dstA + foreground.r * srcA)),
-                    g = Math.round(Math.min(255, background.g * dstA + foreground.g * srcA)),
-                    b = Math.round(Math.min(255, background.b * dstA + foreground.b * srcA));
-
-                ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
-                ctx.fillRect(j,i,1,1);
-            }
-        }
-
-        return canvas.toDataURL();
-    }
 
 })();(function() {
 
     sGis.symbol.maptip = {
         Simple: function(style) {
-            this.setDefaults(style);
+            utils.init(this, style);
         }
     };
 
     sGis.symbol.maptip.Simple.prototype = new sGis.Symbol({
-        type: 'maptip',
-        style: {
-            width: {
-                defaultValue: 200,
-                get: function() {
-                    return this._width || this.defaults.width;
-                },
-                set: function(width) {
-                    if (!utils.isNumber(width) || width <=0) utils.error('Positive number is expected but got ' + width + ' instead');
-                    this._width = width;
-                    this._changed = true;
-                }
-            },
+        _width: 200,
+        _height: 200,
+        _offset: {x: -100, y: -220},
 
-            height: {
-                defaultValue: 200,
-                get: function() {
-                    return this._height || this.defaults.height;
-                },
-                set: function(height) {
-                    if (!utils.isNumber(height) || height <= 0) utils.error('Positive number is expected but got ' + height + ' instead');
-                    this._height  = height;
-                    this._changed = true;
-                }
-            },
-
-            offset: {
-                defaultValue: {x: -100, y: -220},
-                get: function() {
-                    return this._offset || this.defaults.offset;
-                },
-                set: function(offset) {
-                    if (!offset || !utils.isNumber(offset.x) || !utils.isNumber(offset.y)) utils.error('{x, y} is expected but got ' + offset + ' instead');
-                    this._offset = offset;
-                    this._changed = true;
-                }
-            }
-        },
-        renderFunction: function(resolution, crs) {
-            if (this.style._changed) {
+        renderFunction: function(feature, resolution, crs) {
+            if (this._changed) {
                 this._cache = {};
-                this.style._changed = false;
+                this._changed = false;
             }
 
-            var point = this.position.projectTo(crs),
+            var point = feature.position.projectTo(crs),
                 position = [point.x / resolution, - point.y / resolution];
 
             if (!this._cache[resolution]) {
-                var baloonCoordinates = getBaloonCoordinates(this, position);
+                var baloonCoordinates = getBaloonCoordinates(feature, position);
 
                 this._cache[resolution] = new sGis.geom.Polygon(baloonCoordinates, {fillColor: 'white'});
             }
 
             var div = document.createElement('div'),
-                divPosition = [position[0] + this.style.offset.x, position[1] + this.style.offset.y];
+                divPosition = [position[0] + this.offset.x, position[1] + this.offset.y];
 
-            if (utils.isNode(this.content)) {
-                div.appendChild(this.content);
+            if (utils.isNode(feature.content)) {
+                div.appendChild(feature.content);
             } else {
-                utils.html(div, this.content);
+                utils.html(div, feature.content);
             }
             div.style.position = 'absolute';
-            div.style.height = this.style.height + 'px';
-            div.style.width = this.style.width + 'px';
+            div.style.height = this.height + 'px';
+            div.style.width = this.width + 'px';
             div.style.backgroundColor = 'white';
             div.style.overflow = 'auto';
             div.position = divPosition;
@@ -6117,11 +5657,48 @@ document.head.appendChild(buttonStyle);
             var divRender = {
                 node: div,
                 position: position
-            }
+            };
 
             return [this._cache[resolution], divRender];
         }
     });
+
+    Object.defineProperties(sGis.symbol.maptip.Simple.prototype, {
+        type: {
+            value: 'maptip'
+        },
+
+        width: {
+            get: function() {
+                return this._width;
+            },
+            set: function(width) {
+                this._width = width;
+                this._changed = true;
+            }
+        },
+
+        height: {
+            get: function() {
+                return this._height;
+            },
+            set: function(height) {
+                this._height = height;
+                this._changed = true;
+            }
+        },
+
+        offset: {
+            get: function() {
+                return this._offset;
+            },
+            set: function(offset) {
+                this._offset = offset;
+                this._changed = true;
+            }
+        }
+    });
+
 
     function getBaloonCoordinates(feature, position) {
         var baloonSquare = getBaloonSquare(feature, position);
@@ -6233,6 +5810,652 @@ document.head.appendChild(buttonStyle);
         return [x, y];
     }
 
+})();(function() {
+
+    sGis.symbol.point = {
+        Point: function(style) {
+            sGis.utils.init(this, style);
+        },
+
+        Image: function(style) {
+            sGis.utils.init(this, style);
+        },
+
+        Square: function(style) {
+            sGis.utils.init(this, style);
+        }
+    };
+
+    sGis.symbol.point.Point.prototype = new sGis.Symbol({
+        _fillColor: 'black',
+        _strokeColor: 'transparent',
+        _strokeWidth: 1,
+        _offset: {x: 0, y: 0},
+
+        renderFunction: function(feature, resolution, crs) {
+            var f = feature.projectTo(crs),
+                pxPosition = [f._point[0] / resolution + this.offset.x, - f._point[1] / resolution + this.offset.y];
+
+            var point = new sGis.geom.Arc(pxPosition, {fillColor: this.fillColor, strokeColor: this.strokeColor, strokeWidth: this.strokeWidth, radius: this.size / 2});
+            return [point];
+        }
+    });
+
+    sGis.utils.proto.setProperties(sGis.symbol.point.Point.prototype, {
+        type: {default: 'point', set: null},
+        size: 10
+    });
+
+    Object.defineProperties(sGis.symbol.point.Point.prototype, {
+        fillColor: {
+            get: function() {
+                return this._fillColor;
+            },
+            set: function(color) {
+                this._fillColor = color;
+            }
+        },
+
+        /**
+         * @deprecated
+         */
+        color: {
+            get: function() {
+                return this.fillColor;
+            },
+            set: function(color) {
+                this.fillColor = color;
+            }
+        },
+
+        strokeColor: {
+            get: function() {
+                return this._strokeColor;
+            },
+            set: function(color) {
+                this._strokeColor = color;
+            }
+        },
+
+        strokeWidth: {
+            get: function() {
+                return this._strokeWidth;
+            },
+            set: function(width) {
+                this._strokeWidth = width;
+            }
+        },
+
+        offset: {
+            get: function() {
+                return utils.copyObject(this._offset);
+            },
+            set: function(offset) {
+                this._offset = offset;
+            }
+        }
+    });
+
+
+    sGis.symbol.point.Image.prototype = new sGis.Symbol({
+        _source: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAN5QTFRFAAAAAAAAAAAAAAAAji4jiCwhAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKg4KJgwJxEAw20o040Up41hE5EYq5Ugs5kov50wx6E406GNR6GNS6GZV6GpY6G1c6G9f6HBg6HNj6HZm6Hlq6VA26X1t6YBx6Yd56lI56oN16ot96o6A6pGE61Q765WI65mN7J2R7KCV7VY+7aWa7lhA7qme7q2j71pC77Ko8FxF8Lat8Lqx8V5H8mBK8r+38sS982JM9GRO9WZR9mhT+GtW+W1Y+m9b+3Fd/HNf/XVi+RwEUgAAABF0Uk5TAAYHERYXHB0eIiM3OD1JSlRYXujgAAABPUlEQVQ4y2WS2ULCMBBFE0qxlWIdwI19EZBFFhFEUHBX/v+HTJtOmAnnqTn3hodwhYiQAFIwuJGw2/EGNxK2hcKW36AmDZuCYkNvUOPC+iJmjQ3JjITVZcJKNyzjwPIKWeobVDjCycLiGlmAlOyYdYTM5GB+g8yBHXKZ6CdVY3aL5PPmc6Zz3ZjeHTHFXDcm9xaTQ64b4wfGmOa6MXokjHiuG8Mnw9DOVcOHwbNhAL6Vq/frvRB6x/vovzL69j66bxZd2khD5/2IzqHhQvsDKRbNZxsbLrQ+kRawQ7Ko5hfShPMzdoz30fhG6hCe+jmoG9GIF1X7SahB6KWiNyUmXlT1N6Ya5frVjUkWVflTVHQuqDGLKu/3ZcyJIYsqlQ55ZMLIsEXRXBkvVIYuKhvQXIiUFwQndFGOY/+9aP4B2y1gaNteoqgAAAAASUVORK5CYII=',
+        _size: 32,
+        _color: 'black',
+        _anchorPoint: {x: 16, y: 16},
+        _renderToCanvas: true,
+
+        renderFunction: function(feature, resolution, crs) {
+            if (!this._image) this.source = this.source; //creates the image and saves to cache
+
+            var f = feature.projectTo(crs);
+            var pxPosition = [f._point[0] / resolution, - f._point[1] / resolution];
+            var imageCache = this._image;
+
+            if (imageCache.complete) {
+                var image = new Image();
+                image.src = this.source;
+
+                var k = this.size / image.width;
+                image.width = this.size;
+                image.height = this.size / imageCache.width * imageCache.height;
+                image.position = [pxPosition[0] - this.anchorPoint.x * k, pxPosition[1] - this.anchorPoint.y * k];
+
+                var render = {
+                    node: image,
+                    position: image.position,
+                    persistent: true,
+                    renderToCanvas: this.renderToCanvas
+                };
+                return [render];
+            } else {
+                return [];
+            }
+        }
+    });
+
+    Object.defineProperties(sGis.symbol.point.Image.prototype, {
+        type: {
+            value: 'point'
+        },
+
+        source: {
+            get: function() {
+                return this._source;
+            },
+            set: function(source) {
+                this._image = new Image();
+                this._image.src = source;
+                this._source = source;
+            }
+        },
+
+        size: {
+            get: function() {
+                return this._size;
+            },
+            set: function(size) {
+                this._size = size;
+            }
+        },
+
+        color: {
+            get: function() {
+                return this._color;
+            },
+            set: function(color) {
+                this._color = color;
+            }
+        },
+
+        anchorPoint: {
+            get: function() {
+                return utils.copyObject(this._anchorPoint);
+            },
+            set: function(point) {
+                this._anchorPoint = point;
+            }
+        },
+
+        renderToCanvas: {
+            get: function() {
+                return this._renderToCanvas;
+            },
+            set: function(bool) {
+                this._renderToCanvas = bool;
+            }
+        }
+    });
+
+
+    sGis.symbol.point.Square.prototype = new sGis.Symbol({
+        _size: 10,
+        _strokeWidth: 2,
+        _strokeColor: 'black',
+        _fillColor: 'transparent',
+        _offset: {x: 0, y: 0},
+
+        renderFunction: function(feature, resolution, crs) {
+            var f = feature.projectTo(crs),
+                pxPosition = [f._point[0] / resolution, - f._point[1] / resolution],
+                halfSize = this.size / 2,
+                offset = this.offset,
+                coordinates = [
+                    [pxPosition[0] - halfSize + offset.x, pxPosition[1] - halfSize + offset.y],
+                    [pxPosition[0] - halfSize + offset.x, pxPosition[1] + halfSize + offset.y],
+                    [pxPosition[0] + halfSize + offset.x, pxPosition[1] + halfSize + offset.y],
+                    [pxPosition[0] + halfSize + offset.x, pxPosition[1] - halfSize + offset.y]
+                ];
+
+            return [new sGis.geom.Polygon(coordinates, {fillColor: this.fillColor, color: this.strokeColor, width: this.strokeWidth})];
+        }
+    });
+
+    Object.defineProperties(sGis.symbol.point.Square.prototype, {
+        type: {
+            value: 'point'
+        },
+
+        size: {
+            get: function() {
+                return this._size;
+            },
+            set: function(size) {
+                this._size = size;
+            }
+        },
+
+        fillColor: {
+            get: function() {
+                return this._fillColor;
+            },
+            set: function(color) {
+                this._fillColor = color;
+            }
+        },
+
+        /**
+         * @deprecated
+         */
+        color: {
+            get: function() {
+                return this.fillColor;
+            },
+            set: function(color) {
+                this.fillColor = color;
+            }
+        },
+
+        strokeColor: {
+            get: function() {
+                return this._strokeColor;
+            },
+            set: function(color) {
+                this._strokeColor = color;
+            }
+        },
+
+        strokeWidth: {
+            get: function() {
+                return this._strokeWidth;
+            },
+            set: function(width) {
+                this._strokeWidth = width;
+            }
+        },
+
+        offset: {
+            get: function() {
+                return utils.copyObject(this._offset);
+            },
+            set: function(offset) {
+                this._offset = offset;
+            }
+        }
+    });
+
+})();(function() {
+
+    sGis.symbol.polyline = {
+        Simple: function(style) {
+            utils.init(this, style);
+        }
+    };
+
+    sGis.symbol.polyline.Simple.prototype = new sGis.Symbol({
+        _strokeWidth: 1,
+        _strokeColor: 'black',
+
+        renderFunction: function(feature, resolution, crs) {
+            var coordinates = getPolylineRenderedCoordinates(feature, resolution, crs);
+
+            return [new sGis.geom.Polyline(coordinates, {color: this.strokeColor, width: this.strokeWidth})];
+        }
+    });
+
+    Object.defineProperties(sGis.symbol.polyline.Simple.prototype, {
+        type: {
+            value: 'polyline'
+        },
+
+        strokeWidth: {
+            get: function() {
+                return this._strokeWidth;
+            },
+            set: function(width) {
+                this._strokeWidth = width;
+            }
+        },
+
+        strokeColor: {
+            get: function() {
+                return this._strokeColor;
+            },
+            set: function(color) {
+                this._strokeColor = color;
+            }
+        }
+    });
+
+
+    function getPolylineRenderedCoordinates(feature, resolution, crs) {
+        if (!feature._cache[resolution]) {
+            var projected = feature.projectTo(crs).coordinates;
+
+            for (var ring = 0, l = projected.length; ring < l; ring++) {
+                for (var i = 0, m = projected[ring].length; i < m; i++) {
+                    projected[ring][i][0] /= resolution;
+                    projected[ring][i][1] /= -resolution;
+                }
+            }
+
+            var simpl = utils.simplify(projected, 0.5);
+            feature._cache[resolution] = simpl;
+        } else {
+            simpl = feature._cache[resolution];
+        }
+        return simpl;
+    }
+
+})();(function() {
+
+    sGis.symbol.polygon = {
+        Simple: function(style) {
+            utils.init(this, style);
+        },
+        BrushFill: function(style) {
+            utils.init(this, style);
+        },
+        ImageFill: function(style) {
+            utils.init(this, style);
+        }
+    };
+
+    var defaultBrush =
+       [[255,255,  0,  0,  0,   0,  0,  0,255,255],
+        [255,255,255,  0,  0,   0,  0,  0,  0,255],
+        [255,255,255,255,  0,   0,  0,  0,  0,  0],
+        [  0,255,255,255,255,   0,  0,  0,  0,  0],
+        [  0,  0,255,255,255, 255,  0,  0,  0,  0],
+        [  0,  0,  0,255,255, 255,255,  0,  0,  0],
+        [  0,  0,  0,  0,255, 255,255,255,  0,  0],
+        [  0,  0,  0,  0,  0, 255,255,255,255,  0],
+        [  0,  0,  0,  0,  0,   0,255,255,255,255],
+        [255,  0,  0,  0,  0,   0,  0,255,255,255]];
+
+
+    sGis.symbol.polygon.Simple.prototype = new sGis.Symbol({
+        _strokeWidth: 1,
+        _strokeColor: 'black',
+        _fillColor: 'transparent',
+
+        renderFunction: function(feature, resolution, crs) {
+            var coordinates = getPolylineRenderedCoordinates(feature, resolution, crs);
+
+            return [new sGis.geom.Polygon(coordinates, {color: this.strokeColor, width: this.strokeWidth, fillColor: this.fillColor})];
+        }
+    });
+
+    Object.defineProperties(sGis.symbol.polygon.Simple.prototype, {
+        type: {
+            value: 'polygon'
+        },
+
+        strokeWidth: {
+            get: function() {
+                return this._strokeWidth;
+            },
+            set: function(width) {
+                this._strokeWidth = width;
+            }
+        },
+
+        strokeColor: {
+            get: function() {
+                return this._strokeColor;
+            },
+            set: function(color) {
+                this._strokeColor = color;
+            }
+        },
+
+        fillColor: {
+            get: function() {
+                return this._fillColor;
+            },
+            set: function(color) {
+                this._fillColor = color;
+            }
+        }
+    });
+
+
+    sGis.symbol.polygon.BrushFill.prototype = new sGis.Symbol({
+        _strokeWidth: 1,
+        _strokeColor: 'black',
+        _fillBrush: defaultBrush,
+        _fillForeground: 'black',
+        _fillBackground: 'transparent',
+
+        renderFunction: function(feature, resolution, crs) {
+            if (!this._image) this.fillBrush = this.fillBrush;
+            var coordinates = getPolylineRenderedCoordinates(feature, resolution, crs);
+
+            return [new sGis.geom.Polygon(coordinates, {color: this.strokeColor, width: this.strokeWidth, fillStyle: 'image', fillImage: this._image})];
+        }
+    });
+
+    Object.defineProperties(sGis.symbol.polygon.BrushFill.prototype, {
+        type: {
+            value: 'polygon'
+        },
+
+        strokeWidth: {
+            get: function() {
+                return this._strokeWidth;
+            },
+            set: function(width) {
+                this._strokeWidth = width;
+            }
+        },
+
+        strokeColor: {
+            get: function() {
+                return this._strokeColor;
+            },
+            set: function(color) {
+                this._strokeColor = color;
+            }
+        },
+
+        fillBrush: {
+            get: function() {
+                return this._fillBrush;
+            },
+            set: function(brush) {
+                this._fillBrush = utils.copyArray(brush);
+                this._imageSrc = getBrushImage(this);
+                if (!this._image) this._image = new Image();
+                this._image.src = this._imageSrc;
+            }
+        },
+
+        fillForeground: {
+            get: function() {
+                return this._fillForeground;
+            },
+            set: function(color) {
+                this._fillForeground = color;
+                this._imageSrc = getBrushImage(this);
+                if (!this._image) this._image = new Image();
+                this._image.src = this._imageSrc;
+            }
+        },
+
+        fillBackground: {
+            get: function() {
+                return this._fillBackground;
+            },
+            set: function(color) {
+                this._fillBackground = color;
+                this._imageSrc = getBrushImage(this);
+                if (!this._image) this._image = new Image();
+                this._image.src = this._imageSrc;
+            }
+        }
+    });
+
+    sGis.symbol.polygon.ImageFill.prototype = new sGis.Symbol({
+        _strokeWidth: 1,
+        _strokeColor: 'black',
+        _src: 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==',
+
+        renderFunction: function(feature, resolution, crs) {
+            if (!this._image) this.fillImage = this.fillImage;
+            var coordinates = getPolylineRenderedCoordinates(feature, resolution, crs);
+
+            return [new sGis.geom.Polygon(coordinates, {color: this.strokeColor, width: this.strokeWidth, fillStyle: 'image', fillImage: this._image})];
+        }
+    });
+
+    Object.defineProperties(sGis.symbol.polygon.ImageFill.prototype, {
+        type: {
+            value: 'polygon'
+        },
+
+        strokeWidth: {
+            get: function() {
+                return this._strokeWidth;
+            },
+            set: function(width) {
+                this._strokeWidth = width;
+            }
+        },
+
+        strokeColor: {
+            get: function() {
+                return this._strokeColor;
+            },
+            set: function(color) {
+                this._strokeColor = color;
+            }
+        },
+
+        fillImage: {
+            get: function() {
+                return this._src;
+            },
+            set: function(src) {
+                this._src = src;
+                if (!this._image) this._image = new Image();
+                this._image.src = this._src;
+            }
+        }
+    });
+
+    function getPolylineRenderedCoordinates(feature, resolution, crs) {
+        if (!feature._cache[resolution]) {
+            var projected = feature.projectTo(crs).coordinates;
+
+            for (var ring = 0, l = projected.length; ring < l; ring++) {
+                for (var i = 0, m = projected[ring].length; i < m; i++) {
+                    projected[ring][i][0] /= resolution;
+                    projected[ring][i][1] /= -resolution;
+                }
+            }
+
+            var simpl = utils.simplify(projected, 0.5);
+            feature._cache[resolution] = simpl;
+        } else {
+            simpl = feature._cache[resolution];
+        }
+        return simpl;
+    }
+
+    function getBrushImage(style) {
+        var canvas = document.createElement('canvas'),
+            ctx = canvas.getContext('2d'),
+            brush = style.fillBrush,
+            foreground = new sGis.utils.Color(style.fillForeground),
+            background = new sGis.utils.Color(style.fillBackground),
+            alphaNormalizer = 65025;
+
+        canvas.height = brush.length;
+        canvas.width = brush[0].length;
+
+        for (var i = 0, l = brush.length; i < l; i++) {
+            for (var j = 0, m = brush[i].length; j < m; j++) {
+                var srcA = brush[i][j] * foreground.a / alphaNormalizer,
+                    dstA = background.a / 255 * (1 - srcA),
+                    a = + Math.min(1, (srcA + dstA)).toFixed(2),
+                    r = Math.round(Math.min(255, background.r * dstA + foreground.r * srcA)),
+                    g = Math.round(Math.min(255, background.g * dstA + foreground.g * srcA)),
+                    b = Math.round(Math.min(255, background.b * dstA + foreground.b * srcA));
+
+                ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+                ctx.fillRect(j,i,1,1);
+            }
+        }
+
+        return canvas.toDataURL();
+    }
+
+})();'use strict';
+(function() {
+
+    sGis.symbol.editor = {
+        Point: function(properties) {
+            utils.init(this, properties);
+        },
+        Polyline: function(properties) {
+            utils.init(this, properties);
+        },
+        Polygon: function(properties) {
+            utils.init(this, properties);
+        }
+    };
+
+    sGis.symbol.editor.Point.prototype = new sGis.Symbol({
+        _baseSymbol: new sGis.symbol.point.Point(),
+        _color: 'rgba(97,239,255,0.5)',
+        _haloSize: 5,
+
+        renderFunction: function(feature, resolution, crs) {
+            var baseRender = this.baseSymbol.renderFunction(feature, resolution, crs);
+            var halo;
+            for (var i = 0; i < baseRender.length; i++) {
+                if (baseRender[i] instanceof sGis.geom.Arc) {
+                    halo = new sGis.geom.Arc(baseRender[i].center, {fillColor: this.color, radius: parseFloat(baseRender[i].radius) + this.haloSize, strokeColor: 'transparent'});
+                    break;
+                } else if (baseRender[i] instanceof sGis.geom.Polygon) {
+                    halo = new sGis.geom.Polygon(baseRender[i].coordinates, {color: this.color, fillColor: this.color, width: parseFloat(baseRender[i].width) + 2 * this.haloSize});
+                    break;
+                } else if (baseRender[i] instanceof sGis.geom.Polyline) {
+                    halo = new sGis.geom.Polyline(baseRender[i].coordinates, {color: this.color, width: parseFloat(baseRender[i].width) + 2 * this.haloSize});
+                    break;
+                } else if (this.baseSymbol instanceof sGis.symbol.point.Image) {
+                    halo = new sGis.geom.Arc([baseRender[i].position[0] + baseRender[i].node.width / 2, baseRender[i].position[1] + baseRender[i].node.height / 2], {fillColor: this.color, radius: this.baseSymbol.size / 2 + this.haloSize, strokeColor: 'transparent'});
+                    break;
+                }
+            }
+
+            if (halo) baseRender.unshift(halo);
+            return baseRender;
+        }
+    });
+
+    Object.defineProperties(sGis.symbol.editor.Point.prototype, {
+        type: {
+            value: 'point'
+        },
+
+        baseSymbol: {
+            get: function() {
+                return this._baseSymbol;
+            },
+            set: function(baseSymbol) {
+                this._baseSymbol = baseSymbol;
+            }
+        },
+
+        color: {
+            get: function() {
+                return this._color;
+            },
+            set: function(color) {
+                this._color = color;
+            }
+        },
+
+        haloSize: {
+            get: function() {
+                return this._haloSize;
+            },
+            set: function(size) {
+                this._haloSize = size;
+            }
+        }
+    });
+
 })();'use strict';
 
 (function() {
@@ -6255,7 +6478,7 @@ document.head.appendChild(buttonStyle);
             if (this._hidden) {
                 return [];
             } else {
-                return this._symbol.renderFunction.call(this, resolution, crs);
+                return this.symbol.renderFunction(this, resolution, crs);
             }
         },
 
@@ -6275,14 +6498,19 @@ document.head.appendChild(buttonStyle);
                 this._id = utils.getGuid();
             }
 
-            if (options && options.symbol) {
-                this.symbol = options.symbol;
-                delete options.symbol;
-            } else if (this._defaultSymbol) {
-                this.symbol = this._defaultSymbol;
+            if (!options || !options.symbol) {
+                this._symbol = new this._defaultSymbol();
             }
 
-            utils.init(this, options);
+            sGis.utils.init(this, options);
+        },
+
+        setTempSymbol: function(symbol) {
+            this._tempSymbol = symbol;
+        },
+
+        clearTempSymbol: function() {
+            this._tempSymbol = null;
         }
     };
 
@@ -6315,33 +6543,26 @@ document.head.appendChild(buttonStyle);
 
         symbol: {
             get: function() {
-                return this._symbol;
+                return this._tempSymbol || this._symbol;
             },
 
             set: function(symbol) {
                 if (!(symbol instanceof sGis.Symbol)) utils.error('sGis.Symbol instance is expected but got ' + symbol + ' instead');
-                if (symbol.type !==  this.type) utils.error('sGis.feature.Point object requere symbol of the type "' + this.type + '" but got ' + symbol.type + ' instead');
+                //if (symbol.type !==  this.type) utils.error('sGis.feature.Point object requere symbol of the type "' + this.type + '" but got ' + symbol.type + ' instead');
 
                 this._symbol = symbol;
-                this._style = {defaults: symbol.defaults};
-                for (var i in symbol.style) {
-                    Object.defineProperty(this._style, i, {
-                        get: symbol.style[i].get,
-                        set: symbol.style[i].set
-                    });
-                }
             }
         },
 
         style: {
             get: function() {
-                return this._style;
+                return this.symbol;
             },
 
             set: function(style) {
-                if (!(style instanceof Object)) utils.error('Object is expected but got ' + style + ' instead');
-                for (var i in style) {
-                    this._style[i] = style[i];
+                var keys = Object.keys(style);
+                for (var i = 0; i < keys.length; i++) {
+                    this._symbol[keys[i]] = style[keys[i]];
                 }
             }
         },
@@ -6359,589 +6580,29 @@ document.head.appendChild(buttonStyle);
                     utils.error('Boolean is expected but got ' + bool + ' instead');
                 }
             }
+        },
+
+        isTempSymbolSet: {
+            get: function() {
+                return !!this._tempSymbol;
+            }
+        },
+
+        originalSymbol: {
+            get: function() {
+                return this._symbol;
+            }
         }
     });
 
     utils.mixin(sGis.Feature.prototype, sGis.IEventHandler.prototype);
 
+    //todo: remove this
     var id = 0;
 
     sGis.Feature.getNewId = function() {
         return utils.getGuid();
     };
-
-})();'use strict';
-
-(function () {
-
-    sGis.feature.Point = function (point, options) {
-        this.__initialize(options);
-        if (!point) utils.error('The point position is not specified');
-
-        this._point = point;
-    };
-
-    sGis.feature.Point.prototype = new sGis.Feature({
-        _defaultSymbol: new sGis.symbol.point.Point(),
-        _crs: sGis.CRS.geo,
-
-        projectTo: function(crs) {
-            var point = new sGis.Point(this._point[0], this._point[1], this._crs),
-                projected = point.projectTo(crs),
-                coordinates = crs === sGis.CRS.geo ? [projected.y, projected.x] : [projected.x, projected.y];
-
-            var response = new sGis.feature.Point(coordinates, {crs: crs});
-            if (this._color) response._color = this._color;
-            if (this._size) response._size = this._size;
-
-            return response;
-        },
-
-        clone: function() {
-            return this.projectTo(this._crs);
-        }
-    });
-
-    Object.defineProperties(sGis.feature.Point.prototype, {
-        crs: {
-            get: function() {
-                return this._crs;
-            },
-
-            set: function(crs) {
-                this._crs = crs;
-            }
-        },
-
-        bbox: {
-            get: function() {
-                var point = new sGis.Point(this._point[0], this._point[1], this._crs);
-                return new sGis.Bbox(point, point);
-            }
-        },
-
-        size: {
-            get: function() {
-                return this._style.size;
-            },
-
-            set: function(size) {
-                this._style.size = size;
-            }
-        },
-
-        color: {
-            get: function() {
-                return this._style.color;
-            },
-
-            set: function(color) {
-                this._style.color = color;
-            }
-        },
-
-        x: {
-            get: function() {
-                return this.crs === sGis.CRS.geo ? this._point[1] : this._point[0];
-            },
-
-            set: function(x) {
-                var index = this.crs === sGis.CRS.geo ? 1 : 0;
-                this._point[index] = x;
-            }
-        },
-
-        y: {
-            get: function() {
-                return this.crs === sGis.CRS.geo ? this._point[0] : this._point[1];
-            },
-
-            set: function(y) {
-                var index = this.crs === sGis.CRS.geo ? 0 : 1;
-                this._point[index] = y;
-            }
-        },
-
-        coordinates: {
-            get: function() {
-                return this._point;
-            },
-
-            set: function(coordinates) {
-                if (!utils.isArray(coordinates) || !utils.isNumber(coordinates[0]) || !utils.isNumber(coordinates[1])) utils.error('[x, y] is expected but got ' + coordinates + ' instead');
-                this._point = coordinates;
-            }
-        },
-
-        type: {
-            value: 'point'
-        }
-    });
-
-})();'use strict';
-
-(function() {
-
-    sGis.feature.Polyline = function(coordinates, options) {
-        this.__initialize(options);
-
-        this._coordinates = [[]];
-        if (coordinates) this.coordinates = coordinates;
-    };
-
-    sGis.feature.Polyline.prototype = new sGis.Feature({
-        _defaultSymbol: new sGis.symbol.polyline.Simple(),
-        _cache: {},
-
-        addPoint: function(point, ring) {
-            ring = ring || 0;
-            if (!this._coordinates[ring]) utils.error('The ring with index ' + ring + ' does not exist in feature');
-            this.setPoint(ring, this._coordinates[ring].length, point);
-        },
-
-        removePoint: function(ring, index) {
-            if (!this._coordinates[ring]) utils.error('The ring with index ' + ring + ' does not exist in the feature');
-            if (!this._coordinates[ring][index]) utils.error('The point with specified index ' + index + ' does not exist in the feature');
-            this._coordinates[ring].splice(index, 1);
-            if (this._coordinates[ring].length === 0) {
-                this._coordinates.splice(ring, 1);
-            }
-            this._cache = {};
-            this._bbox = null;
-        },
-
-        clone: function() {
-            return new sGis.feature.Polyline(this._coordinates, {crs: this._crs, color: this._color, width: this._width, style: this.style, symbol: this.symbol});
-        },
-
-        projectTo: function(crs) {
-            var projected = this.clone();
-            projected.crs = crs;
-            return projected;
-        },
-
-        setRing: function(n, coordinates) {
-            if (!utils.isInteger(n) || n < 0) utils.error('Positive integer is expected for index but got ' + n + ' instead');
-            if (!utils.isArray(coordinates)) utils.error('Array is expected but got ' + coordinates + ' instead');
-
-            if (n > this._coordinates.length) n = this._coordinates.length;
-            this._coordinates[n] = [];
-            for (var i = 0, l = coordinates.length; i < l; i++) {
-                this.setPoint(n, i, coordinates[i]);
-            }
-        },
-
-        setPoint: function(ring, n, point) {
-            if (!isValidPoint(point)) utils.error('Point is expected but got ' + point + ' instead');
-            if (!this._coordinates[ring]) utils.error('The ring with index ' + ring + ' does not exist');
-            if (!utils.isInteger(n) || n < 0) utils.error('Positive integer is expected for index but got ' + n + ' instead');
-
-            if (n > this._coordinates[ring].length) n = this._coordinates[ring].length;
-            if (point instanceof sGis.Point) {
-                var projected = point.projectTo(this.crs);
-                this._coordinates[ring][n] = this.crs === sGis.CRS.geo ? [projected.y, projected.x] : [projected.x, projected.y];
-            } else {
-                this._coordinates[ring][n] = point;
-            }
-            this._bbox = null;
-            this._cache = {};
-        },
-
-        insertPoint: function(ring, n, point) {
-            if (!isValidPoint(point)) utils.error('Point is expected but got ' + point + ' instead');
-            if (!this._coordinates[ring]) utils.error('The ring with index ' + ring + ' does not exist');
-            if (!utils.isInteger(n) || n < 0) utils.error('Positive integer is expected for index but got ' + n + ' instead');
-
-            this._coordinates[ring].splice(n, 0, [0, 0]);
-            this.setPoint(ring, n, point);
-        },
-
-        transform: function(matrix, center) {
-            if (center instanceof sGis.Point || center instanceof sGis.feature.Point) {
-                var basePoint = center.projectTo(this.crs),
-                    base = [basePoint.x, basePoint.y];
-            } else if (utils.isArray(center) && utils.isNumber(center[0]) && utils.isNumber(center[1])) {
-                base = [parseFloat(center[0]), parseFloat(center[1])];
-            } else if (center === undefined) {
-                base = this.centroid;
-            } else {
-                utils.error('Unknown format of center point: ' + center);
-            }
-            var coord = this.coordinates,
-                result = [];
-            for (var ring = 0, l = coord.length; ring < l; ring++) {
-                var extended = extendCoordinates(coord[ring], base),
-                    transformed = utils.multiplyMatrix(extended, matrix);
-                result[ring] = collapseCoordinates(transformed, base);
-            }
-
-            this.coordinates = result;
-        },
-
-        rotate: function(angle, center) {
-            if (!utils.isNumber(angle)) utils.error('Number is expected but got ' + angle + ' instead');
-
-            var sin = Math.sin(angle),
-                cos = Math.cos(angle);
-
-            this.transform([[cos, sin, 0], [-sin, cos, 0], [0, 0, 1]], center);
-        },
-
-        scale: function(scale, center) {
-            if (utils.isNumber(scale)) {
-                scale = [scale, scale];
-            } else if (!utils.isArray(scale)) {
-                utils.error('Number or array is expected but got ' + scale + ' instead');
-            }
-            this.transform([[parseFloat(scale[0]), 0, 0], [0, parseFloat(scale[1]), 0], [0, 0, 1]], center);
-        }
-    });
-
-    function extendCoordinates(coord, center) {
-        var extended = [];
-        for (var i = 0, l = coord.length; i < l; i++) {
-            extended[i] = [coord[i][0] - center[0], coord[i][1] - center[1], 1];
-        }
-        return extended;
-    }
-
-    function collapseCoordinates(extended, center) {
-        var coord = [];
-        for (var i = 0, l = extended.length; i < l; i++) {
-            coord[i] = [extended[i][0] + center[0], extended[i][1] + center[1]];
-        }
-        return coord;
-    }
-
-    Object.defineProperties(sGis.feature.Polyline.prototype, {
-        coordinates: {
-            get: function() {
-                return utils.copyArray(this._coordinates);
-            },
-            set: function(coordinates) {
-                if (!utils.isArray(coordinates)) utils.error('Array is expected but got ' + coordinates + ' instead');
-
-                if (!utils.isArray(coordinates[0]) || utils.isNumber(coordinates[0][0])) {
-                    // One ring is specified
-                    this.setRing(0, coordinates);
-                } else {
-                    // Array of rings is specified
-                    for (var ring = 0, l = coordinates.length; ring < l; ring++) {
-                        this.setRing(ring, coordinates[ring]);
-                    }
-                }
-            }
-        },
-
-        bbox: {
-            get: function() {
-                if (!this._bbox) {
-                    var point1 = [this._coordinates[0][0][0], this._coordinates[0][0][1]],
-                        point2 = [this._coordinates[0][0][0], this._coordinates[0][0][1]];
-                    for (var ring = 0, l = this._coordinates.length; ring < l; ring++) {
-                        for (var i = 0, m = this._coordinates[ring].length; i < m; i++) {
-                            if (point1[0] > this._coordinates[ring][i][0]) point1[0] = this._coordinates[ring][i][0];
-                            if (point1[1] > this._coordinates[ring][i][1]) point1[1] = this._coordinates[ring][i][1];
-                            if (point2[0] < this._coordinates[ring][i][0]) point2[0] = this._coordinates[ring][i][0];
-                            if (point2[1] < this._coordinates[ring][i][1]) point2[1] = this._coordinates[ring][i][1];
-                        }
-                    }
-                    this._bbox = new sGis.Bbox(new sGis.Point(point1[0], point1[1], this._crs), new sGis.Point(point2[0], point2[1], this._crs));
-                }
-                return this._bbox;
-            }
-        },
-
-        type: {
-            value: 'polyline'
-        },
-
-        width: {
-            get: function() {
-                return this._style.strokeWidth;
-            },
-
-            set: function(width) {
-                this._style.strokeWidth = width;
-            }
-        },
-
-        color: {
-            get: function() {
-                return this._style.strokeColor;
-            },
-
-            set: function(color) {
-                this._style.strokeColor = color;
-            }
-        },
-
-        crs: {
-            get: function() {
-                return this._crs;
-            },
-
-            set: function(crs) {
-                if (crs === this.crs) return;
-                if (!(crs instanceof sGis.Crs)) utils.error('sGis.Crs instance is expected but got ' + crs + ' instead');
-
-                if (this._coordinates) {
-                    for (var ring = 0, l = this._coordinates.length; ring < l; ring++) {
-                        for (var i = 0, m = this._coordinates[ring].length; i < m; i++) {
-                            var coord = this._coordinates[ring][i],
-                                point = new sGis.Point(coord[0], coord[1], this.crs),
-                                projected = point.projectTo(crs);
-
-                            this._coordinates[ring][i] = [projected.x, projected.y];
-                        }
-                    }
-                }
-
-                this._crs = crs;
-                this._cache = {};
-                this._bbox = null;
-            }
-        },
-
-        centroid: {
-            get: function() {
-                var bbox = this.bbox,
-                    x = (bbox.p[0].x + bbox.p[1].x) / 2,
-                    y = (bbox.p[0].y + bbox.p[1].y) / 2;
-
-                return [x, y];
-            }
-        }
-    });
-
-    function isValidPoint(point) {
-        return utils.isArray(point) && utils.isNumber(point[0]) && utils.isNumber(point[1]) || (point instanceof sGis.Point);
-    }
-
-})();'use strict';
-
-(function() {
-
-    sGis.feature.Polygon = function(coordinates, options) {
-        this.__initialize(options);
-
-        this._coordinates = [[]];
-        if (coordinates) this.coordinates = coordinates;
-    };
-
-    sGis.feature.Polygon.prototype = new sGis.feature.Polyline();
-
-    Object.defineProperties(sGis.feature.Polygon.prototype, {
-        _defaultSymbol: {
-            value: new sGis.symbol.polygon.Simple()
-        },
-
-        _fillColor: {
-            value: sGis.geom.Polygon.prototype._fillColor,
-            writable: true
-        },
-
-        type: {
-            value: 'polygon'
-        },
-
-        fillColor: {
-            get: function() {
-                return this._style.fillColor;
-            },
-
-            set: function(color) {
-                this._style.fillColor = color;
-            }
-        },
-
-        clone: {
-            value: function() {
-                return new sGis.feature.Polygon(this._coordinates, {
-                    crs: this._crs,
-                    color: this._color,
-                    width: this._width,
-                    fillColor: this.fillColor,
-                    style: this.style,
-                    symbol: this.symbol
-                });
-            }
-        },
-
-        /**
-         * Checks if the point is inside the polygon
-         * @param {sGis.Point|sGis.feature.Point|Array} point - The point to check. Coordinates can be given in [x, y] format (must be in polygon crs)
-         * @return {Boolean}
-         */
-        contains: {
-            value: function(point) {
-                var pointCoordinates;
-                if (point instanceof sGis.Point || point instanceof sGis.feature.Point) {
-                    pointCoordinates = point.projectTo(this.crs).coordinates;
-                } else if (sGis.utils.is.array(point)) {
-                    pointCoordinates = point;
-                } else {
-                    utils.error('Invalid format of the point');
-                }
-
-                return sGis.geotools.contains(this.coordinates, pointCoordinates);
-            }
-        }
-    });
-
-})();(function() {
-
-    var defaultDiv = document.createElement('div');
-    defaultDiv.innerHTML = 'New label';
-    defaultDiv.style.textAlign = 'center';
-
-    sGis.feature.Label = function(position, options) {
-        this.__initialize(options);
-        this.coordinates = position;
-
-        this._resetCache();
-    };
-
-    sGis.feature.Label.prototype = new sGis.Feature({
-        _defaultSymbol: new sGis.symbol.label.Label(),
-        _content: defaultDiv.cloneNode(true),
-        _crs: sGis.CRS.geo,
-
-        render: function(resolution, crs) {
-            return this._symbol.renderFunction.call(this, resolution, crs);
-        },
-
-        _resetCache: function() {
-            this._cache = null;
-        }
-    });
-
-    Object.defineProperties(sGis.feature.Label.prototype, {
-        coordinates: {
-            get: function() {
-                return this._point.getCoordinates();
-            },
-
-            set: function(point) {
-                if (point instanceof sGis.Point) {
-                    this._point = point.projectTo(this._crs);
-                } else if (utils.isArray(point)) {
-                    this._point = new sGis.Point(point[0], point[1], this._crs);
-                } else {
-                    utils.error('Coordinates are expected but got ' + point + ' instead');
-                }
-                this._resetCache();
-            }
-        },
-
-        point: {
-            get: function() {
-                return this._point.clone();
-            }
-        },
-
-        crs: {
-            get: function() {
-                return this._crs;
-            },
-
-            set: function(crs) {
-                if (!(crs instanceof sGis.Crs)) utils.error('sGis.Crs instance is expected but got ' + crs + ' instead');
-                if (this._point) this._point = this._point.projectTo(crs);
-                this._crs = crs;
-            }
-        },
-
-        content: {
-            get: function() {
-                return this._content;
-            },
-
-            set: function(content) {
-                if (utils.isString(content)) {
-                    var node = document.createTextNode(content);
-                    this._content = node;
-                } else if (utils.isNode) {
-                    this._content = content;
-                } else {
-                    utils.error('DOM node is expected but got ' + content + ' instead');
-                }
-                this._resetCache();
-            }
-        },
-
-        type: {
-            value: 'label'
-        },
-
-        bbox: {
-            get: function() {
-                return new sGis.Bbox(this._point, this._point);
-            }
-        }
-    });
-
-})();(function() {
-
-    var defaultContent = document.createElement('div');
-    defaultContent.innerHTML = 'New maptip';
-
-    sGis.feature.Maptip = function(position, options) {
-        this.__initialize(options);
-        this.position = position;
-    };
-
-    sGis.feature.Maptip.prototype = new sGis.Feature({
-        _defaultSymbol: new sGis.symbol.maptip.Simple(),
-        _content: defaultContent
-    });
-
-    Object.defineProperties(sGis.feature.Maptip.prototype, {
-        position: {
-            get: function() {
-                return this._position.clone();
-            },
-            set: function(position) {
-                if (position instanceof sGis.Point) {
-                    this._position = position.projectTo(this._crs);
-                } else if (utils.isArray(position) && utils.isNumber(position[0]) && utils.isNumber(position[1])) {
-                    this._position = new sGis.Point(position[0], position[1], this._crs);
-                } else {
-                    utils.error('Point is expected but got ' + position + ' instead');
-                }
-                this._cache = {};
-            }
-        },
-
-        content: {
-            get: function() {
-                return this._content;
-            },
-            set: function(content) {
-                this._content = content;
-                this._cache = {};
-            }
-        },
-
-        crs: {
-            get: function() {
-                return this._crs;
-            },
-
-            set: function(crs) {
-                if (!(crs instanceof sGis.Crs)) utils.error('sGis.Crs instance is expected but got ' + crs + ' instead');
-                this._crs = crs;
-                this._point = this._point.projectTo(crs);
-                this._cache = {};
-            }
-        },
-
-        type: {
-            get: function() {
-                return 'maptip';
-            }
-        }
-    });
 
 })();'use strict';
 
@@ -6958,7 +6619,7 @@ document.head.appendChild(buttonStyle);
         _width: 256,
         _height: 256,
         _opacity: 1,
-        _defaultSymbol: new sGis.symbol.image.Image()
+        _defaultSymbol: sGis.symbol.image.Image
     });
 
     Object.defineProperties(sGis.feature.Image.prototype, {
@@ -7054,6 +6715,662 @@ document.head.appendChild(buttonStyle);
                     this._opacity = opacity;
                     if (this._cache && this._cache[0].node) this._cache[0].node.style.opacity = opacity;
                 }
+            }
+        }
+    });
+
+})();'use strict';
+
+(function() {
+
+sGis.FeatureGroup = function(options) {
+    this._features = [];
+    this._cache = {};
+    utils.init(this, options);
+};
+
+sGis.FeatureGroup.prototype = {
+    _crs: sGis.CRS.geo,
+
+    add: function(feature) {
+        if (utils.isArray(feature)) {
+            feature.forEach(this.add, this);
+        } else {
+            if (!(feature instanceof sGis.Feature)) utils.error('sGis.Feature instance is expected but got ' + feature + ' instead');
+            this._features.push(feature.projectTo(this._crs));
+            this._cache = {};
+        }
+    }
+};
+
+Object.defineProperties(sGis.FeatureGroup.prototype, {
+    features: {
+        get: function() {
+            return this._features;
+        },
+
+        set: function(features) {
+            this._features = [];
+            this.add(features);
+        }
+    },
+
+    crs: {
+        get: function() {
+            return this._crs;
+        },
+
+        set: function(crs) {
+            if (!(crs instanceof sGis.Crs)) utils.error('sGis.Crs instance is expected but got ' + crs + ' instead');
+            this._features.forEach(function(feature, i, array) {
+                array[i] = feature.projectTo(crs);
+            });
+            this._crs = crs;
+            this._cache = {};
+        }
+    },
+
+    bbox: {
+        get: function() {
+            if (this._cache.bbox) return this._cache.bbox;
+            if (this._features.length > 0) {
+                var bbox = this._features[0].bbox;
+                for (var i = 1, len = this._features.length; i < len; i++) {
+                    var currBbox = this._features[i].bbox;
+                    bbox.xMin = Math.min(bbox.xMin, currBbox.xMin);
+                    bbox.yMin = Math.min(bbox.yMin, currBbox.yMin);
+                    bbox.xMax = Math.max(bbox.xMax, currBbox.xMax);
+                    bbox.yMax = Math.max(bbox.yMax, currBbox.yMax);
+                }
+                
+                this._cache.bbox = bbox;
+                return bbox;
+            } else {
+                return null;
+            }   
+        }
+    },
+
+    centroid: {
+        get: function() {
+            var bbox = this.bbox;
+            var x = (bbox.p[0].x + bbox.p[1].x) / 2;
+            var y = (bbox.p[0].y + bbox.p[1].y) / 2;
+            return [x, y];
+        }
+    }
+});
+
+})();'use strict';
+
+(function () {
+
+    sGis.feature.Point = function (point, options) {
+        this.__initialize(options);
+        if (!point) utils.error('The point position is not specified');
+
+        this._point = point;
+    };
+
+    sGis.feature.Point.prototype = new sGis.Feature({
+        _defaultSymbol: sGis.symbol.point.Point,
+        _crs: sGis.CRS.geo,
+
+        projectTo: function(crs) {
+            var point = new sGis.Point(this._point[0], this._point[1], this._crs),
+                projected = point.projectTo(crs),
+                coordinates = crs === sGis.CRS.geo ? [projected.y, projected.x] : [projected.x, projected.y];
+
+            var response = new sGis.feature.Point(coordinates, {crs: crs});
+            if (this._color) response._color = this._color;
+            if (this._size) response._size = this._size;
+
+            return response;
+        },
+
+        clone: function() {
+            return this.projectTo(this._crs);
+        }
+    });
+
+    Object.defineProperties(sGis.feature.Point.prototype, {
+        crs: {
+            get: function() {
+                return this._crs;
+            },
+
+            set: function(crs) {
+                this._crs = crs;
+            }
+        },
+
+        bbox: {
+            get: function() {
+                var point = new sGis.Point(this._point[0], this._point[1], this._crs);
+                return new sGis.Bbox(point, point);
+            }
+        },
+
+        size: {
+            get: function() {
+                return this._symbol.size;
+            },
+
+            set: function(size) {
+                this._symbol.size = size;
+            }
+        },
+
+        color: {
+            get: function() {
+                return this._symbol.fillColor;
+            },
+
+            set: function(color) {
+                this._symbol.fillColor = color;
+            }
+        },
+
+        x: {
+            get: function() {
+                return this.crs === sGis.CRS.geo ? this._point[1] : this._point[0];
+            },
+
+            set: function(x) {
+                var index = this.crs === sGis.CRS.geo ? 1 : 0;
+                this._point[index] = x;
+            }
+        },
+
+        y: {
+            get: function() {
+                return this.crs === sGis.CRS.geo ? this._point[0] : this._point[1];
+            },
+
+            set: function(y) {
+                var index = this.crs === sGis.CRS.geo ? 0 : 1;
+                this._point[index] = y;
+            }
+        },
+
+        coordinates: {
+            get: function() {
+                return this._point;
+            },
+
+            set: function(coordinates) {
+                if (!utils.isArray(coordinates) || !utils.isNumber(coordinates[0]) || !utils.isNumber(coordinates[1])) utils.error('[x, y] is expected but got ' + coordinates + ' instead');
+                this._point = coordinates;
+            }
+        },
+
+        type: {
+            value: 'point'
+        }
+    });
+
+})();'use strict';
+
+(function() {
+
+    sGis.feature.Polyline = function(coordinates, options) {
+        this.__initialize(options);
+
+        this._coordinates = [[]];
+        if (coordinates) this.coordinates = coordinates;
+    };
+
+    sGis.feature.Polyline.prototype = new sGis.Feature({
+        _defaultSymbol: sGis.symbol.polyline.Simple,
+        _cache: {},
+
+        addPoint: function(point, ring) {
+            ring = ring || 0;
+            if (!this._coordinates[ring]) utils.error('The ring with index ' + ring + ' does not exist in feature');
+            this.setPoint(ring, this._coordinates[ring].length, point);
+        },
+
+        removePoint: function(ring, index) {
+            if (!this._coordinates[ring]) utils.error('The ring with index ' + ring + ' does not exist in the feature');
+            if (!this._coordinates[ring][index]) utils.error('The point with specified index ' + index + ' does not exist in the feature');
+            this._coordinates[ring].splice(index, 1);
+            if (this._coordinates[ring].length === 0) {
+                this._coordinates.splice(ring, 1);
+            }
+            this._cache = {};
+            this._bbox = null;
+        },
+
+        removeRing: function(ring) {
+            if (this._coordinates.length > 1 && this._coordinates[ring]) {
+                this._coordinates.splice(ring, 1);
+            }
+        },
+
+        clone: function() {
+            return new sGis.feature.Polyline(this._coordinates, {crs: this._crs, color: this._color, width: this._width, style: this.style, symbol: this.symbol});
+        },
+
+        projectTo: function(crs) {
+            var projected = this.clone();
+            projected.crs = crs;
+            return projected;
+        },
+
+        setRing: function(n, coordinates) {
+            if (!utils.isInteger(n) || n < 0) utils.error('Positive integer is expected for index but got ' + n + ' instead');
+            if (!utils.isArray(coordinates)) utils.error('Array is expected but got ' + coordinates + ' instead');
+
+            if (n > this._coordinates.length) n = this._coordinates.length;
+            this._coordinates[n] = [];
+            for (var i = 0, l = coordinates.length; i < l; i++) {
+                this.setPoint(n, i, coordinates[i]);
+            }
+        },
+
+        setPoint: function(ring, n, point) {
+            if (!isValidPoint(point)) utils.error('Point is expected but got ' + point + ' instead');
+            if (!this._coordinates[ring]) utils.error('The ring with index ' + ring + ' does not exist');
+            if (!utils.isInteger(n) || n < 0) utils.error('Positive integer is expected for index but got ' + n + ' instead');
+
+            if (n > this._coordinates[ring].length) n = this._coordinates[ring].length;
+            if (point instanceof sGis.Point) {
+                var projected = point.projectTo(this.crs);
+                this._coordinates[ring][n] = this.crs === sGis.CRS.geo ? [projected.y, projected.x] : [projected.x, projected.y];
+            } else {
+                this._coordinates[ring][n] = point;
+            }
+            this._bbox = null;
+            this._cache = {};
+        },
+
+        insertPoint: function(ring, n, point) {
+            if (!isValidPoint(point)) utils.error('Point is expected but got ' + point + ' instead');
+            if (!this._coordinates[ring]) utils.error('The ring with index ' + ring + ' does not exist');
+            if (!utils.isInteger(n) || n < 0) utils.error('Positive integer is expected for index but got ' + n + ' instead');
+
+            this._coordinates[ring].splice(n, 0, [0, 0]);
+            this.setPoint(ring, n, point);
+        },
+
+        transform: function(matrix, center) {
+            if (center instanceof sGis.Point || center instanceof sGis.feature.Point) {
+                var basePoint = center.projectTo(this.crs),
+                    base = [basePoint.x, basePoint.y];
+            } else if (utils.isArray(center) && utils.isNumber(center[0]) && utils.isNumber(center[1])) {
+                base = [parseFloat(center[0]), parseFloat(center[1])];
+            } else if (center === undefined) {
+                base = this.centroid;
+            } else {
+                utils.error('Unknown format of center point: ' + center);
+            }
+            var coord = this.coordinates,
+                result = [];
+            for (var ring = 0, l = coord.length; ring < l; ring++) {
+                var extended = extendCoordinates(coord[ring], base),
+                    transformed = utils.multiplyMatrix(extended, matrix);
+                result[ring] = collapseCoordinates(transformed, base);
+            }
+
+            this.coordinates = result;
+        },
+
+        rotate: function(angle, center) {
+            if (!utils.isNumber(angle)) utils.error('Number is expected but got ' + angle + ' instead');
+
+            var sin = Math.sin(angle),
+                cos = Math.cos(angle);
+
+            this.transform([[cos, sin, 0], [-sin, cos, 0], [0, 0, 1]], center);
+        },
+
+        scale: function(scale, center) {
+            if (utils.isNumber(scale)) {
+                scale = [scale, scale];
+            } else if (!utils.isArray(scale)) {
+                utils.error('Number or array is expected but got ' + scale + ' instead');
+            }
+            this.transform([[parseFloat(scale[0]), 0, 0], [0, parseFloat(scale[1]), 0], [0, 0, 1]], center);
+        },
+
+        move: function(x, y) {
+            this.transform([[1, 0 ,0], [0, 1, 1], [x, y, 1]]);
+        }
+    });
+
+    function extendCoordinates(coord, center) {
+        var extended = [];
+        for (var i = 0, l = coord.length; i < l; i++) {
+            extended[i] = [coord[i][0] - center[0], coord[i][1] - center[1], 1];
+        }
+        return extended;
+    }
+
+    function collapseCoordinates(extended, center) {
+        var coord = [];
+        for (var i = 0, l = extended.length; i < l; i++) {
+            coord[i] = [extended[i][0] + center[0], extended[i][1] + center[1]];
+        }
+        return coord;
+    }
+
+    Object.defineProperties(sGis.feature.Polyline.prototype, {
+        coordinates: {
+            get: function() {
+                return utils.copyArray(this._coordinates);
+            },
+            set: function(coordinates) {
+                if (!utils.isArray(coordinates)) utils.error('Array is expected but got ' + coordinates + ' instead');
+
+                if (!utils.isArray(coordinates[0]) || utils.isNumber(coordinates[0][0])) {
+                    // One ring is specified
+                    this.setRing(0, coordinates);
+                } else {
+                    // Array of rings is specified
+                    for (var ring = 0, l = coordinates.length; ring < l; ring++) {
+                        this.setRing(ring, coordinates[ring]);
+                    }
+                }
+            }
+        },
+
+        bbox: {
+            get: function() {
+                if (!this._bbox) {
+                    var point1 = [this._coordinates[0][0][0], this._coordinates[0][0][1]],
+                        point2 = [this._coordinates[0][0][0], this._coordinates[0][0][1]];
+                    for (var ring = 0, l = this._coordinates.length; ring < l; ring++) {
+                        for (var i = 0, m = this._coordinates[ring].length; i < m; i++) {
+                            if (point1[0] > this._coordinates[ring][i][0]) point1[0] = this._coordinates[ring][i][0];
+                            if (point1[1] > this._coordinates[ring][i][1]) point1[1] = this._coordinates[ring][i][1];
+                            if (point2[0] < this._coordinates[ring][i][0]) point2[0] = this._coordinates[ring][i][0];
+                            if (point2[1] < this._coordinates[ring][i][1]) point2[1] = this._coordinates[ring][i][1];
+                        }
+                    }
+                    this._bbox = new sGis.Bbox(new sGis.Point(point1[0], point1[1], this._crs), new sGis.Point(point2[0], point2[1], this._crs));
+                }
+                return this._bbox;
+            }
+        },
+
+        type: {
+            value: 'polyline'
+        },
+
+        width: {
+            get: function() {
+                return this._symbol.strokeWidth;
+            },
+
+            set: function(width) {
+                this._symbol.strokeWidth = width;
+            }
+        },
+
+        color: {
+            get: function() {
+                return this._symbol.strokeColor;
+            },
+
+            set: function(color) {
+                this._symbol.strokeColor = color;
+            }
+        },
+
+        crs: {
+            get: function() {
+                return this._crs;
+            },
+
+            set: function(crs) {
+                if (crs === this.crs) return;
+                if (!(crs instanceof sGis.Crs)) utils.error('sGis.Crs instance is expected but got ' + crs + ' instead');
+
+                if (this._coordinates) {
+                    for (var ring = 0, l = this._coordinates.length; ring < l; ring++) {
+                        for (var i = 0, m = this._coordinates[ring].length; i < m; i++) {
+                            var coord = this._coordinates[ring][i],
+                                point = new sGis.Point(coord[0], coord[1], this.crs),
+                                projected = point.projectTo(crs);
+
+                            this._coordinates[ring][i] = [projected.x, projected.y];
+                        }
+                    }
+                }
+
+                this._crs = crs;
+                this._cache = {};
+                this._bbox = null;
+            }
+        },
+
+        centroid: {
+            get: function() {
+                var bbox = this.bbox,
+                    x = (bbox.p[0].x + bbox.p[1].x) / 2,
+                    y = (bbox.p[0].y + bbox.p[1].y) / 2;
+
+                return [x, y];
+            }
+        }
+    });
+
+    function isValidPoint(point) {
+        return utils.isArray(point) && utils.isNumber(point[0]) && utils.isNumber(point[1]) || (point instanceof sGis.Point);
+    }
+
+})();'use strict';
+
+(function() {
+
+    sGis.feature.Polygon = function(coordinates, options) {
+        this.__initialize(options);
+
+        this._coordinates = [[]];
+        if (coordinates) this.coordinates = coordinates;
+    };
+
+    sGis.feature.Polygon.prototype = new sGis.feature.Polyline();
+
+    Object.defineProperties(sGis.feature.Polygon.prototype, {
+        _defaultSymbol: {
+            value: sGis.symbol.polygon.Simple
+        },
+
+        type: {
+            value: 'polygon'
+        },
+
+        fillColor: {
+            get: function() {
+                return this._symbol.fillColor;
+            },
+
+            set: function(color) {
+                this._symbol.fillColor = color;
+            }
+        },
+
+        clone: {
+            value: function() {
+                return new sGis.feature.Polygon(this._coordinates, {
+                    crs: this._crs,
+                    color: this._color,
+                    width: this._width,
+                    fillColor: this.fillColor,
+                    style: this.style,
+                    symbol: this.symbol
+                });
+            }
+        },
+
+        /**
+         * Checks if the point is inside the polygon
+         * @param {sGis.Point|sGis.feature.Point|Array} point - The point to check. Coordinates can be given in [x, y] format (must be in polygon crs)
+         * @return {Boolean}
+         */
+        contains: {
+            value: function(point) {
+                var pointCoordinates;
+                if (point instanceof sGis.Point || point instanceof sGis.feature.Point) {
+                    pointCoordinates = point.projectTo(this.crs).coordinates;
+                } else if (sGis.utils.is.array(point)) {
+                    pointCoordinates = point;
+                } else {
+                    utils.error('Invalid format of the point');
+                }
+
+                return sGis.geotools.contains(this.coordinates, pointCoordinates);
+            }
+        }
+    });
+
+})();(function() {
+
+    var defaultDiv = document.createElement('div');
+    defaultDiv.innerHTML = 'New label';
+    defaultDiv.style.textAlign = 'center';
+
+    sGis.feature.Label = function(position, options) {
+        this.__initialize(options);
+        this.coordinates = position;
+
+        this._resetCache();
+    };
+
+    sGis.feature.Label.prototype = new sGis.Feature({
+        _defaultSymbol: sGis.symbol.label.Label,
+        _content: defaultDiv.cloneNode(true),
+        _crs: sGis.CRS.geo,
+
+        _resetCache: function() {
+            this._cache = null;
+        }
+    });
+
+    Object.defineProperties(sGis.feature.Label.prototype, {
+        coordinates: {
+            get: function() {
+                return this._point.getCoordinates();
+            },
+
+            set: function(point) {
+                if (point instanceof sGis.Point) {
+                    this._point = point.projectTo(this._crs);
+                } else if (utils.isArray(point)) {
+                    this._point = new sGis.Point(point[0], point[1], this._crs);
+                } else {
+                    utils.error('Coordinates are expected but got ' + point + ' instead');
+                }
+                this._resetCache();
+            }
+        },
+
+        point: {
+            get: function() {
+                return this._point.clone();
+            }
+        },
+
+        crs: {
+            get: function() {
+                return this._crs;
+            },
+
+            set: function(crs) {
+                if (!(crs instanceof sGis.Crs)) utils.error('sGis.Crs instance is expected but got ' + crs + ' instead');
+                if (this._point) this._point = this._point.projectTo(crs);
+                this._crs = crs;
+            }
+        },
+
+        content: {
+            get: function() {
+                return this._content;
+            },
+
+            set: function(content) {
+                if (utils.isString(content)) {
+                    var node = document.createTextNode(content);
+                    this._content = node;
+                } else if (utils.isNode) {
+                    this._content = content;
+                } else {
+                    utils.error('DOM node is expected but got ' + content + ' instead');
+                }
+                this._resetCache();
+            }
+        },
+
+        type: {
+            value: 'label'
+        },
+
+        bbox: {
+            get: function() {
+                return new sGis.Bbox(this._point, this._point);
+            }
+        }
+    });
+
+})();(function() {
+
+    var defaultContent = document.createElement('div');
+    defaultContent.innerHTML = 'New maptip';
+
+    sGis.feature.Maptip = function(position, options) {
+        this.__initialize(options);
+        this.position = position;
+    };
+
+    sGis.feature.Maptip.prototype = new sGis.Feature({
+        _defaultSymbol: sGis.symbol.maptip.Simple,
+        _content: defaultContent
+    });
+
+    Object.defineProperties(sGis.feature.Maptip.prototype, {
+        position: {
+            get: function() {
+                return this._position.clone();
+            },
+            set: function(position) {
+                if (position instanceof sGis.Point) {
+                    this._position = position.projectTo(this._crs);
+                } else if (utils.isArray(position) && utils.isNumber(position[0]) && utils.isNumber(position[1])) {
+                    this._position = new sGis.Point(position[0], position[1], this._crs);
+                } else {
+                    utils.error('Point is expected but got ' + position + ' instead');
+                }
+                this._cache = {};
+            }
+        },
+
+        content: {
+            get: function() {
+                return this._content;
+            },
+            set: function(content) {
+                this._content = content;
+                this._cache = {};
+            }
+        },
+
+        crs: {
+            get: function() {
+                return this._crs;
+            },
+
+            set: function(crs) {
+                if (!(crs instanceof sGis.Crs)) utils.error('sGis.Crs instance is expected but got ' + crs + ' instead');
+                this._crs = crs;
+                this._point = this._point.projectTo(crs);
+                this._cache = {};
+            }
+        },
+
+        type: {
+            get: function() {
+                return 'maptip';
             }
         }
     });
@@ -7661,550 +7978,977 @@ function finishDrawing(control) {
 
 (function() {
 
-    sGis.controls.Editor = function(map, options) {
-        this._map = map;
-        if (options && options.activeLayer) this.activeLayer = options.activeLayer;
+    var PREFIX = 'sGis-control-edit-';
 
-        utils.init(this, options);
+    sGis.controls.Editor = function(map, properties) {
+        if (!(map instanceof sGis.Map)) utils.error('sGis.Map is expected but got ' + map + ' instead');
+
+        this._map = map;
+        this._id = utils.getGuid();
+
+        this._ns = PREFIX + this._id;
+        this._currentState = -1;
+        this._states = [];
+        this._featureStates = {};
+
+        sGis.utils.init(this, properties);
     };
 
     sGis.controls.Editor.prototype = new sGis.Control({
-        _allowDeletion: true,
+        _translateControlSymbol: sGis.symbol.point.Square,
 
         activate: function() {
-            var features = this.activeLayer.features;
-            for (var i = 0; i < features.length; i++) {
-                var feature = features[i];
-                feature.addListner('click.sGis-editor', selectFeature);
-            }
-            this.activeLayer.addListner('featureAdd.sGis-editor', function(sGisEvent) {
-                sGisEvent.feature.addListner('click.sGis-editor', selectFeature);
-            });
-            this.activeLayer.addListner('featureRemove.sGis-editor', function(sGisEvent) {
-                sGisEvent.feature.removeListner('.sGis-editor');
-            });
-
-            this._active = true;
-
-            var self = this;
-            function selectFeature(sGisEvent) {
-                self.selectFeature(this);
-
-                sGisEvent.stopPropagation();
-                sGisEvent.preventDefault();
+            if (!this._isActive) {
+                this._setEventListeners();
+                this._isActive = true;
             }
         },
 
         deactivate: function() {
-            if (this._active) {
-                if (this._selectedFeature) {
-                    this._map.removeLayer(this._tempLayer);
-                    this._map.removeListner('.sGis-editor');
+            if (this._isActive) {
+                this._removeEventListeners();
+                this.deselect();
+                this.clearStateList();
+                this._isActive = false;
+            }
+        },
 
-                    this.fire('featureDeselect', {feature: this._selectedFeature});
-                    this._selectedFeature = null;
-                }
-
+        _setEventListeners: function() {
+            if (this._activeLayer) {
                 var features = this._activeLayer.features;
                 for (var i = 0; i < features.length; i++) {
-                    features[i].removeListner('.sGis-editor');
+                    this._setFeatureClickHandler(features[i]);
                 }
-                this._activeLayer.removeListner('.sGis-editor');
 
-                this._active = false;
+                var self = this;
+                this._activeLayer.addListner('featureAdd.' + this._ns, function(sGisEvent) { self._setFeatureClickHandler(sGisEvent.feature); });
+                this._activeLayer.addListner('featureRemove.' + this._ns, this._featureRemoveHandler.bind(this));
+
+                this._map.addListner('keydown.' + this._ns, this._keydownHandler.bind(this));
             }
         },
 
-        selectFeature: function(feature) {
-            if (this._selectedFeature) this.deselectFeature();
+        _featureRemoveHandler: function(sGisEvent) {
+            if (this._selectedFeature === sGisEvent.feature) this.deselect();
+            this._removeFeatureClickHandler(sGisEvent.feature);
+        },
 
-            var tempLayer = new sGis.FeatureLayer(),
-                tempLayerIndex = this._map.getLayerIndex(this.activeLayer) + 1;
+        _removeEventListeners: function() {
+            if (this._activeLayer) {
+                var features = this._activeLayer.features;
+                for (var i = 0; i < features.length; i++) {
+                    this._removeFeatureClickHandler(features[i]);
+                }
+                this._activeLayer.removeListner('.' + this._ns);
+            }
+            this._map.removeListner('keydown.' + this._ns);
+        },
 
-            this._tempLayer = tempLayer;
-            var tempFeature = createTempFeature[feature.type](feature, this);
+        _keydownHandler: function(sGisEvent) {
+            if (this._ignoreEvents) return;
+            var event = sGisEvent.browserEvent;
+            if (event.which === 27) {
+                if (!this._deselectProhibited) this.deselect();
+                sGisEvent.stopPropagation();
+                sGisEvent.preventDefault();
+            } else if (event.which === 46) {
+                this.deleteSelected();
+                sGisEvent.stopPropagation();
+                sGisEvent.preventDefault();
+            } else if (event.which === 9) {
+                this._selectNext();
+                sGisEvent.stopPropagation();
+                sGisEvent.preventDefault();
+            } else if (event.which === 90 && event.ctrlKey) { //ctrl + z
+                this.undo()
+                sGisEvent.stopPropagation();
+                sGisEvent.preventDefault();
+            } else if (event.which === 89 && event.ctrlKey) { //ctrl + y
+                this.redo()
+                sGisEvent.stopPropagation();
+                sGisEvent.preventDefault();
+            }
+        },
 
-            tempLayer.add(tempFeature);
+        _selectNext: function() {
+            if (this._activeLayer) {
+                var features = this._activeLayer.features;
 
-            this._map.prohibitEvent('layerAdd');
-            this._map.moveLayerToIndex(tempLayer, tempLayerIndex);
-            this._map.allowEvent('layerAdd');
+                this.select(features[0]);
+            }
+        },
 
-            feature.removeListner('click.sGis-editor');
-            feature.addListner('click.sGis-editor', doNothing.bind(this));
+        _setFeatureClickHandler: function(feature) {
+            var self = this;
+            feature.addListner('click.' + this._ns, function(sGisEvent) { self._featureClickHandler(sGisEvent, this); });
+        },
 
+        _removeFeatureClickHandler: function(feature) {
+            feature.removeListner('click.' + this._ns);
+        },
+
+        _featureClickHandler: function(sGisEvent, feature) {
+            this.select(feature);
+            sGisEvent.stopPropagation();
+            sGisEvent.preventDefault();
+        },
+
+        select: function(feature) {
+            if (this._selectedFeature === feature) return;
+            this.deselect();
+
+            if (this._isActive && this._activeLayer && this._activeLayer.has(feature)) {
+                this._map.addListner('click.' + this._ns, this._mapClickHandler.bind(this));
+                this._selectedFeature = feature;
+                this._activeLayer.moveToTop(feature);
+                this._setSelectedListeners();
+                this._setTempSymbol();
+                this._setSnappingLayer();
+                this._saveOriginalState();
+                this._map.redrawLayer(this._activeLayer);
+
+                this.fire('featureSelect', {feature: feature});
+            }
+        },
+
+        deselect: function() {
+            if (this._selectedFeature) {
+                var feature = this._selectedFeature;
+                this._map.removeListner('click.' + this._ns);
+                this._clearTempSymbol();
+                this._removeSelectedListeners();
+                this._removeSnappingLayer();
+                this._selectedFeature = null;
+                if (this._map.getLayerIndex(this._activeLayer) !== -1) this._map.redrawLayer(this._activeLayer);
+
+                this.fire('featureDeselect', {feature: feature});
+            }
+        },
+
+        _setSnappingLayer: function() {
+            if (!this._snappingLayer) {
+                this._snappingLayer = new sGis.FeatureLayer();
+                this._snappingPoint = new sGis.feature.Point([0, 0], {crs: this._map.crs, symbol: this._snappingPointSymbol});
+                this._snappingPoint.hide();
+                this._snappingLayer.add(this._snappingPoint);
+                this._createTransformControls();
+            }
+
+            if (this._selectedFeature instanceof sGis.feature.Polyline) {
+                this._updateTransformControls();
+            }
+            this._map.moveLayerToIndex(this._snappingLayer, Number.MAX_VALUE);
+        },
+
+        _removeSnappingLayer: function() {
+            this._map.removeLayer(this._snappingLayer);
+            this._snappingPoint.hide();
+            this._hideTransformControls();
+        },
+
+        _createTransformControls: function() {
+            var OFFSET = 10;
             var self = this;
 
-            this._tempLayer = tempLayer;
-            this._selectedFeature = feature;
-            this._map.addListner('click.sGis-editor', function(sGisEvent) {
-                if (!self._deselectProhibited) self.deselectFeature();
-            });
-            this._map.addListner('keydown.sGis-editor', onkeydown);
-            this._map.addListner('layerRemove.sGis-editor', function(sGisEvent) {
-                if (sGisEvent.layer === self.activeLayer) {
-                    self.deselectFeature();
-                    self._activeLayer = null;
-                }
-            });
+            this._transformControls = [];
+            for (var x = 0; x < 3; x++) {
+                this._transformControls.push([]);
+                for (var y = 0; y < 3; y++) {
+                    if (x !== 1 || y !== 1) {
+                        var symbol = new this._translateControlSymbol({offset: {x: (x-1)*OFFSET, y: -(y-1)*OFFSET}, size: 7});
+                        var control = new sGis.feature.Point([0,0], {crs: this._map.crs, symbol: symbol, xIndex: x, yIndex: y});
+                        control.hide();
 
-            this.fire('featureSelect', {feature: feature});
+                        control.addListner('dragStart', this._transformControlDragStartHandler);
+                        control.addListner('drag', function(sGisEvent) { self._transformControlDragHandler(sGisEvent, this) });
+                        control.addListner('dragEnd', this._saveState.bind(this));
 
-            function onkeydown(sGisEvent) {
-                if (self._ignoreEvents) return;
-                var event = sGisEvent.browserEvent;
-                if (event.which === 27) {
-                    if (!self._deselectProhibited) self.deselectFeature();
-                } else if (event.which === 46) {
-                    removeActiveFeature(self);
+                        this._transformControls[x][y] = control;
+                        this._snappingLayer.add(control);
+                    }
                 }
             }
-        },
 
-        deselectFeature: function() {
-            var feature = this._selectedFeature,
-                self = this;
-
-            this._map.removeLayer(this._tempLayer);
-            this._map.removeListner('.sGis-editor');
-            feature.removeListner('.sGis-editor');
-            feature.addListner('click.sGis-editor', function(sGisEvent) {
-                self.selectFeature(feature);
-                sGisEvent.stopPropagation();
-                sGisEvent.preventDefault();
+            var rotationControl = new sGis.feature.Point([0,0], {crs: this._map.crs, symbol: this._rotationControlSymbol});
+            rotationControl.addListner('dragStart', function(sGisEvent) {
+                self._rotationBase = self._selectedFeature.centroid;
+                self._transformControlDragStartHandler.call(this, sGisEvent);
+                self.fire('rotationStart');
+            });
+            rotationControl.addListner('drag', this._rotationControlDragHandler.bind(this));
+            rotationControl.addListner('dragEnd', function() {
+                self._saveState();
+                self.fire('rotationEnd');
             });
 
-            this._selectedFeature = null;
 
-            this.fire('featureDeselect', {feature: feature});
+            rotationControl.hide();
+            this._snappingLayer.add(rotationControl);
+            this._transformControls.rotationControl = rotationControl;
         },
 
-        prohibitDeselect: function() {
-            this._deselectProhibited = true;
-        },
-
-        allowDeselect: function() {
-            this._deselectProhibited = false;
-        }
-    });
-
-    Object.defineProperties(sGis.controls.Editor.prototype, {
-        activeFeature: {
-            get: function() {
-                return this._selectedFeature;
+        _hideTransformControls: function() {
+            if (this._transformControls) {
+                for (var i = 0; i < 3; i++) {
+                    for (var j = 0; j < 3; j++) {
+                        if (this._transformControls[i][j]) {
+                            this._transformControls[i][j].hide();
+                        }
+                    }
+                }
+                this._transformControls.rotationControl.hide();
             }
         },
 
-        allowDeletion: {
-            get: function() {
-                return this._allowDeletion;
-            },
-            set: function(bool) {
-                this._allowDeletion = bool;
+        _transformControlDragStartHandler: function(sGisEvent) {
+            sGisEvent.draggingObject = this; // called in feature context
+            sGisEvent.stopPropagation();
+        },
+
+        _transformControlDragHandler: function(sGisEvent, feature) {
+            var MIN_SIZE = 10;
+
+            var xIndex = feature.xIndex === 0 ? 2 : feature.xIndex === 2 ? 0 : 1;
+            var yIndex = feature.yIndex === 0 ? 2 : feature.yIndex === 2 ? 0 : 1;
+            var basePoint = this._transformControls[xIndex][yIndex].coordinates;
+
+            var bbox = this._selectedFeature.bbox;
+            var resolution = this._map.resolution;
+            var tolerance = MIN_SIZE * resolution;
+            var width = bbox.width;
+            var xScale = xIndex === 1 ? 1 : (width + (xIndex - 1) * sGisEvent.offset.x) / width;
+            if (width < tolerance && xScale < 1) xScale = 1;
+            var height = bbox.height;
+            var yScale = yIndex === 1 ? 1 : (height + (yIndex - 1) * sGisEvent.offset.y) / height;
+            if (height < tolerance && yScale < 1) yScale = 1;
+
+            this._selectedFeature.scale([xScale, yScale], basePoint);
+            this._map.redrawLayer(this._activeLayer);
+            this._updateTransformControls();
+        },
+
+        _rotationControlDragHandler: function(sGisEvent) {
+            var xPrev = sGisEvent.point.x + sGisEvent.offset.x;
+            var yPrev = sGisEvent.point.y + sGisEvent.offset.y;
+
+            var alpha1 = xPrev === this._rotationBase[0] ? Math.PI / 2 : Math.atan2(yPrev - this._rotationBase[1], xPrev - this._rotationBase[0]);
+            var alpha2 = sGisEvent.point.x === this._rotationBase[0] ? Math.PI / 2 : Math.atan2(sGisEvent.point.y - this._rotationBase[1], sGisEvent.point.x - this._rotationBase[0]);
+            var angle = alpha2 - alpha1;
+
+            this._selectedFeature.rotate(angle, this._rotationBase);
+            this._map.redrawLayer(this._activeLayer);
+            this._updateTransformControls();
+
+            this.fire('rotation');
+        },
+
+        _updateTransformControls: function() {
+            if (this._selectedFeature && this._selectedFeature instanceof sGis.feature.Polyline) {
+                var bbox = this._selectedFeature.bbox.projectTo(this._map.crs);
+                var coordinates = [[bbox.xMin, bbox.yMin], [bbox.xMax, bbox.yMax]];
+                var controls = this._transformControls;
+                for (var i = 0; i < 3; i++) {
+                    for (var j = 0; j < 3; j++) {
+                        if (i !== 1 || j !== 1) {
+                            var x = coordinates[0][0] + (coordinates[1][0] - coordinates[0][0]) * i / 2;
+                            var y = coordinates[0][1] + (coordinates[1][1] - coordinates[0][1]) * j / 2;
+                            controls[i][j].coordinates = [x, y];
+                            controls[i][j].show();
+
+                            if (i === 1 && j === 2) controls.rotationControl.coordinates = [x, y];
+                        }
+                    }
+                }
+                controls.rotationControl.show();
+                this._map.redrawLayer(this._snappingLayer);
+            } else {
+                this._hideTransformControls();
             }
         },
 
-        ignoreEvents: {
-            get: function() {
-                return this._ignoreEvents;
-            },
-            set: function(bool) {
-                this._ignoreEvents = bool;
+        _mapClickHandler: function(sGisEvent) {
+            this.deselect();
+        },
+
+        _setTempSymbol: function() {
+            this._selectedFeature.setTempSymbol(new selectionSymbols[this._selectedFeature.type]({baseSymbol: this._selectedFeature.symbol}));
+        },
+
+        _clearTempSymbol: function() {
+            this._selectedFeature.clearTempSymbol();
+        },
+
+        _setSelectedListeners: function() {
+            var self = this;
+            this._selectedFeature.addListner('dragStart.' + this._ns, function(sGisEvent) { self._dragStartHandler(sGisEvent, this); });
+            this._selectedFeature.addListner('drag.' + this._ns, function(sGisEvent) { self._dragHandler(sGisEvent, this); });
+            this._selectedFeature.addListner('dragEnd.' + this._ns, this._saveState.bind(this));
+
+            if (this._selectedFeature instanceof sGis.feature.Polyline) {
+                this._selectedFeature.addListner('mousemove.' + this._ns, function(sGisEvent) { self._polylineMousemoveHandler(sGisEvent, this); });
+                this._selectedFeature.addListner('mouseout.' + this._ns, function(sGisEvent) { self._polylineMouseoutHandler(sGisEvent, this); });
+                this._selectedFeature.addListner('dblclick.' + this._ns, function(sGisEvent) { self._polylineDblclickHandler(sGisEvent, this); });
             }
-        }
-    });
 
-    function doNothing(sGisEvent) {
-        if (this._ignoreEvents) return;
-        sGisEvent.stopPropagation();
-        sGisEvent.preventDefault();
-    }
+        },
 
-    var createTempFeature = {
-        point: function(point,editor) {
-            var tempPoint = new sGis.feature.Point(point.crs === sGis.CRS.geo ? [point.y, point.x] : [point.x, point.y], {
-                crs: point.crs,
-                color: 'rgb(248,129,181)',
-                size: parseInt(point.size) + 5,
-                image: point.image ? point.image : '',
-                anchorPoint: point.anchorPoint
-            });
+        _removeSelectedListeners: function() {
+            this._selectedFeature.removeListner('dragStart.' + this._ns);
+            this._selectedFeature.removeListner('drag.' + this._ns);
+            this._selectedFeature.removeListner('dragEnd.' + this._ns);
+            this._selectedFeature.removeListner('mousemove.' + this._ns);
+            this._selectedFeature.removeListner('mouseout.' + this._ns);
+            this._selectedFeature.removeListner('dblclick.' + this._ns);
+        },
 
-            tempPoint.addListner('click', doNothing.bind(editor));
-            tempPoint.addListner('dragStart', pointDragStart);
-            tempPoint.addListner('drag', dragPoint);
-            return tempPoint;
+        _dragStartHandler: function(sGisEvent, feature) {
+            if (feature instanceof sGis.feature.Polyline) {
+                this._currentDragInfo = this._getAdjustedEventData(sGisEvent, feature);
+            }
 
-            function dragPoint(sGisEvent) {
-                if (this.crs === editor._map.crs) {
-                    point.x = this.x -= sGisEvent.offset.x;
-                    point.y = this.y -= sGisEvent.offset.y;
+            sGisEvent.draggingObject = feature;
+            sGisEvent.stopPropagation();
+        },
+
+        _dragHandler: function(sGisEvent, feature) {
+            if (feature instanceof sGis.feature.Point) {
+                this._pointDragHandler(sGisEvent, feature);
+            } else if (feature instanceof sGis.feature.Polyline) {
+                this._polylineDragHandler(sGisEvent, feature);
+            }
+        },
+
+        _polylineMousemoveHandler: function(sGisEvent, feature) {
+            var adjustedEvent = this._getAdjustedEventData(sGisEvent, feature);
+            var symbol = adjustedEvent.type === 'line' ? this._snappingPointSymbol : adjustedEvent.type === 'vertex' ? this._snappingVertexSymbol : null;
+
+            if (symbol) {
+                this._snappingPoint.coordinates = adjustedEvent.point;
+                this._snappingPoint.symbol = symbol;
+
+                this._snappingPoint.show();
+            } else {
+                this._snappingPoint.hide();
+            }
+            this._map.redrawLayer(this._snappingLayer);
+        },
+
+        _polylineDblclickHandler: function(sGisEvent, feature) {
+            var adjustedEvent = this._getAdjustedEventData(sGisEvent, feature);
+            if (adjustedEvent.type === 'vertex') {
+                var coordinates = feature.coordinates;
+                if (coordinates[adjustedEvent.ring].length > 2) {
+                    feature.removePoint(adjustedEvent.ring, adjustedEvent.index);
+                    this._saveState();
                 } else {
-                    var tempFeature = this.projectTo(editor._map.crs);
-                    tempFeature.x -= sGisEvent.offset.x;
-                    tempFeature.y -= sGisEvent.offset.y;
-
-                    var projected = tempFeature.projectTo(this.crs);
-                    point.x = this.x = projected.x;
-                    point.y = this.y = projected.y;
+                    if (coordinates.length > 1) {
+                        feature.removeRing(adjustedEvent.ring);
+                        this._saveState();
+                    } else {
+                        this.deleteSelected();
+                    }
                 }
 
-                editor._map.redrawLayer(editor._activeLayer);
-                editor._map.redrawLayer(editor._tempLayer);
-
-                editor.fire('featureMove', {feature: point});
-            }
-
-        },
-        polyline: function(polyline, editor) {
-            var points = polyline.coordinates,
-                tempPolyline = new sGis.feature.Polyline(points, {
-                    crs: polyline.crs,
-                    color: 'rgb(248, 129, 181)',
-                    width: parseInt(polyline.width) + 1
-                }),
-                features = [tempPolyline];
-
-            features = features.concat(getControlPoints(tempPolyline, editor));
-            tempPolyline.addListner('click', addControlPoint);
-            tempPolyline.addListner('dragStart',  function(sGisEvent) {
-                sGisEvent.draggingObject = this;
-            });
-            tempPolyline.addListner('drag', function(sGisEvent) {
-                movePolyline(this, sGisEvent.offset, editor);
-            });
-
-            return features;
-
-            function addControlPoint(sGisEvent) {
-                var index = sGisEvent.intersectionType,
-                    point = sGisEvent.point.projectTo(polyline.crs);
-
-                polyline.insertPoint(index[0], index[1] + 1, polyline.crs === sGis.CRS.geo ? [point.y, point.x] : [point.x, point.y]);
-                updateTempFeature(editor);
-
-                updateTempFeature(editor);
-
+                this._map.redrawLayer(this._activeLayer);
+                this._updateTransformControls();
                 sGisEvent.stopPropagation();
                 sGisEvent.preventDefault();
 
-                editor.fire('featurePointAdd', {feature: polyline});
+                this.fire('featurePointRemove', {feature: feature, pointIndex: adjustedEvent.index, ring: adjustedEvent.ring});
             }
         },
-        polygon: function(polygon, editor) {
 
-            var points = polygon.coordinates;
+        deleteSelected: function() {
+            if (this.allowDeletion && this.selectedFeature) {
+                var feature = this._selectedFeature;
+                this.activeLayer.remove(this.selectedFeature);
+                this.deselect();
 
-            for (var ring = 0, l = points.length; ring < l; ring++) {
-                points[ring].push(points[ring][0]);
+                this._saveDeletion(feature);
+
+                this.fire('featureRemove', {feature: feature});
+            }
+        },
+
+        _getAdjustedEventData: function(sGisEvent, feature) {
+            if (sGisEvent.intersectionType && utils.isArray(sGisEvent.intersectionType)) {
+                var coordinates = feature.coordinates;
+                var ring = sGisEvent.intersectionType[0];
+                if (feature instanceof sGis.feature.Polygon) {
+                    coordinates[ring].push(coordinates[ring][0]);
+                }
+
+                var snappingType = 'bulk';
+                var snappingPoint;
+                var index;
+                var snappingDistance = this.snappingDistance * this._map.resolution;
+                for (var i = 1; i < coordinates[ring].length; i++) {
+                    var distance = sGis.geotools.pointToLineDistance(sGisEvent.point.coordinates, [coordinates[ring][i-1], coordinates[ring][i]]);
+                    if (distance < snappingDistance) {
+                        for (var j = 0; j < 2; j++) {
+                            if (Math.abs(coordinates[ring][i-1+j][0] - sGisEvent.point.x) < snappingDistance && Math.abs(coordinates[ring][i-1+j][1] - sGisEvent.point.y) < snappingDistance) {
+                                snappingPoint = coordinates[ring][i-1+j];
+                                snappingType = 'vertex';
+                                index = i - 1 + j;
+                                break;
+                            }
+                        }
+
+                        if (!snappingPoint) {
+                            snappingPoint = sGis.geotools.pointToLineProjection(sGisEvent.point.coordinates, [coordinates[ring][i-1], coordinates[ring][i]]);
+                            snappingType = 'line';
+                            index = i - 1;
+                        }
+                        break;
+                    }
+                }
+            } else {
+                snappingType = 'bulk';
             }
 
-            var tempPolyline = new sGis.feature.Polyline(points, {
-                    crs: polygon.crs,
-                    color: 'rgb(248, 129, 181)',
-                    width: parseInt(polygon.width) + 1
-                }),
-                features = [tempPolyline];
+            return {point: snappingPoint, type: snappingType, ring: ring, index: index};
+        },
 
-            features = features.concat(getControlPoints(tempPolyline, editor, true));
-            tempPolyline.addListner('click', addControlPoint);
-            tempPolyline.addListner('dragStart',  function(sGisEvent) {
-                if (editor._ignoreEvents) return;
-                sGisEvent.draggingObject = this;
-            });
-            tempPolyline.addListner('drag', function(sGisEvent) {
-                if (editor.ignoreEvents) return;
-                movePolyline(this, sGisEvent.offset, editor);
-            });
+        _polylineMouseoutHandler: function(sGisEvent, feature) {
+            this._snappingPoint.hide();
+            this._map.redrawLayer(this._snappingLayer);
+        },
 
-            if (!polygon.hasListners('dragStart')) {
-                polygon.addListner('dragStart.sGis-editor', function(sGisEvent) {
-                    if (editor._ignoreEvents) return;
-                    sGisEvent.draggingObject = this;
-                });
-                polygon.addListner('drag.sGis-editor', function(sGisEvent) {
-                    if (editor._ignoreEvents) return;
-                    movePolyline(editor._tempLayer.features[0], sGisEvent.offset, editor);
-                });
+        _polylineDragHandler: function(sGisEvent, feature) {
+            var dragInfo = this._currentDragInfo;
+            if (dragInfo.type === 'vertex') {
+                if (!sGisEvent.browserEvent.altKey) {
+                    var snappingPoint = this._getSnappingPoint(sGisEvent.point, this._polylineSnappingFunctions, [feature], {
+                        feature: feature,
+                        ring: dragInfo.ring,
+                        index: dragInfo.index
+                    });
+                }
+                feature.setPoint(dragInfo.ring, dragInfo.index, snappingPoint || sGisEvent.point);
+
+                this.fire('featurePointChange', {feature: feature, pointIndex: dragInfo.index, ring: dragInfo.ring});
+            } else if (dragInfo.type === 'line') {
+                dragInfo.index++;
+                feature.insertPoint(dragInfo.ring, dragInfo.index, sGisEvent.point);
+                dragInfo.type = 'vertex';
+
+                this.fire('featurePointAdd', {feature: feature});
+            } else {
+                feature.move(-sGisEvent.offset.x, -sGisEvent.offset.y);
+                this.fire('featureMove', {feature: feature});
             }
 
-            return features;
+            this._updateTransformControls();
+            this._map.redrawLayer(this._activeLayer);
+        },
 
-            function addControlPoint(sGisEvent) {
-                if (editor._ignoreEvents) return;
-                var index = sGisEvent.intersectionType;
+        _pointDragHandler: function(sGisEvent, feature) {
+            var projected = feature.projectTo(this._map.crs);
+            if (!sGisEvent.browserEvent.altKey) {
+                var snappingPoint = this._getSnappingPoint(sGisEvent.point, this._pointSnappingFunctions, [feature]);
+            }
+            if (snappingPoint) {
+                projected.x = snappingPoint[0];
+                projected.y = snappingPoint[1];
+            } else {
+                projected.x = sGisEvent.point.x;
+                projected.y = sGisEvent.point.y;
+            }
 
-                var point = sGisEvent.point.projectTo(polygon.crs);
+            feature.coordinates = projected.projectTo(feature.crs).coordinates;
+            this._map.redrawLayer(this._activeLayer);
 
-                polygon.insertPoint(index[0], index[1] + 1, polygon.crs === sGis.CRS.geo ? [point.y, point.x] : [point.x, point.y]);
-                updateTempFeature(editor);
+            this.fire('featureMove', {feature: feature});
+        },
 
-                sGisEvent.stopPropagation();
-                sGisEvent.preventDefault();
+        _getSnappingPoint: function(point, functions, exclude, featureData) {
+            var snappingDistance = this.snappingDistance * this._map.resolution;
+            for (var i = 0; i < functions.length; i++) {
+                if (snapping[functions[i]]) var snappingPoint = snapping[functions[i]](point, this._activeLayer, snappingDistance, exclude, featureData);
+                if (snappingPoint) return snappingPoint;
+            }
+        },
 
-                editor.fire('featurePointAdd', {feature: polygon, pointIndex: index + 1});
+        _saveDeletion: function(feature) {
+            this._saveState(null, feature, true)
+        },
+
+        _trimStates: function() {
+            while(this._states.length - 1 > this._currentState) {
+                var state = this._states.pop();
+                this._featureStates[state.feature.id].pop();
+            }
+        },
+
+        _saveOriginalState: function() {
+            var feature = this._selectedFeature;
+            if (!this._featureStates[feature.id]) {
+                this._featureStates[feature.id] = [];
+            }
+
+            if (!this._featureStates[feature.id][0]) {
+                this._featureStates[feature.id].push(feature.coordinates);
+            }
+        },
+
+        _saveState: function(sGisEvent, feature, del) {
+            this._trimStates();
+
+            feature = feature || this._selectedFeature;
+            this._featureStates[feature.id].push(del ? 'del' : feature.coordinates);
+
+            this._states.push({
+                feature: feature,
+                index: this._featureStates[feature.id].length - 1
+            });
+
+            this._limitStateCache();
+            this._currentState = this._states.length - 1;
+        },
+
+
+        _limitStateCache: function() {
+            if (this._states.length > this._maxStatesLength) {
+                var state = this._states.shift();
+                this._featureStates[state.feature.id].splice(state.index, 1);
+            }
+        },
+
+        _setState: function(index) {
+            if (index > this._currentState) {
+                var baseState = this._states[index];
+                if (baseState) var i = baseState.index;
+            } else {
+                baseState = this._states[this._currentState];
+                if (baseState) i = baseState.index - 1;
+            }
+
+            if (baseState) {
+                var feature = baseState.feature;
+                var coordinates = this._featureStates[feature.id][i];
+
+                if (coordinates === 'del') {
+                    if (this._activeLayer.has(feature)) {
+                        this._activeLayer.remove(feature);
+                        this._map.redrawLayer(this._activeLayer);
+                        this._hideTransformControls();
+                        this._map.redrawLayer(this.snappingLayer);
+                    }
+                } else {
+                    if (!this._activeLayer.has(feature)) {
+                        this._activeLayer.add(feature);
+                    }
+
+                    feature.coordinates = coordinates;
+
+                    if (this._selectedFeature !== feature) {
+                        this.select(feature);
+                    } else {
+                        this._map.redrawLayer(this._activeLayer);
+                    }
+                    this._updateTransformControls();
+                }
+
+                this._currentState = index;
+            }
+        },
+
+        undo: function() {
+            this._setState(this._currentState - 1);
+        },
+
+        redo: function() {
+            this._setState(this._currentState + 1);
+        },
+
+        clearStateList: function() {
+            this._states = [];
+            this._currentState = -1;
+            this._featureStates = {};
+        }
+    });
+
+    sGis.utils.proto.setProperties(sGis.controls.Editor.prototype, {
+        allowDeletion: true,
+        snappingDistance: 7,
+        maxStateLength: 32,
+        snappingPointSymbol: { default: new sGis.symbol.point.Point({fillColor: 'red', size: 3}) },
+        snappingVertexSymbol: { default: new sGis.symbol.point.Point({fillColor: 'blue', size: 6}) },
+        pointSnappingFunctions: { default: ['vertex', 'midpoint', 'line'], get: function() { return this._pointSnappingFunctions.concat(); }},
+        polylineSnappingFunctions: { default: ['vertex', 'midpoint', 'line', 'axis', 'orthogonal'], get: function() { return this._polylineSnappingFunctions.concat(); }},
+        rotationControlSymbol: { default: new sGis.symbol.point.Point({offset: {x: 0, y: -30}}) },
+
+        selectedFeature: {
+            default: null,
+            set: function(feature) {
+                this.select(feature);
+            }
+        },
+
+        activeLayer: {
+            default: null,
+            type: sGis.FeatureLayer,
+            set: function(layer) {
+                var isActive = this._isActive;
+                this.deactivate();
+                this._activeLayer = layer;
+                this.isActive = isActive;
+            }
+        },
+
+        isActive: {
+            default: false,
+            get: function() {
+                return this._isActive;
+            },
+            set: function(bool) {
+                if (bool) {
+                    this.activate();
+                } else {
+                    this.deactivate();
+                }
+            }
+        },
+
+        map: {
+            default: null,
+            set: null
+        },
+
+        id: {
+            default: null,
+            set: null
+        }
+    });
+
+    var selectionSymbols = {
+        point: sGis.symbol.editor.Point,
+        polyline: sGis.symbol.editor.Point,
+        polygon: sGis.symbol.editor.Point
+    };
+
+    var snapping = {
+        /**
+         * snaps to vertexes of all features around
+         */
+        vertex: function(point, layer, distance, exclude) {
+            var bbox = new sGis.Bbox([point.x - distance, point.y - distance], [point.x + distance, point.y + distance], point.crs);
+            var features = layer.getFeatures(bbox);
+
+            for (var i = 0; i < features.length; i++) {
+                if (exclude.indexOf(features[i]) !== -1) continue;
+                var feature = features[i].projectTo(point.crs);
+                if (feature instanceof sGis.feature.Point) {
+                    if (Math.abs(feature.x - point.x) < distance && Math.abs(feature.y - point.y) < distance) {
+                        return [feature.x, feature.y];
+                    }
+                } else if (feature instanceof sGis.feature.Polyline) {
+                    var coordinates = feature.coordinates;
+                    for (var ring = 0; ring < coordinates.length; ring++) {
+                        for (var j = 0; j < coordinates[ring].length; j++) {
+                            if (Math.abs(coordinates[ring][j][0] - point.x) < distance && Math.abs(coordinates[ring][j][1] - point.y) < distance) {
+                                return coordinates[ring][j];
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        midpoint: function(point, layer, distance, exclude) {
+            var bbox = new sGis.Bbox([point.x - distance, point.y - distance], [point.x + distance, point.y + distance], point.crs);
+            var features = layer.getFeatures(bbox);
+            for (var i = 0; i < features.length; i++) {
+                if (exclude.indexOf(features[i]) !== -1 || !(features[i] instanceof sGis.feature.Polyline)) continue;
+                var feature = features[i].projectTo(point.crs);
+                var coordinates = feature.coordinates;
+
+                for (var ring = 0; ring < coordinates.length; ring++) {
+                    if (feature instanceof sGis.feature.Polygon) coordinates[ring].push(coordinates[ring][0]);
+
+                    for (var j = 1; j < coordinates[ring].length; j++) {
+                        var midPointX = (coordinates[ring][j][0] + coordinates[ring][j-1][0]) / 2;
+                        var midPointY = (coordinates[ring][j][1] + coordinates[ring][j-1][1]) / 2;
+
+                        if (Math.abs(midPointX - point.x) < distance && Math.abs(midPointY - point.y) < distance) {
+                            return [midPointX, midPointY];
+                        }
+                    }
+                }
+            }
+        },
+
+        line: function(point, layer, distance, exclude) {
+            var bbox = new sGis.Bbox([point.x - distance, point.y - distance], [point.x + distance, point.y + distance], point.crs);
+            var features = layer.getFeatures(bbox);
+            for (var i = 0; i < features.length; i++) {
+                if (exclude.indexOf(features[i]) !== -1 || !(features[i] instanceof sGis.feature.Polyline)) continue;
+                var feature = features[i].projectTo(point.crs);
+                var coordinates = feature.coordinates;
+
+                for (var ring = 0; ring < coordinates.length; ring++) {
+                    if (feature instanceof sGis.feature.Polygon) coordinates[ring].push(coordinates[ring][0]);
+
+                    for (var j = 1; j < coordinates[ring].length; j++) {
+                        var projection = sGis.geotools.pointToLineProjection(point.coordinates, [coordinates[ring][j-1], coordinates[ring][j]]);
+
+                        if (Math.abs(projection[0] - point.x) < distance && Math.abs(projection[1] - point.y) < distance) {
+                            return projection;
+                        }
+                    }
+                }
+            }
+        },
+
+        axis: function(point, layer, distance, exclude, featureData) {
+            var lines = [];
+            var ring = featureData.feature.coordinates[featureData.ring];
+            if (featureData.feature instanceof sGis.feature.Polygon) ring.push(ring[0]);
+            var index = featureData.index;
+
+            if (index < ring.length - 1) {
+                lines.push([ring[index], ring[index + 1]]);
+            }
+            if (index === 0) {
+                if (featureData.feature instanceof sGis.feature.Polygon) lines.push([ring[index], ring[ring.length - 2]]);
+            } else {
+                lines.push([ring[index], ring[index - 1]]);
+            }
+
+            var basePoint = [];
+            for (var i = 0; i < lines.length; i++) {
+                for (var axis = 0; axis < 2; axis++) {
+                    var projection = [lines[i][axis][0], lines[i][(axis + 1)%2][1]];
+                    if (Math.abs(projection[0] - point.x) < distance && Math.abs(projection[1] - point.y) < distance) {
+                        basePoint[(axis+1)%2] = lines[i][1][(axis+1)%2];
+                        break;
+                    }
+                }
+            }
+
+            if (basePoint.length > 0) return [basePoint[0] === undefined ? point.x : basePoint[0], basePoint[1] === undefined ? point.y : basePoint[1]];
+        },
+
+        orthogonal: function(point, layer, distance, exclude, featureData) {
+            var lines = [];
+            var ring = featureData.feature.coordinates[featureData.ring];
+            var index = featureData.index;
+            if (featureData.feature instanceof sGis.feature.Polygon) {
+                var n = ring.length;
+                lines.push([ring[(index+1) % n], ring[(index+2) % n]]);
+                lines.push([ring[(n + index - 1) % n], ring[(n + index - 2) % n]]);
+            } else {
+                if (ring[index+2]) {
+                    lines.push([ring[index+1], ring[index+2]]);
+                }
+                if (ring[index-2]) {
+                    lines.push([ring[index-1], ring[index-2]]);
+                }
+            }
+
+            for (var i = 0; i < lines.length; i++) {
+                var projection = sGis.geotools.pointToLineProjection(point.coordinates, lines[i]);
+                var dx = projection[0] - lines[i][0][0];
+                var dy = projection[1] - lines[i][0][1];
+                if (Math.abs(dx) < distance && Math.abs(dy) < distance) {
+                    var basePoint = [point.x - dx, point.y - dy];
+                    var direction = i === 0 ? 1 : -1;
+                    var nextPoint = n ? ring[(n + index + direction) % n] : ring[index + direction];
+                    var prevPoint = n ? ring[(n + index - direction) % n] : ring[index - direction];
+                    if (nextPoint && prevPoint) {
+                        projection = sGis.geotools.pointToLineProjection(prevPoint, [ring[index], nextPoint]);
+                        if (Math.abs(projection[0] - point.x) < distance && Math.abs(projection[1] - point.y) < distance) {
+                            basePoint = projection;
+                        }
+                    }
+                    return basePoint;
+                }
             }
         }
     };
 
-    function movePolyline(feature, offset, editor) {
-        var tempFeature = feature.projectTo(editor._map.crs),
-            coordinates = tempFeature.coordinates;
-        for (var ring = 0, l = coordinates.length; ring < l; ring++) {
-            for (var i = 0, m = coordinates[ring].length; i < m; i++) {
-                coordinates[ring][i] = [coordinates[ring][i][0] - offset.x, coordinates[ring][i][1] - offset.y];
+})();(function() {
+
+    sGis.controls.Distance = function(map, options) {
+        if (!(map instanceof sGis.Map)) utils.error('sGis.Map instance is expected but got ' + map + ' instead');
+        this._map = map;
+
+        utils.init(this, options);
+
+        this._polylineControl = new sGis.controls.Polyline(map, { activeLayer: options && options.activeLayer, style: {strokeWidth: 2, strokeColor: 'red'} });
+
+        this._polylineControl.addListner('drawingBegin', function() {
+            if (this.activeLayer.features.length > 1) this.activeLayer.features = [this.activeLayer.features[this.activeLayer.features.length - 1]];
+
+            var feature = this.activeLayer.features[this.activeLayer.features.length - 1],
+                coord = feature.coordinates[0],
+                label = new sGis.feature.Label(coord[1], { content: '', style: { offset: { x: 2, y: -22 }, css: 'sGis-distanceLabel', width: 100 }, crs: map.crs });
+
+            this.activeLayer.add(label);
+
+            map.addListner('mousemove.distanceMeasureControl', function() {
+                label.coordinates = feature.coordinates[0][feature.coordinates[0].length - 1];
+                label.content = formatNumber(sGis.geotools.length(feature));
+            });
+        });
+
+        this._polylineControl.addListner('drawingFinish', function() {
+            map.removeListner('mousemove.distanceMeasureControl');
+        });
+    };
+
+    sGis.controls.Distance.prototype = new sGis.Control({
+        _setActiveStatus: function(bool) {
+            this._polylineControl.isActive = bool;
+            this._active = bool;
+
+            if (!bool) {
+                this._polylineControl.activeLayer.features = [];
+                this._map.redrawLayer(this._polylineControl.activeLayer);
             }
         }
+    });
 
-        tempFeature.coordinates = coordinates;
-
-        feature.coordinates = tempFeature.projectTo(feature.crs).coordinates;
-
-        if (editor._selectedFeature.type === 'polygon') {
-            var tempCoord = feature.coordinates;
-            for (var i = 0, len = tempCoord.length; i < len; i++) {
-                tempCoord[i].pop();
-            }
-            editor._selectedFeature.coordinates = tempCoord;
+    function formatNumber(n) {
+        var s;
+        if (n > 10000) {
+            s = '' + (n / 1000).toFixed(2) + 'км';
         } else {
-            editor._selectedFeature.coordinates = feature.coordinates;
+            s = '' + n.toFixed(2) + 'м';
         }
-
-        updateTempFeature(editor);
-        editor.fire('featureMove', { feature: editor._selectedFeature });
+        return s.replace('.', ',');
     }
 
-    function getControlPoints(feature, editor, isPolygon) {
-        var coordinates = feature.coordinates,
-            controlPoints = [];
-
-        if (isPolygon) {
-            for (var ring = 0, l = coordinates.length; ring < l; ring++) {
-                coordinates[ring].pop();
-            }
-        }
-
-        for (var ring = 0, l = coordinates.length; ring < l; ring++) {
-            for (var i = 0, m = coordinates[ring].length; i < m; i++) {
-                var point = new sGis.feature.Point(coordinates[ring][i], {
-                    crs: feature.crs,
-                    color: 'rgb(173, 90, 126)',
-                    size: Math.max(12, parseInt(feature.width) + 4)
-                });
-
-                point.indexInPolyline = {ring: ring, i: i};
-                controlPoints.push(point);
-
-                point.addListner('click', doNothing.bind(editor));
-                point.addListner('dragStart', pointDragStart);
-                point.addListner('drag', dragControlPoint);
-                point.addListner('dblclick', removeControlPoint);
-            }
-        }
-
-        controlPoints = controlPoints.concat(getScalingControls(feature, controlPoints, editor));
-
-        return controlPoints;
-
-        function dragControlPoint(sGisEvent) {
-            if (editor._ignoreEvents) return;
-            if (this.crs === editor._map.crs) {
-                this.x -= sGisEvent.offset.x;
-                this.y -= sGisEvent.offset.y;
-
-                var coordinates = [this.x, this.y];
-            } else {
-                var tempFeature = this.projectTo(editor._map.crs);
-                tempFeature.x -= sGisEvent.offset.x;
-                tempFeature.y -= sGisEvent.offset.y;
-
-                var projected = tempFeature.projectTo(this.crs);
-                this.x = projected.x;
-                this.y = projected.y;
-
-                coordinates = [this.y, this.x];
-            }
-
-            var ring = this.indexInPolyline.ring;
-
-            feature.setPoint(ring, this.indexInPolyline.i, coordinates);
-            if (isPolygon && this.indexInPolyline.i === 0) {
-                feature.setPoint(ring, feature.coordinates[ring].length - 1, coordinates);
-            }
-            editor._selectedFeature.setPoint(this.indexInPolyline.ring, this.indexInPolyline.i, coordinates);
-
-            updateScalingControls(feature, editor);
-
-            editor._map.redrawLayer(editor._activeLayer);
-            editor._map.redrawLayer(editor._tempLayer);
-
-            editor.fire('featurePointChange', {feature: editor._selectedFeature, pointIndex: this.indexInPolyline});
-        }
-
-        function removeControlPoint(sGisEvent) {
-            if (editor._ignoreEvents) return;
-            if (coordinates[this.indexInPolyline.ring].length > 2) {
-                editor._selectedFeature.removePoint(this.indexInPolyline.ring, this.indexInPolyline.i);
-                updateTempFeature(editor);
-
-                editor.fire('featurePointRemove', {feature: editor._selectedFeature, pointIndex: this.indexInPolyline});
-            } else {
-                removeActiveFeature(editor);
-            }
-
-            sGisEvent.stopPropagation();
-            sGisEvent.preventDefault();
-        }
+    function addStyleSheet() {
+        var styleSheet = document.createElement('style');
+        styleSheet.type = 'text/css';
+        styleSheet.innerHTML = '.sGis-distanceLabel {font-family: "PT Sans",Tahoma; font-size: 15px; background-color: rgba(200, 200, 255, 0.8);border: 1px solid black;border-radius: 5px; color: black;}';
+        document.head.appendChild(styleSheet);
     }
 
-    function updateScalingControls(feature, editor) {
-        var featureList = editor._tempLayer.features.slice(0, -9),
-            scalingControls = getScalingControls(feature, featureList.slice(1), editor);
-        editor._tempLayer.features = featureList.concat(scalingControls);
-    }
+    addStyleSheet();
 
-    function getScalingControls(feature, controlPoints, editor) {
-        var bbox = feature.bbox,
-            scalingControls = [],
-            midX = (bbox.p[0].x + bbox.p[1].x) / 2,
-            midY = (bbox.p[0].y + bbox.p[1].y) / 2,
-            symbol = new sGis.symbol.point.Square({size: 7, strokeWidth: 3}),
-            coord = [
-                [[bbox.p[0].x, bbox.p[0].y], [bbox.p[0].x, midY], [bbox.p[0].x, bbox.p[1].y]],
-                [[midX, bbox.p[0].y], [midX, midY], [midX, bbox.p[1].y]],
-                [[bbox.p[1].x, bbox.p[0].y], [bbox.p[1].x, midY], [bbox.p[1].x, bbox.p[1].y]]
-            ];
+})();(function() {
 
-        for (var i = 0; i < 3; i++) {
-            for (var j = 0; j < 3; j++) {
-                if (i !== 1 || j !== 1) {
-                    var point = new sGis.feature.Point(coord[i][j], {crs: feature.crs, symbol: symbol, style: {offset: {x: (i - 1) * 10, y: (1 - j) * 10}}});
-                    point.scaleX = i !== 1;
-                    point.scaleY = j !== 1;
+    sGis.controls.Area = function(map, options) {
+        if (!(map instanceof sGis.Map)) utils.error('sGis.Map instance is expected but got ' + map + ' instead');
+        this._map = map;
 
-                    point.addListner('dragStart', startDrag);
-                    point.addListner('drag', scalingDrag);
+        utils.init(this, options);
 
-                    scalingControls.push(point);
+        this._polygonControl = new sGis.controls.Polygon(map, { activeLayer: options && options.activeLayer, style: { strokeWidth: 2, strokeColor: 'red', fillColor: 'rgba(100, 100, 100, 0.5)' } });
+
+        this._polygonControl.addListner('drawingBegin', function() {
+            if (this.activeLayer.features.length > 1) this.activeLayer.features = [this.activeLayer.features[this.activeLayer.features.length - 1]];
+
+            var feature = this._activeLayer.features[this._activeLayer.features.length - 1],
+                label = new sGis.feature.Label(feature.centroid, { content: '', crs: feature.crs, style: { css: 'sGis-distanceLabel', offset: { x: -50, y: -10 }, width: 120 } });
+
+            this.activeLayer.add(label);
+
+            map.addListner('mousemove.areaMeasureControl', function() {
+                label.coordinates = feature.centroid;
+                label.content = formatNumber(sGis.geotools.area(feature));
+            });
+        });
+
+        this._polygonControl.addListner('drawingFinish', function() {
+            map.removeListner('mousemove.areaMeasureControl');
+        });
+    };
+
+    sGis.controls.Area.prototype = new sGis.Control({
+        _setActiveStatus: function(bool) {
+            this._polygonControl.isActive = bool;
+            this._active = bool;
+
+            if (!bool) {
+                this._polygonControl.activeLayer.features = [];
+                this._map.redrawLayer(this._polygonControl.activeLayer);
+            }
+        }
+    });
+
+    function formatNumber(n) {
+        var s;
+        if (n < 10000) {
+            s = '' + n.toFixed(2) + 'м²';
+        } else if (n < 10000000) {
+            s = '' + (n / 10000).toFixed(2) + 'га';
+        } else {
+            s = '' + (n / 1000000).toFixed(2) + 'км²';
+            if (s.length > 10) {
+                for (var i = s.length - 9; i > 0; i -= 3) {
+                    s = s.substr(0, i) + ' ' + s.substr(i);
                 }
             }
         }
+        return s.replace('.', ',');
+    }
 
-        var rotationControl = new sGis.feature.Point([midX, bbox.p[1].y], {crs: feature.crs, style: {offset: {x: 0, y: -25}}});
-        rotationControl.addListner('dragStart', rotationStart);
-        rotationControl.addListner('drag', rotationDrag);
-        rotationControl.addListner('dragEnd', rotationEnd);
+})();(function() {
 
-        scalingControls.push(rotationControl);
+    sGis.controls.Rectangle = function(map, options) {
+        if (!(map instanceof sGis.Map)) utils.error('sGis.Map instance is expected but got ' + map + ' instead');
+        this._map = map;
 
-        var pointGroup = new sGis.PointGroup(controlPoints.concat(scalingControls));
+        options = options || {};
 
-        return scalingControls;
+        if (options.activeLayer) this.activeLayer = options.activeLayer;
+    };
 
+    sGis.controls.Rectangle.prototype = new sGis.Control({
+        _setActiveStatus: function(active) {
+            var self = this;
+            if (active) {
+                this._map.addListner('dragStart.sGis-RectangleControl', function(sGisEvent) {
+                    self._startDrawing(sGisEvent.point);
 
-        function startDrag(sGisEvent) {
-            if (editor._ignoreEvents) return;
-            sGisEvent.draggingObject = this;
-        }
+                    this.addListner('drag.sGis-RectangleControl', function(sGisEvent) {
+                        self._updateRectangle(sGisEvent.point);
+                        sGisEvent.stopPropagation();
+                        sGisEvent.preventDefault();
+                    });
 
-        function scalingDrag(sGisEvent) {
-            if (editor._ignoreEvents) return;
-            var basePoint = scalingControls[7 - scalingControls.indexOf(this)];
-            if (this.scaleX && this.scaleY) {
-                var scalingPoint = sGisEvent.point.coordinates;
+                    this.addListner('dragEnd.sGis-RectangleControl', function() {
+                        var feature = self._activeFeature;
+                        this.removeListner('drag dragEnd.sGis-RectangleControl');
+                        this._activeFeature = null;
+                        self.fire('drawingFinish', { geom: feature });
+                    });
+
+                    self.fire('drawingStart', { geom: self._activeFeature });
+                });
+
+                this._active = true;
             } else {
-                var scalingPoint = sGis.geotools.pointToLineProjection(sGisEvent.point.coordinates, [this.coordinates, basePoint.coordinates]);
+                this._map.removeListner('.sGis-RectangleControl');
+                this._active = false;
             }
+        },
 
-            var kx = (basePoint.x - scalingPoint[0]) / (basePoint.x - this.x) || 1,
-                ky = (basePoint.y - scalingPoint[1]) / (basePoint.y - this.y) || 1;
+        _startDrawing: function(point) {
+            var coord = point.getCoordinates(),
+                rect = new sGis.feature.Polygon([coord, coord, coord, coord], { crs: point.crs });
 
-            pointGroup.scale([kx, ky], basePoint);
-            feature.scale([kx, ky], basePoint);
-            updateFeatureCoordinates(editor._selectedFeature, feature);
+            this.activeLayer.add(rect);
+            this._activeFeature = rect;
 
-            editor._map.redrawLayer(editor._tempLayer);
-            editor._map.redrawLayer(editor._activeLayer);
+            this._map.redrawLayer(this.activeLayer);
+        },
+
+        _updateRectangle: function(newPoint) {
+            var coord = this._activeFeature.coordinates[0],
+                pointCoord = newPoint.getCoordinates();
+
+            coord = [coord[0], [coord[1][0], pointCoord[1]], pointCoord, [pointCoord[0], coord[3][1]]];
+
+            this._activeFeature.coordinates = coord;
+            this._map.redrawLayer(this.activeLayer);
         }
-
-        function rotationStart(sGisEvent) {
-            if (editor._ignoreEvents) return;
-            sGisEvent.draggingObject = this;
-            this.rotationBase = feature.centroid;
-            editor.fire('rotationStart', sGisEvent);
-        }
-
-        function rotationDrag(sGisEvent) {
-            if (editor._ignoreEvents) return;
-            var alpha1 = this.x === this.rotationBase[0] ? Math.PI / 2 : Math.atan2(this.y - this.rotationBase[1], this.x - this.rotationBase[0]),
-                alpha2 = sGisEvent.point.x === this.rotationBase[0] ? Math.PI / 2 : Math.atan2(sGisEvent.point.y - this.rotationBase[1], sGisEvent.point.x - this.rotationBase[0]),
-                angle = alpha2 - alpha1;
-
-            pointGroup.rotate(angle, this.rotationBase);
-            feature.rotate(angle, this.rotationBase);
-            updateFeatureCoordinates(editor._selectedFeature, feature);
-            updateScalingControls(feature, editor);
-
-            sGisEvent.angle = alpha2 - Math.PI / 2;
-            editor.fire('rotation', sGisEvent);
-
-            editor._map.redrawLayer(editor._tempLayer);
-            editor._map.redrawLayer(editor._activeLayer);
-        }
-
-        function rotationEnd(sGisEvent) {
-            editor.fire('rotationEnd', sGisEvent);
-        }
-    }
-
-    function updateFeatureCoordinates(feature, tempFeature) {
-        if (feature.coordinates[0].length === tempFeature.coordinates[0].length) {
-            feature.coordinates = tempFeature.coordinates;
-        } else {
-            var coord = [];
-            for (var i = 0, len = tempFeature.coordinates.length; i < len; i++) {
-                coord[i] = tempFeature.coordinates[i].slice(0, -1);
-            }
-            feature.coordinates = coord;
-        }
-    }
-
-    function removeActiveFeature(editor) {
-        if (editor._allowDeletion) {
-            var features = editor._tempLayer.features,
-                feature = editor._selectedFeature;
-            editor._activeLayer.remove(feature);
-            for (var i in features) {
-                editor._tempLayer.remove(features[i]);
-            }
-            editor._map.redrawLayer(editor._activeLayer);
-            editor._map.redrawLayer(editor._tempLayer);
-
-            editor._map.removeListner('.sGis-editor');
-
-            editor.fire('featureRemove', {feature: feature});
-        }
-    }
-
-    function updateTempFeature(editor) {
-        var features = editor._tempLayer.features;
-        for (var i in features) {
-            editor._tempLayer.remove(features[i]);
-        }
+    });
 
 
-        var feature = editor._selectedFeature,
-            updatedFeatures = createTempFeature[feature.type](feature, editor);
-        editor._tempLayer.add(updatedFeatures);
-
-        editor._map.redrawLayer(editor._activeLayer);
-        editor._map.redrawLayer(editor._tempLayer);
-    }
-
-    function pointDragStart(sGisEvent) {
-        sGisEvent.draggingObject = this;
-        sGisEvent.stopPropagation();
-    }
 
 })();(function() {
 
@@ -8568,189 +9312,6 @@ function finishDrawing(control) {
 
     document.head.appendChild(buttonStyle);
 
-})();(function() {
-
-    sGis.controls.Area = function(map, options) {
-        if (!(map instanceof sGis.Map)) utils.error('sGis.Map instance is expected but got ' + map + ' instead');
-        this._map = map;
-
-        utils.init(this, options);
-
-        this._polygonControl = new sGis.controls.Polygon(map, { activeLayer: options && options.activeLayer, style: { strokeWidth: 2, strokeColor: 'red', fillColor: 'rgba(100, 100, 100, 0.5)' } });
-
-        this._polygonControl.addListner('drawingBegin', function() {
-            if (this.activeLayer.features.length > 1) this.activeLayer.features = [this.activeLayer.features[this.activeLayer.features.length - 1]];
-
-            var feature = this._activeLayer.features[this._activeLayer.features.length - 1],
-                label = new sGis.feature.Label(feature.centroid, { content: '', crs: feature.crs, style: { css: 'sGis-distanceLabel', offset: { x: -50, y: -10 }, width: 120 } });
-
-            this.activeLayer.add(label);
-
-            map.addListner('mousemove.areaMeasureControl', function() {
-                label.coordinates = feature.centroid;
-                label.content = formatNumber(sGis.geotools.area(feature));
-            });
-        });
-
-        this._polygonControl.addListner('drawingFinish', function() {
-            map.removeListner('mousemove.areaMeasureControl');
-        });
-    };
-
-    sGis.controls.Area.prototype = new sGis.Control({
-        _setActiveStatus: function(bool) {
-            this._polygonControl.isActive = bool;
-            this._active = bool;
-
-            if (!bool) {
-                this._polygonControl.activeLayer.features = [];
-                this._map.redrawLayer(this._polygonControl.activeLayer);
-            }
-        }
-    });
-
-    function formatNumber(n) {
-        var s;
-        if (n < 10000) {
-            s = '' + n.toFixed(2) + 'м²';
-        } else if (n < 10000000) {
-            s = '' + (n / 10000).toFixed(2) + 'га';
-        } else {
-            s = '' + (n / 1000000).toFixed(2) + 'км²';
-            if (s.length > 10) {
-                for (var i = s.length - 9; i > 0; i -= 3) {
-                    s = s.substr(0, i) + ' ' + s.substr(i);
-                }
-            }
-        }
-        return s.replace('.', ',');
-    }
-
-})();(function() {
-
-    sGis.controls.Distance = function(map, options) {
-        if (!(map instanceof sGis.Map)) utils.error('sGis.Map instance is expected but got ' + map + ' instead');
-        this._map = map;
-
-        utils.init(this, options);
-
-        this._polylineControl = new sGis.controls.Polyline(map, { activeLayer: options && options.activeLayer, style: {strokeWidth: 2, strokeColor: 'red'} });
-
-        this._polylineControl.addListner('drawingBegin', function() {
-            if (this.activeLayer.features.length > 1) this.activeLayer.features = [this.activeLayer.features[this.activeLayer.features.length - 1]];
-
-            var feature = this.activeLayer.features[this.activeLayer.features.length - 1],
-                coord = feature.coordinates[0],
-                label = new sGis.feature.Label(coord[1], { content: '', style: { offset: { x: 2, y: -22 }, css: 'sGis-distanceLabel', width: 100 }, crs: map.crs });
-
-            this.activeLayer.add(label);
-
-            map.addListner('mousemove.distanceMeasureControl', function() {
-                label.coordinates = feature.coordinates[0][feature.coordinates[0].length - 1];
-                label.content = formatNumber(sGis.geotools.length(feature));
-            });
-        });
-
-        this._polylineControl.addListner('drawingFinish', function() {
-            map.removeListner('mousemove.distanceMeasureControl');
-        });
-    };
-
-    sGis.controls.Distance.prototype = new sGis.Control({
-        _setActiveStatus: function(bool) {
-            this._polylineControl.isActive = bool;
-            this._active = bool;
-
-            if (!bool) {
-                this._polylineControl.activeLayer.features = [];
-                this._map.redrawLayer(this._polylineControl.activeLayer);
-            }
-        }
-    });
-
-    function formatNumber(n) {
-        var s;
-        if (n > 10000) {
-            s = '' + (n / 1000).toFixed(2) + 'км';
-        } else {
-            s = '' + n.toFixed(2) + 'м';
-        }
-        return s.replace('.', ',');
-    }
-
-    function addStyleSheet() {
-        var styleSheet = document.createElement('style');
-        styleSheet.type = 'text/css';
-        styleSheet.innerHTML = '.sGis-distanceLabel {font-family: "PT Sans",Tahoma; font-size: 15px; background-color: rgba(200, 200, 255, 0.8);border: 1px solid black;border-radius: 5px; color: black;}';
-        document.head.appendChild(styleSheet);
-    }
-
-    addStyleSheet();
-
-})();(function() {
-
-    sGis.controls.Rectangle = function(map, options) {
-        if (!(map instanceof sGis.Map)) utils.error('sGis.Map instance is expected but got ' + map + ' instead');
-        this._map = map;
-
-        options = options || {};
-
-        if (options.activeLayer) this.activeLayer = options.activeLayer;
-    };
-
-    sGis.controls.Rectangle.prototype = new sGis.Control({
-        _setActiveStatus: function(active) {
-            var self = this;
-            if (active) {
-                this._map.addListner('dragStart.sGis-RectangleControl', function(sGisEvent) {
-                    self._startDrawing(sGisEvent.point);
-
-                    this.addListner('drag.sGis-RectangleControl', function(sGisEvent) {
-                        self._updateRectangle(sGisEvent.point);
-                        sGisEvent.stopPropagation();
-                        sGisEvent.preventDefault();
-                    });
-
-                    this.addListner('dragEnd.sGis-RectangleControl', function() {
-                        var feature = self._activeFeature;
-                        this.removeListner('drag dragEnd.sGis-RectangleControl');
-                        this._activeFeature = null;
-                        self.fire('drawingFinish', { geom: feature });
-                    });
-
-                    self.fire('drawingStart', { geom: self._activeFeature });
-                });
-
-                this._active = true;
-            } else {
-                this._map.removeListner('.sGis-RectangleControl');
-                this._active = false;
-            }
-        },
-
-        _startDrawing: function(point) {
-            var coord = point.getCoordinates(),
-                rect = new sGis.feature.Polygon([coord, coord, coord, coord], { crs: point.crs });
-
-            this.activeLayer.add(rect);
-            this._activeFeature = rect;
-
-            this._map.redrawLayer(this.activeLayer);
-        },
-
-        _updateRectangle: function(newPoint) {
-            var coord = this._activeFeature.coordinates[0],
-                pointCoord = newPoint.getCoordinates();
-
-            coord = [coord[0], [coord[1][0], pointCoord[1]], pointCoord, [pointCoord[0], coord[3][1]]];
-
-            this._activeFeature.coordinates = coord;
-            this._map.redrawLayer(this.activeLayer);
-        }
-    });
-
-
-
 })();'use strict';
 
 (function() {
@@ -9102,6 +9663,8 @@ function finishDrawing(control) {
         toString: function(format) {
             if (format === 'hex') {
                 return '#' + decToHex(this.a) + decToHex(this.r) + decToHex(this.g) + decToHex(this.b);
+            } else if (format === 'rgb') {
+                return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
             } else {
                 return 'rgba(' + this.r + ',' + this.g + ',' + this.b + ',' + (this.a / 255).toFixed(7).replace(/\.*0+$/, '') + ')';
             }
@@ -9429,7 +9992,7 @@ function finishDrawing(control) {
         whitesmoke: "f5f5f5",
         yellow: "ff0",
         yellowgreen: "9acd32",
-        transparent: 'rgba(0,0,0,0)'
+        transparent: '0000'
     };
 
 })();'use strict';
@@ -11374,141 +11937,6 @@ function hasLegend(mapItem) {
     return false;
 }
 
-})();'use strict';
-
-(function() {
-
-sGis.spatialProcessor.ClusteringService = function(serverConnector, name, options) {
-    this._serverConnector = serverConnector;
-    this._url = serverConnector.url + name + '/';
-    this._id = utils.getGuid();
-
-    utils.init(this, options);
-};
-
-sGis.spatialProcessor.ClusteringService.prototype = {
-    _map: null,
-    _layer: null,
-    _storageId: null,
-    _click: null,
-    _minSize: 6,
-    _maxSize: 31,
-
-    getClusters: function(options) {
-        // options: {storageId, bbox, resolution, [success, requested, error]}
-        var bbox = options.bbox,
-            bboxString = [bbox.p[0].x, bbox.p[0].y, bbox.p[1].x, bbox.p[1].y].join(','),
-            sizeString = Math.round(bbox.width / options.resolution) + ',' + Math.round(bbox.height / options.resolution);
-
-        utils.ajax({
-            url: this._url + options.storageId + '/?bbox=' + encodeURIComponent(bboxString) + '&size=' + encodeURIComponent(sizeString) + '&_sb=' + this._serverConnector.sessionId,
-            cache: false,
-            success: function(response) {
-                var clusters = utils.parseJSON(response);
-                if (options.success) options.success(clusters);
-            },
-            requested: options.requested,
-            error: options.error
-        });
-    },
-
-    updateClusters: function() {
-        if (this._layer && this._map && this._storageId) {
-            var self = this;
-            this.getClusters({
-                storageId: this._storageId,
-                bbox: this._map.bbox,
-                resolution: this._map.resolution,
-                success: function(clusters) {
-                    self._layer.features = [];
-
-                    var maxSize = 15;
-                    clusters.forEach(function(cluster) {
-                        maxSize = Math.max(cluster.Items.length, maxSize);
-                    });
-
-                    clusters.forEach(function(cluster) {
-                        var size = self._minSize + Math.round((self._maxSize - self._minSize) * (cluster.Items.length / maxSize));
-                        var point = new sGis.feature.Point([cluster.X, cluster.Y], { crs: self._map.crs, size: size, color: 'red' });
-                        point.items = cluster.Items;
-                        if (self._click) point.addListner('click', self._click);
-                        self._layer.add(point);
-                    });
-
-                    self._map.redrawLayer(self._layer);
-                }
-            });
-        }
-    }
-};
-
-Object.defineProperties(sGis.spatialProcessor.ClusteringService.prototype, {
-    map: {
-        get: function() {
-            return this._map;
-        },
-        set: function(map) {
-            if (!(map instanceof sGis.Map)) utils.error('sGis.Map instance is expected but got ' + map + ' instead');
-
-            if (this._map) {
-                this._map.removeListner('.sGis-clusteringService-' + this._id);
-                if (this._layer) this._map.removeLayer(this._layer);
-            }
-
-            if (this._layer && map.getLayerIndex(this._layer === -1)) map.addLayer(this._layer);
-
-            var self = this;
-            map.addListner('bboxChangeEnd.sGis-clusteringService-' + this._id, function() {
-                self.updateClusters();
-            });
-            this._map = map;
-        }
-    },
-
-    layer: {
-        get: function() {
-            return this._layer;
-        },
-        set: function(layer) {
-            if (!(layer instanceof sGis.FeatureLayer)) utils.error('sGis.FeatureLayer instance is expected but got ' + layer + ' instead');
-
-            if (this._map) {
-                if (this._layer) {
-                    this._map.removeLayer(this._layer);
-                }
-                if (this._map.getLayerIndex(layer) === -1) {
-                    this._map.addLayer(layer);
-                }
-            }
-
-            this._layer = layer;
-            this.updateClusters();
-        }
-    },
-
-    storageId: {
-        get: function() {
-            return this._storageId;
-        },
-        set: function(id) {
-            if (!utils.isString(id)) utils.error('String is expected but got ' + id + ' instead');
-
-            this._storageId = id;
-            this.updateClusters();
-        }
-    },
-
-    click: {
-        get: function() {
-            return this._click;
-        },
-        set: function(handler) {
-            if (!(handler instanceof Function)) utils.error('Function is expected but got ' + handler + ' instead');
-            this._click = handler;
-        }
-    }
-});
-
 })(); 'use strict';
 
 (function() {
@@ -12097,6 +12525,88 @@ function parseColor(color) {
         }
     });
 
+})();'use strict';
+
+(function() {
+
+    sGis.spatialProcessor.controller.DitIntegration = function(spatialProcessor, options) {
+        this._map = options.map;
+
+        var self = this;
+        this.__initialize(spatialProcessor, {}, function() {
+            self._mapServer = options.sp.addService('VisualObjectsRendering/' + this._mapServiceId);
+            self._layer = self._mapServer;
+
+            self.fire('initialize');
+        });
+    };
+
+    sGis.spatialProcessor.controller.DitIntegration.prototype = new sGis.spatialProcessor.Controller({
+        _type: 'integrationLayer',
+
+        loadLayerData: function(properties) {
+            var self = this;
+            this.__operation(function() {
+                properties.operation = 'loadLayerData';
+                return properties;
+            });
+        },
+
+        disintegrate: function(properties) {
+            var self = this;
+            this.__operation(function() {
+                var param = 'layerId=' + encodeURIComponent(properties.layerId) + '&moduleId=' + encodeURIComponent(properties.moduleId) + '&shitId=' + encodeURIComponent(properties.queryId);
+                return {operation: 'disintegrate',
+                    dataParameters: param,
+                    requested: properties.requested,
+
+                    success: function() {
+//                        everGis.addMapItem(self._mapItem);
+                        if (properties.success) {
+                            properties.success();
+                        }
+                    }};
+            });
+        },
+
+        fullyDisintegrate: function(properties) {
+            var self = this;
+            this.__operation(function() {
+                var param = 'layerId=' + encodeURIComponent(properties.layerId) + '&moduleId=' + encodeURIComponent(properties.moduleId) + '&shitId=' + encodeURIComponent(properties.queryId);
+                return {operation: 'fullyDisintegrate',
+                    dataParameters: param,
+                    requested: properties.requested,
+
+                    success: function() {
+//                        everGis.addMapItem(self._mapItem);
+                        if (properties.success) {
+                            properties.success();
+                        }
+                    }};
+            });
+        }
+    });
+
+    Object.defineProperties(sGis.spatialProcessor.controller.DitIntegration.prototype, {
+        tree: {
+            get: function() {
+                return this._tree;
+            }
+        },
+
+        isActive: {
+            get: function() {
+                return this._layer.map === null;
+            }
+        },
+
+        mapServer: {
+            get: function() {
+                return this._mapServer;
+            }
+        }
+    });
+
 })();(function() {
 
 sGis.spatialProcessor.controller.ClientLayer = function(spatialProcessor, options) {
@@ -12356,88 +12866,6 @@ function hexToRGBA(hex) {
         B: parseInt(hex.substr(7, 2), 16)
     };
 }
-
-})();'use strict';
-
-(function() {
-
-    sGis.spatialProcessor.controller.DitIntegration = function(spatialProcessor, options) {
-        this._map = options.map;
-
-        var self = this;
-        this.__initialize(spatialProcessor, {}, function() {
-            self._mapServer = options.sp.addService('VisualObjectsRendering/' + this._mapServiceId);
-            self._layer = self._mapServer;
-
-            self.fire('initialize');
-        });
-    };
-
-    sGis.spatialProcessor.controller.DitIntegration.prototype = new sGis.spatialProcessor.Controller({
-        _type: 'integrationLayer',
-
-        loadLayerData: function(properties) {
-            var self = this;
-            this.__operation(function() {
-                properties.operation = 'loadLayerData';
-                return properties;
-            });
-        },
-
-        disintegrate: function(properties) {
-            var self = this;
-            this.__operation(function() {
-                var param = 'layerId=' + encodeURIComponent(properties.layerId) + '&moduleId=' + encodeURIComponent(properties.moduleId) + '&shitId=' + encodeURIComponent(properties.queryId);
-                return {operation: 'disintegrate',
-                    dataParameters: param,
-                    requested: properties.requested,
-
-                    success: function() {
-//                        everGis.addMapItem(self._mapItem);
-                        if (properties.success) {
-                            properties.success();
-                        }
-                    }};
-            });
-        },
-
-        fullyDisintegrate: function(properties) {
-            var self = this;
-            this.__operation(function() {
-                var param = 'layerId=' + encodeURIComponent(properties.layerId) + '&moduleId=' + encodeURIComponent(properties.moduleId) + '&shitId=' + encodeURIComponent(properties.queryId);
-                return {operation: 'fullyDisintegrate',
-                    dataParameters: param,
-                    requested: properties.requested,
-
-                    success: function() {
-//                        everGis.addMapItem(self._mapItem);
-                        if (properties.success) {
-                            properties.success();
-                        }
-                    }};
-            });
-        }
-    });
-
-    Object.defineProperties(sGis.spatialProcessor.controller.DitIntegration.prototype, {
-        tree: {
-            get: function() {
-                return this._tree;
-            }
-        },
-
-        isActive: {
-            get: function() {
-                return this._layer.map === null;
-            }
-        },
-
-        mapServer: {
-            get: function() {
-                return this._mapServer;
-            }
-        }
-    });
 
 })();(function() {
 
@@ -13216,6 +13644,70 @@ Object.defineProperties(sGis.spatialProcessor.DataAccessService.prototype, {
 
 (function() {
 
+    sGis.mapItem.ClientLayer = function(controller, properties) {
+        this.controller = controller;
+        this.__initialize(properties);
+    };
+
+    sGis.mapItem.ClientLayer.prototype = new sGis.MapItem({
+
+    });
+
+    Object.defineProperties(sGis.mapItem.ClientLayer.prototype, {
+        controller: {
+            get: function() {
+                return this._controller;
+            },
+            set: function(controller) {
+                if (!(controller instanceof sGis.spatialProcessor.controller.ClientLayer)) utils.error('sGis.spatialProcessor.controller.ClientLayer instance is expected but got ' + controller + ' instead');
+                this._controller = controller;
+            }
+        },
+
+        mapServer: {
+            get: function() {
+                return this._controller.mapServer;
+            }
+        },
+
+        isActive: {
+            get: function() {
+                return this._active;
+            },
+            set: function(bool) {
+                if (bool) {
+                    this._controller.show();
+                    this.fire('activate');
+                } else {
+                    this._controller.hide();
+                    this.fire('deactivate');
+                }
+            }
+        },
+
+        layerInfo: {
+            get: function() {
+                return this._controller.mapServer.layerInfo[0].LayerInfo;
+            }
+        },
+
+        storageId: {
+            get: function() {
+                return this.layerInfo.storageId;
+            }
+        },
+
+        serverOperations: {
+            get: function() {
+                return [{ FullName: this.controller.mapServer.fullName, Identity: 0, Operation: 'sm' }];
+            }
+        }
+    });
+
+})();'use strict';
+
+(function() {
+
     sGis.mapItem.DynamicServiceLayer = function(options) {
         this.__initialize(options);
 
@@ -13343,72 +13835,27 @@ Object.defineProperties(sGis.spatialProcessor.DataAccessService.prototype, {
                     return null;
                 }
             }
+        },
+
+        geometryType: {
+            get: function() {
+                return this._layerInfo && geometryTypes[this._layerInfo.geometryType];
+            }
+        },
+
+        isEditable: {
+            get: function() {
+                return this._layerInfo && this._layerInfo.CanEdit;
+            }
         }
     });
 
-})();'use strict';
-
-(function() {
-
-    sGis.mapItem.ClientLayer = function(controller, properties) {
-        this.controller = controller;
-        this.__initialize(properties);
+    var geometryTypes = {
+        esriGeometryPoint: 'point',
+        esriGeometryLine: 'line',
+        esriGeometryPolyline: 'polyline',
+        esriGeometryPolygon: 'polygon'
     };
-
-    sGis.mapItem.ClientLayer.prototype = new sGis.MapItem({
-
-    });
-
-    Object.defineProperties(sGis.mapItem.ClientLayer.prototype, {
-        controller: {
-            get: function() {
-                return this._controller;
-            },
-            set: function(controller) {
-                if (!(controller instanceof sGis.spatialProcessor.controller.ClientLayer)) utils.error('sGis.spatialProcessor.controller.ClientLayer instance is expected but got ' + controller + ' instead');
-                this._controller = controller;
-            }
-        },
-
-        mapServer: {
-            get: function() {
-                return this._controller.mapServer;
-            }
-        },
-
-        isActive: {
-            get: function() {
-                return this._active;
-            },
-            set: function(bool) {
-                if (bool) {
-                    this._controller.show();
-                    this.fire('activate');
-                } else {
-                    this._controller.hide();
-                    this.fire('deactivate');
-                }
-            }
-        },
-
-        layerInfo: {
-            get: function() {
-                return this._controller.mapServer.layerInfo[0].LayerInfo;
-            }
-        },
-
-        storageId: {
-            get: function() {
-                return this.layerInfo.storageId;
-            }
-        },
-
-        serverOperations: {
-            get: function() {
-                return [{ FullName: this.controller.mapServer.fullName, Identity: 0, Operation: 'sm' }];
-            }
-        }
-    });
 
 })();'use strict';
 

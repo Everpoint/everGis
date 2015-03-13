@@ -9,37 +9,23 @@
         for (var i = 0; i < keys.length; i++)  {
             var key = keys[i];
 
-            if (properties[key] instanceof Object) {
-                if (properties[key].get === null && properties[key].set === null) {
-                    obj[key] = properties[key].default;
-                } else {
-                    if (properties[key].default !== undefined) {
-                        var enumerable = true;
-
-                        Object.defineProperty(obj, '_' + key, {
-                            enumerable: false,
-                            writable: true,
-                            value: properties[key].default
-                        });
-                    }
-
-                    Object.defineProperty(obj, key, {
-                        enumerable: enumerable,
-                        get: sGis.utils.proto.getGetter(key, properties[key].get),
-                        set: sGis.utils.proto.getSetter(key, properties[key].set, properties[key].type)
-                    });
-                }
+            if (!(properties[key] instanceof Object)) {
+                obj[key] = properties[key];
+            } else if (properties.default !== undefined && properties.get === undefined && properties.set === undefined && properties.type === undefined) {
+                obj[key] = properties[key].default;
             } else {
+                var enumerable = properties.set !== null;
+
                 Object.defineProperty(obj, '_' + key, {
                     enumerable: false,
                     writable: true,
-                    value: properties[key]
+                    value: properties[key].default
                 });
 
                 Object.defineProperty(obj, key, {
-                    enumerable: true,
-                    get: sGis.utils.proto.getGetter(key),
-                    set: sGis.utils.proto.getSetter(key)
+                    enumerable: enumerable,
+                    get: sGis.utils.proto.getGetter(key, properties[key].get),
+                    set: sGis.utils.proto.getSetter(key, properties[key].set, properties[key].type)
                 });
             }
         }

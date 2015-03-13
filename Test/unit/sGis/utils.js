@@ -47,6 +47,12 @@ $(document).ready(function() {
                 expect(obj).toEqual(copy);
                 expect(copy).not.toBe(obj);
             });
+
+            it('should copy Functions as Functions', function() {
+                var obj = {a: function() {}};
+                var copy = utils.copyObject(obj);
+                expect(copy.a).toBe(obj.a);
+            });
         });
     });
 
