@@ -153,6 +153,18 @@
                     requested: properties.requested
                 }
             });
+        },
+
+        removeAll: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.removeAll',
+                    dataParameters: 'queryId=' + properties.queryId,
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
         }
     });
 

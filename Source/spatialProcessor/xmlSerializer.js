@@ -297,7 +297,7 @@
     sGis.spatialProcessor.serializeGeometryEdit = function(editDescription, attributesOnly) {
         var featureList = [];
         for (var i in editDescription) {
-            if (utils.isArray(editDescription[i])) featureList = featureList.concat(editDescription[i]);
+            if (utils.isArray(editDescription[i]) && i !== 'deleted') featureList = featureList.concat(editDescription[i]);
         }
 
         var formatedData = getFormatedData(featureList, attributesOnly);
