@@ -184,7 +184,8 @@
          * @returns {undefined}
          */
         animateSetResolution: function(resolution, basePoint) {
-            var bbox = getScaledBbox(this, resolution, basePoint);
+            var adjustedResolution = this.getAdjustedResolution(resolution);
+            var bbox = getScaledBbox(this, adjustedResolution, basePoint);
             this._animateTo(bbox);
             this.fire('animationStart', {targetBbox: bbox});
             this._resolutionChanged = true;
