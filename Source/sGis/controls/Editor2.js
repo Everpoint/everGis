@@ -609,6 +609,18 @@
             }
         },
 
+        /**
+         * @depricated
+         */
+        activeFeature: {
+            get: function() {
+                return this.selectedFeature;
+            },
+            set: function(feature) {
+                this.selectedFeature = feature;
+            }
+        },
+
         activeLayer: {
             default: null,
             type: sGis.FeatureLayer,
