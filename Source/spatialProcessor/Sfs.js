@@ -2,10 +2,11 @@
 
 (function() {
 
-    sGis.spatialProcessor.Sfs = function(spatialProcessor) {
+    sGis.spatialProcessor.Sfs = function(spatialProcessor, serviceName) {
         if (!(spatialProcessor instanceof sGis.spatialProcessor.Connector)) utils.error('sGis.spatialProcessor.Connector instance is expected but got ' + spatialProcessor + ' instead');
 
         this._spatialProcessor = spatialProcessor;
+        this._serviceName = serviceName;
     };
 
     sGis.spatialProcessor.Sfs.prototype = {
@@ -96,7 +97,7 @@
             function requestOperation() {
                 self._spatialProcessor.removeListner('.sfs');
                 utils.ajax({
-                    url: self._spatialProcessor.url + 'efs/?operation=' + operation + '&path=' + encodeURIComponent(properties.path) + '&_sb=' + self._spatialProcessor.sessionId,
+                    url: self._spatialProcessor.url + self._serviceName + '/?operation=' + operation + '&path=' + encodeURIComponent(properties.path) + '&_sb=' + self._spatialProcessor.sessionId,
                     error: function(data) {
                         if (properties.error) properties.error(data);
                     },
@@ -107,15 +108,5 @@
             }
         }
     };
-
-    function decodeTemplate(base64string) {
-        var string = decodeURIComponent(escape(atob(JSON.parse(base64string))));
-
-        for (var i = string.length - 1; i >= 0; i--) {
-            if (string.charCodeAt(i) !== 0) {
-                return utils.parseJSON(string.substr(0, i + 1));
-            }
-        }
-    }
 
 })();
