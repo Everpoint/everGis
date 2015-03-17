@@ -9,69 +9,79 @@
     };
 
     sGis.spatialProcessor.Sfs.prototype = {
-        getFolderList: function(properties) {
-            var success = properties.success;
-            properties.success = function(data) {
-                var response = JSON.parse(data);
-                if (utils.isArray(response)) {
-                    success(response);
-                } else if (properties.error) {
-                    if (response.Message) {
-                        properties.error(response.Message);
-                    } else {
-                        properties.error('Could not get folder list from server');
-                    }
+        list: function(properties) {
+            var successHandler = properties.success;
+            properties.success = function(response) {
+                if (successHandler) {
+                    var list = utils.parseJSON(response);
+                    successHandler(list);
                 }
-            };
-            this.__operation('listDirectories', properties);
+            }
+
+            this.__operation('list', properties);
         },
 
-        getFileList: function(properties) {
-            var success = properties.success;
-            properties.success = function(data) {
-                var response = JSON.parse(data);
-                if (utils.isArray(response)) {
-                    success(response);
-                } else if (properties.error) {
-                    if (response.Message) {
-                        properties.error(response.Message);
-                    } else {
-                        properties.error('Could not get file list from server');
-                    }
-                }
-            };
-            this.__operation('listFiles', properties);
+        download: function(properties) {
+            this.__operation('download', properties);
         },
 
         getTemplate: function(properties) {
-            var success = properties.success;
-            properties.success = function(data) {
-                try {
-                    var asset = decodeTemplate(data);
-                    utils.message(JSON.stringify(asset));
-                } catch(e) {
-                    if (properties.error) properties.error('Could not decode the template data: ' + data);
-                    return;
-                }
-
-                if (asset.ServerBuilder) {
-                    asset.ServerBuilder = asset.ServerBuilder.replace(/\r/g, '').replace(/\t/g, '').replace(/,\]/g, ']');
-                    try {
-                        asset.ServerBuilder = JSON.parse(asset.ServerBuilder);
-                    } catch(e) {
-                        utils.message('Unsupported format of ServerBuilder');
-                        asset.ServerBuilder = null;
+            var successHandler = properties.success;
+            properties.success = function(response) {
+                //try {
+                    for (var i = response.length - 1; i >= 0; i--) {
+                        if (response.charCodeAt(i) === 0) {
+                            response = response.slice(0, i), response.slice(i + 1);
+                        }
                     }
-                }
 
-                if (asset.JsonVisualDefinition) {
-                    asset.JsonVisualDefinition = sGis.spatialProcessor.parseXML(asset.JsonVisualDefinition);
-                    var template = new sGis.spatialProcessor.Template(asset);
-                }
-
-                success(template || asset);
+                    var asset = utils.parseJSON(response)
+                    var template = new sGis.spatialProcessor.Template(asset, properties.path);
+                    if (successHandler) {
+                        successHandler(template);
+                    }
+                //} catch(e) {
+                //    if (properties.error) properties.error('Could not read the template');
+                //}
             };
-            this.__operation('read', properties);
+
+            this.download(properties);
+        },
+
+        getTemplates: function(properties) {
+            var path = properties.path;
+            var self = this;
+            this.list({
+                path: path,
+                success: function(list) {
+                    var templates = [];
+                    var requestCount = 0;
+                    var responseCount = 0;
+                    for (var i = 0; i < list.length; i++) {
+                        if (list[i].Type === 1 && list[i].Name.split('.').pop() === 'asset') {
+                            requestCount++;
+                            self.getTemplate({
+                                path: list[i].Path,
+                                error: function() {
+                                    responseCount++;
+                                    if (responseCount === requestCount && properties.success) {
+                                        properties.success(templates);
+                                    }
+                                },
+                                success: function(template) {
+                                    templates.push(template);
+                                    responseCount++;
+                                    if (responseCount === requestCount && properties.success) {
+                                        properties.success(templates);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                },
+                error: properties.error,
+                requested: properties.requested
+            });
         },
 
         __operation: function(operation, properties) {
@@ -86,7 +96,7 @@
             function requestOperation() {
                 self._spatialProcessor.removeListner('.sfs');
                 utils.ajax({
-                    url: self._spatialProcessor.url + 'sfs/?operation=' + operation + '&path=' + encodeURIComponent(properties.path) + '&_sb=' + self._spatialProcessor.sessionId,
+                    url: self._spatialProcessor.url + 'efs/?operation=' + operation + '&path=' + encodeURIComponent(properties.path) + '&_sb=' + self._spatialProcessor.sessionId,
                     error: function(data) {
                         if (properties.error) properties.error(data);
                     },

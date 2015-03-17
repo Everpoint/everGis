@@ -57,6 +57,20 @@
                 x = (window.pageXOffset !== undefined) ? window.pageXOffset : (document.documentElement || document.body.parentNode || document.body).scrollLeft,
                 y = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
             return {x: clientRect.left + x, y: clientRect.top + y};
+        },
+
+        imageToDataUrl: function(image) {
+            var width = image.getAttribute('width');
+            var height = image.getAttribute('height');
+
+            var canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(image, 0,0);
+
+            return canvas.toDataURL();
         }
     };
 
