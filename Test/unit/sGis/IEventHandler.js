@@ -25,6 +25,9 @@ $(function() {
                     object.addListener('event1 .namespace1 .namespace2', f);
                     expect(object.hasListeners('event1')).toBe(true);
                     expect(object.hasListeners('namespace1')).toBe(false);
+
+                    var keys = Object.keys(object._eventHandlers);
+                    expect(keys.length).toBe(2);
                 });
 
                 it('should set the handler for different events if several event names are provided', function() {
