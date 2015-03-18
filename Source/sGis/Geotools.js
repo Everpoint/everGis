@@ -95,10 +95,10 @@ sGis.geotools.pointToLineProjection = function(point, line) {
 
 /**
  * Checks if a point is located inside a polygon.
- * @param {Number[]} polygon - coordinates of polygon in format [[[x11, y11], [x12, y12], ...], [x21, y21], [x22, y22], ...], ...]. If there is only one counter outer array can be ommited.
+ * @param {Number[]} polygon - coordinates of polygon in format [[[x11, y11], [x12, y12], ...], [x21, y21], [x22, y22], ...], ...]. If there is only one counter outer array can be omitted.
  * @param {[Number, Number]} point - coordinates of the point [x, y]
  * @param {Number} [tolerance=0] - the tolerance of check. If the point is out of the polygon, but is closer then tolerance, the returned result will be true.
- * @returns {boolean}
+ * @returns {boolean|Array} - true, if the point is inside of polygon, [ring, index] - index of vertex if the point is closer then 'tolerance' to one of the sides of polygon, false otherwise
  */
 sGis.geotools.contains = function(polygon, point, tolerance) {
     sGis.utils.validate(polygon[0], 'array');

@@ -43,32 +43,32 @@ $(function() {
                 expect(sGis.geotools.contains(polygon, [29, -9])).toBe(true);
             });
 
-            it('should return true if the point is on one of the sides', function() {
-                expect(sGis.geotools.contains(polygon, [0, -10])).toBe(true);
-                expect(sGis.geotools.contains(polygon, [-9, -10])).toBe(true);
-                expect(sGis.geotools.contains(polygon, [9, -10])).toBe(true);
-                expect(sGis.geotools.contains(polygon, [-5, 0])).toBe(true);
-                expect(sGis.geotools.contains(polygon, [5, 0])).toBe(true);
+            it('should return [ring, index] if the point is on one of the sides', function() {
+                expect(sGis.geotools.contains(polygon, [0, -10])).toEqual([0,2]);
+                expect(sGis.geotools.contains(polygon, [-9, -10])).toEqual([0,2]);
+                expect(sGis.geotools.contains(polygon, [9, -10])).toEqual([0,2]);
+                expect(sGis.geotools.contains(polygon, [-5, 0])).toEqual([0,0]);
+                expect(sGis.geotools.contains(polygon, [5, 0])).toEqual([0,1]);
             });
 
-            it('should return true if the point is on a side of any ring of polygon', function() {
-                expect(sGis.geotools.contains(polygon, [20, 0])).toBe(true);
-                expect(sGis.geotools.contains(polygon, [25, 10])).toBe(true);
-                expect(sGis.geotools.contains(polygon, [30, 9])).toBe(true);
-                expect(sGis.geotools.contains(polygon, [21, -10])).toBe(true);
+            it('should return [ring, index] if the point is on a side of any ring of polygon', function() {
+                expect(sGis.geotools.contains(polygon, [20, 0])).toEqual([1,0]);
+                expect(sGis.geotools.contains(polygon, [25, 10])).toEqual([1,1]);
+                expect(sGis.geotools.contains(polygon, [30, 9])).toEqual([1,2]);
+                expect(sGis.geotools.contains(polygon, [21, -10])).toEqual([1,3]);
             });
 
-            it('should return true if the point is one of the points of the polygon', function() {
-                expect(sGis.geotools.contains(polygon, polygon[0][0])).toBe(true);
-                expect(sGis.geotools.contains(polygon, polygon[0][1])).toBe(true);
-                expect(sGis.geotools.contains(polygon, polygon[0][2])).toBe(true);
+            it('should return [ring, index] if the point is one of the points of the polygon', function() {
+                expect(sGis.geotools.contains(polygon, polygon[0][0])).toEqual([0,0]);
+                expect(sGis.geotools.contains(polygon, polygon[0][1])).toEqual([0,0]);
+                expect(sGis.geotools.contains(polygon, polygon[0][2])).toEqual([0,1]);
             });
 
-            it('should return true if the point is one of the points of any ring of the polygon', function() {
-                expect(sGis.geotools.contains(polygon, polygon[1][0])).toBe(true);
-                expect(sGis.geotools.contains(polygon, polygon[1][1])).toBe(true);
-                expect(sGis.geotools.contains(polygon, polygon[1][2])).toBe(true);
-                expect(sGis.geotools.contains(polygon, polygon[1][3])).toBe(true);
+            it('should return tr[ring, index]ue if the point is one of the points of any ring of the polygon', function() {
+                expect(sGis.geotools.contains(polygon, polygon[1][0])).toEqual([1,0]);
+                expect(sGis.geotools.contains(polygon, polygon[1][1])).toEqual([1,0]);
+                expect(sGis.geotools.contains(polygon, polygon[1][2])).toEqual([1,1]);
+                expect(sGis.geotools.contains(polygon, polygon[1][3])).toEqual([1,2]);
             });
 
             it('should return false if the point is outside the polygon', function() {
@@ -90,14 +90,14 @@ $(function() {
             it('should correctly understand 3 points in line', function() {
                 var poly = [[[0, 0], [0, 10], [0, 20], [10, 10]]];
                 expect(sGis.geotools.contains(poly, [0, -5])).toBe(false);
-                expect(sGis.geotools.contains(poly, [0, 5])).toBe(true);
-                expect(sGis.geotools.contains(poly, [0, 15])).toBe(true);
+                expect(sGis.geotools.contains(poly, [0, 5])).toEqual([0,0]);
+                expect(sGis.geotools.contains(poly, [0, 15])).toEqual([0,1]);
                 expect(sGis.geotools.contains(poly, [0, 25])).toBe(false);
 
                 poly = [[[0, 0], [10, 0], [20, 0], [10, 10]]];
                 expect(sGis.geotools.contains(poly, [-5, 0])).toBe(false);
-                expect(sGis.geotools.contains(poly, [5, 0])).toBe(true);
-                expect(sGis.geotools.contains(poly, [15, 0])).toBe(true);
+                expect(sGis.geotools.contains(poly, [5, 0])).toEqual([0,0]);
+                expect(sGis.geotools.contains(poly, [15, 0])).toEqual([0,1]);
                 expect(sGis.geotools.contains(poly, [25, 0])).toBe(false);
             });
 
@@ -106,14 +106,14 @@ $(function() {
                 expect(sGis.geotools.contains(simplePolygon, [0, 9])).toBe(true);
                 expect(sGis.geotools.contains(simplePolygon, [-9, -9])).toBe(true);
                 expect(sGis.geotools.contains(simplePolygon, [9, -9])).toBe(true);
-                expect(sGis.geotools.contains(simplePolygon, [0, -10])).toBe(true);
-                expect(sGis.geotools.contains(simplePolygon, [-9, -10])).toBe(true);
-                expect(sGis.geotools.contains(simplePolygon, [9, -10])).toBe(true);
-                expect(sGis.geotools.contains(simplePolygon, [-5, 0])).toBe(true);
-                expect(sGis.geotools.contains(simplePolygon, [5, 0])).toBe(true);
-                expect(sGis.geotools.contains(simplePolygon, simplePolygon[0])).toBe(true);
-                expect(sGis.geotools.contains(simplePolygon, simplePolygon[1])).toBe(true);
-                expect(sGis.geotools.contains(simplePolygon, simplePolygon[2])).toBe(true);
+                expect(sGis.geotools.contains(simplePolygon, [0, -10])).toEqual([0,2]);
+                expect(sGis.geotools.contains(simplePolygon, [-9, -10])).toEqual([0,2]);
+                expect(sGis.geotools.contains(simplePolygon, [9, -10])).toEqual([0,2]);
+                expect(sGis.geotools.contains(simplePolygon, [-5, 0])).toEqual([0,0]);
+                expect(sGis.geotools.contains(simplePolygon, [5, 0])).toEqual([0,1]);
+                expect(sGis.geotools.contains(simplePolygon, simplePolygon[0])).toEqual([0,0]);
+                expect(sGis.geotools.contains(simplePolygon, simplePolygon[1])).toEqual([0,0]);
+                expect(sGis.geotools.contains(simplePolygon, simplePolygon[2])).toEqual([0,1]);
                 expect(sGis.geotools.contains(simplePolygon, [-100, -100])).toBe(false);
                 expect(sGis.geotools.contains(simplePolygon, [-10, 0])).toBe(false);
                 expect(sGis.geotools.contains(simplePolygon, [-5, 8])).toBe(false);
@@ -127,11 +127,11 @@ $(function() {
 
             it('should return true if the point is closer to polygon then tolerance', function() {
                 expect(sGis.geotools.contains(polygon, point, 1)).toBe(true);
-                expect(sGis.geotools.contains(polygon, [-9, -10], 1)).toBe(true);
-                expect(sGis.geotools.contains(polygon, [-10, -10], 1)).toBe(true);
-                expect(sGis.geotools.contains(polygon, [-6, 0], 1)).toBe(true);
-                expect(sGis.geotools.contains(polygon, [0, 11], 1)).toBe(true);
-                expect(sGis.geotools.contains(polygon, [0, -11], 1)).toBe(true);
+                expect(sGis.geotools.contains(polygon, [-9, -10], 1)).toEqual([0,0]);
+                expect(sGis.geotools.contains(polygon, [-10, -10], 1)).toEqual([0,0]);
+                expect(sGis.geotools.contains(polygon, [-6, 0], 1)).toEqual([0,0]);
+                expect(sGis.geotools.contains(polygon, [0, 11], 1)).toEqual([0,0]);
+                expect(sGis.geotools.contains(polygon, [0, -11], 1)).toEqual([0,2]);
                 expect(sGis.geotools.contains(polygon, [0, -11.001], 1)).toBe(false);
             });
         });
