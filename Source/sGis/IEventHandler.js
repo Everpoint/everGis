@@ -63,7 +63,7 @@
 
             if (!this._eventHandlers) this._eventHandlers = {};
 
-            for (var i in types) {
+            for (var i = 0; i < types.length; i++) {
                 if (!this._eventHandlers[types[i]]) this._eventHandlers[types[i]] = [];
                 this._eventHandlers[types[i]].push({handler: handler, namespaces: namespaces});
             }
@@ -96,10 +96,10 @@
             if (!this._eventHandlers) return;
             if (types.length === 0) types = Object.keys(this._eventHandlers);
 
-            for (var i in types) {
+            for (var i = 0; i < types.length; i++) {
                 if (this._eventHandlers[types[i]]) {
                     for (var j = this._eventHandlers[types[i]].length-1; j >=0; j--) {
-                        if ((namespaces === null || namespaces.length === 0 || namespacesIntersect(this._eventHandlers[types[i]][j].namespaces, namespaces)) &&
+                        if ((namespaces === null || namespaces.length === 0 || utils.arrayIntersect(this._eventHandlers[types[i]][j].namespaces, namespaces)) &&
                             (!handler || this._eventHandlers[types[i]][j].handler === handler)) {
                             this._eventHandlers[types[i]].splice(j, 1);
                         }
@@ -109,8 +109,9 @@
         },
 
         addListeners: function(handlers) {
-            for (var type in handlers) {
-                this.addListener(type, handlers[type]);
+            var types = Object.keys(handlers);
+            for (var i = 0; i < types.length; i++) {
+                this.addListener(types[i], handlers[types[i]]);
             }
         },
 
@@ -129,7 +130,7 @@
             if (!utils.isString(type) || !utils.isFunction(handler)) utils.error('Expected the name of the event and handler function, but got (' + type + ', ' + handler + ') instead');
 
             if (this._eventHandlers && this._eventHandlers[type]) {
-                for (var i in this._eventHandlers[type]) {
+                for (var i = 0; i < this._eventHandlers[type].length; i++) {
                     if (this._eventHandlers[type][i].handler === handler) return true;
                 }
             }
@@ -194,7 +195,7 @@
     function getTypes(string) {
         var names = string.match(/\.[A-Za-z0-9_-]+|[A-Za-z0-9_-]+/g),
             types = [];
-        for (var i in names) {
+        for (var i = 0; i < names.length; i++) {
             if (names[i].charAt(0) !== '.') types.push(names[i]);
         }
         return types;
@@ -202,13 +203,6 @@
 
     function getNamespaces(string) {
         return string.match(/\.[A-Za-z0-9_-]+/g) || [];
-    }
-
-    function namespacesIntersect(namespaces1, namespaces2) {
-        for (var i in namespaces1) {
-            if (namespaces2.indexOf(namespaces1[i]) !== -1) return true;
-        }
-        return false;
     }
 
 })();
