@@ -76,56 +76,86 @@ $(function() {
             });
 
             describe('.removeListener()', function() {
-                it('.removeListener() should remove the listener from the object', function () {
-                    var fired = false,
-                        handler = function () {
-                            fired = true;
-                        };
-                    object.addListener('hello', handler);
-
-                    object.removeListener('hello', handler);
-                    expect(object.hasListeners('hello')).toBeFalsy();
-
-                    object.fire('hello');
-                    expect(fired).toBeFalsy();
+                it('should remove the listener from the object', function () {
+                    object.on('event', f);
+                    object.removeListener('event', f);
+                    expect(object.hasListeners('event')).toBe(false);
                 });
 
-                it('.removeListener() should remove all the listeners of the specified namespace', function () {
-                    var fired = false,
-                        handler = function () {
-                            fired = true;
-                        };
-
-                    object.addListener('type.namespace', handler);
-                    expect(object.hasListeners('type')).toBeTruthy();
-
-                    object.removeListener('.namespace', handler);
-                    expect(object.hasListeners('type')).toBeFalsy();
-
-                    object.addListener('type .namespace', function () {
-                    });
-                    object.addListener('type1 .namespace', function () {
-                    });
-                    object.addListener('type2 .namespace1', function () {
-                    });
-
-                    object.removeListener('.namespace');
-
-                    expect(object.hasListeners('type')).toBeFalsy();
-                    expect(object.hasListeners('type1')).toBeFalsy();
-                    expect(object.hasListeners('type2')).toBeTruthy();
+                it('should not remove the other listeners', function() {
+                    var handler = function() {};
+                    object.on('event', f);
+                    object.on('event', handler);
+                    object.removeListener('event', f);
+                    expect(object.hasListener('event', f)).toBe(false);
+                    expect(object.hasListener('event', handler)).toBe(true);
                 });
 
-                it('.removeListener() should remove all listeners if the handler and namespace are not specified', function () {
-                    object.addListener('type1', function () {
-                    });
-                    object.addListener('type1.namespace', function () {
-                    });
-                    object.addListener('type2', function () {
-                    });
+                it('should remove the listener only if it is in the given namespace if the namespace is specified', function() {
+                    object.on('event.ns', f);
+                    object.removeListener('event.ns1', f);
+                    expect(object.hasListener('event', f)).toBe(true);
+                    object.removeListener('event.ns', f);
+                    expect(object.hasListener('event', f)).toBe(false);
 
-                    object.removeListener('type1');
-                    expect(object.hasListeners('type1')).toBeFalsy();
+                    object.on('event.ns', f);
+                    object.removeListener('event', f);
+                    expect(object.hasListener('event', f)).toBe(false);
+                });
+
+                it('should remove the listener if it is in one of the given namespaces', function() {
+                    object.on('event.ns', f);
+                    object.removeListener('event.ns1 .ns', f);
+                    expect(object.hasListener('event', f)).toBe(false);
+                });
+
+                it('should remove all the handlers of the specified type in the namespace if the handler is not specified', function() {
+                    var f1 = function() {};
+                    object.on('event.ns', f);
+                    object.on('event.ns', f1);
+                    object.removeListener('event.ns');
+                    expect(object.hasListeners('event')).toBe(false);
+                });
+
+                it('should remove all the handlers of all the specified namespaces if the handler is not specified', function() {
+                    var f1 = function() {};
+                    var f2 = function() {};
+                    var f3 = function() {};
+
+                    object.on('event.ns', f);
+                    object.on('event.ns', f1);
+                    object.on('event.ns1', f2);
+                    object.on('event.ns1', f3);
+
+                    object.removeListener('event.ns .ns1');
+                    expect(object.hasListeners('event')).toBe(false);
+                });
+
+                it('should throw an exception if event type and namespace are not specified', function() {
+                    expect(function() { object.removeListner(f); }).toThrow();
+                    expect(function() { object.removeListner(1, f); }).toThrow();
+                    expect(function() { object.removeListner([], f); }).toThrow();
+                    expect(function() { object.removeListner({}, f); }).toThrow();
+                    expect(function() { object.removeListner('', f); }).toThrow();
+                });
+
+                it('should throw an exception if no namespace and handler are specified', function() {
+                    expect(function() { object.removeListner('event'); }).toThrow();
+                });
+
+                it('should remove all listeners from the given namespace if no type and handler are specified', function() {
+                    var f1 = function() {};
+                    var f2 = function() {};
+                    var f3 = function() {};
+
+                    object.on('event.ns', f);
+                    object.on('event.ns', f1);
+                    object.on('event.ns1', f2);
+                    object.on('event.ns1', f3);
+
+                    object.removeListener('.ns');
+                    expect(object.hasListeners('event')).toBe(true);
+                    expect(object.hasListeners('event.ns')).toBe(false);
                 });
             });
 

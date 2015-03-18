@@ -66,16 +66,18 @@
         },
 
         removeListener: function(type, handler) {
-            if (!this._eventHandlers) return;
+            if (!utils.isString(type)) utils.error('Expected the name of the event and handler function, but got (' + type + ', ' + handler + ') instead');
 
-            var types = getTypes(type),
-                namespaces = getNamespaces(type);
+            var types = getTypes(type);
+            var namespaces = getNamespaces(type);
 
-            if (types.length === 0) {
-                for (var i in this._eventHandlers) {
-                    types.push(i);
-                }
+            if (namespaces.length === 0) {
+                if (types.length === 0) utils.error('At least one event type or namespace must be specified');
+                if (!handler) utils.error('To remove all listeners of the given type use the .removeAllListeners() method');
             }
+
+            if (!this._eventHandlers) return;
+            if (types.length === 0) types = Object.keys(this._eventHandlers);
 
             for (var i in types) {
                 if (this._eventHandlers[types[i]]) {
