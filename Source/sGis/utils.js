@@ -285,6 +285,15 @@
         return result;
     };
 
+    utils.arrayIntersect = function(arr1, arr2) {
+        for (var i = 0; i < arr1.length; i++) {
+            if (arr2.indexOf(arr1[i]) !== -1) {
+                return true;
+            }
+        }
+        return false;
+    };
+
     utils.ajax = function(properties) {
         var requestType = properties.type ? properties.type : 'GET';
         if (properties.cache === false) properties.url += '&ts=' + new Date().getTime();

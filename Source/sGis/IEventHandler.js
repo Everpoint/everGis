@@ -118,9 +118,29 @@
             return false;
         },
 
-        hasListeners: function(type) {
-            if (!utils.isString(type)) utils.error('Expected the name of the event, but got ' + type + ' instead');
-            return this._eventHandlers && this._eventHandlers[type] && this._eventHandlers[type].length > 0 || false;
+        hasListeners: function(description) {
+            if (!utils.isString(description)) utils.error('Expected the name of the event, but got ' + description + ' instead');
+            if (!this._eventHandlers) return false;
+
+            var types = getTypes(description);
+            var namespaces = getNamespaces(description);
+
+            if (types.length === 0) types = Object.keys(this._eventHandlers);
+
+            for (var i = 0; i < types.length; i++) {
+                if (this._eventHandlers[types[i]] && this._eventHandlers[types[i]].length > 0) {
+                    if (namespaces.length > 0) {
+                        for (var j = 0; j < this._eventHandlers[types[i]].length; j++) {
+                            if (utils.arrayIntersect(this._eventHandlers[types[i]][j].namespaces, namespaces)) {
+                                return true;
+                            }
+                        }
+                    } else {
+                        return true;
+                    }
+                }
+            }
+            return false;
         },
 
         getHandlers: function(type) {

@@ -141,74 +141,100 @@ $(function() {
                 });
             });
 
-            it('.hasListeners() should return true if at least one handler is specified for the event', function () {
-                expect(function () {
-                    object.hasListeners();
-                }).toThrow();
-                expect(function () {
-                    object.hasListeners(1);
-                }).toThrow();
-                expect(function () {
-                    object.hasListeners([]);
-                }).toThrow();
-                expect(function () {
-                    object.hasListeners({});
-                }).toThrow();
+            describe('.hasListener()', function() {
+                it('should return true if the handler is attached to the object', function() {
+                    object.on('event', f);
+                    expect(object.hasListener('event', f)).toBe(true);
 
-                var handler = function () {
-                    },
-                    handler2 = function () {
-                    };
+                    var handler = function() {};
+                    object.on('event1', handler);
+                    expect(object.hasListener('event', f)).toBe(true);
+                    expect(object.hasListener('event1', handler)).toBe(true);
+                });
 
-                expect(object.hasListeners('event')).toBeFalsy();
+                it('should return false if there is no such listener', function() {
+                    expect(object.hasListener('event', f)).toBe(false);
+                    object.on('event', f);
+                    expect(object.hasListener('event1', f)).toBe(false);
+                    expect(object.hasListener('event', function() {})).toBe(false);
+                });
 
-                object.addListener('event', handler);
-                expect(object.hasListeners('event')).toBeTruthy();
-                object.addListener('event', handler2);
-                expect(object.hasListeners('event')).toBeTruthy();
+                it('should throw an exception if the name of event is not valid', function() {
+                    expect(function() { object.hasListener(undefined, f); }).toThrow();
+                    expect(function() { object.hasListener(null, f); }).toThrow();
+                    expect(function() { object.hasListener(1, f); }).toThrow();
+                    expect(function() { object.hasListener([], f); }).toThrow();
+                    expect(function() { object.hasListener({}, f); }).toThrow();
+                });
 
-                object.removeListener('event', handler);
-                expect(object.hasListeners('event')).toBeTruthy();
-                object.removeListener('event', handler2);
-                expect(object.hasListeners('event')).toBeFalsy();
-
-                object.addListener('anotherEvent', handler);
-                expect(object.hasListeners('event')).toBeFalsy();
-
-                object.removeListener('anotherEvent');
-                expect(object.hasListeners('anotherEvent')).toBeFalsy();
-            });
-
-            it('.hasListener() should return true only if the handler is attached to the object', function () {
-                var handler = function () {
-                };
-                expect(object.hasListener('event', handler)).toBeFalsy();
-
-                object.addListener('event', handler);
-                expect(object.hasListener('event', handler)).toBeTruthy();
-
-                object.removeListener('event', handler);
-                expect(object.hasListener('event', handler)).toBeFalsy();
-
-                var handler2 = function () {
-                };
-                object.addListener('event', handler);
-                expect(object.hasListener('event', handler2)).toBeFalsy();
-
-                object.addListener('event', handler2);
-                expect(object.hasListener('event', handler)).toBeTruthy();
-                expect(object.hasListener('event', handler2)).toBeTruthy();
-
-                object.removeListener('event', handler);
-                expect(object.hasListener('event', handler)).toBeFalsy();
-                expect(object.hasListener('event', handler2)).toBeTruthy();
-
-                object.removeListener('event');
+                it('should throw an exception if the handler is not given', function() {
+                    expect(function() { object.hasListner('event'); }).toThrow();
+                });
             });
 
             describe('.hasListner()', function() {
                 it('should be alias for .hasListener', function() {
                     expect(object.hasListner).toBe(object.hasListener);
+                });
+            });
+
+            describe('.hasListeners()', function() {
+                it('should return true if there is at least one handler for the given type of event', function() {
+                    object.on('event', f);
+                    expect(object.hasListeners('event')).toBe(true);
+                    object.on('event', function() {});
+                    expect(object.hasListeners('event')).toBe(true);
+                });
+
+                it('should return false if there are no handlers for the given type of the event', function() {
+                    expect(object.hasListeners('event')).toBe(false);
+                    object.on('event', f);
+                    expect(object.hasListeners('event1')).toBe(false);
+                });
+
+                it('should return true if at least one of the given types of event has handler', function() {
+                    object.on('event', f);
+                    expect(object.hasListeners('event1 event')).toBe(true);
+                });
+
+                it('should return true if there are listeners in the given namespace', function() {
+                    object.on('event.ns', f);
+                    expect(object.hasListeners('.ns')).toBe(true);
+                    expect(object.hasListeners('.ns1')).toBe(false);
+                });
+
+                it('should return true if there are listeners of the given type in the given namespace', function() {
+                    object.on('event.ns', f);
+                    expect(object.hasListeners('event.ns')).toBe(true);
+                    expect(object.hasListeners('event1.ns')).toBe(false);
+                    expect(object.hasListeners('event.ns1')).toBe(false);
+
+                    object.on('event1.ns', f);
+                    object.on('event2.ns', function() {});
+                    object.on('event3.ns1', function() {});
+                    object.on('event3.ns2', function() {});
+
+                    expect(object.hasListeners('.ns')).toBe(true);
+                    expect(object.hasListeners('.ns1')).toBe(true);
+                    expect(object.hasListeners('.ns2')).toBe(true);
+                    expect(object.hasListeners('event1')).toBe(true);
+                    expect(object.hasListeners('event2')).toBe(true);
+                    expect(object.hasListeners('event3')).toBe(true);
+                    expect(object.hasListeners('event3.ns1')).toBe(true);
+                    expect(object.hasListeners('event1.ns1')).toBe(false);
+                    expect(object.hasListeners('event3.ns')).toBe(false);
+                });
+
+                it('should return true if there are listeners in at least one of the given namespaces', function() {
+                    object.on('event.ns', f);
+                    expect(object.hasListeners('.ns1 .ns')).toBe(true);
+                    expect(object.hasListeners('event.ns1 .ns')).toBe(true);
+                });
+            });
+
+            describe('.hasListners()', function() {
+                it('should be alias for .hasListeners', function() {
+                    expect(object.hasListners).toBe(object.hasListeners);
                 });
             });
 
@@ -255,7 +281,7 @@ $(function() {
 
                     object.on('event', f1);
                     object.on('event', f3);
-                    object.on('event', f2);
+                    object.on('vent', f2);
 
                     object.fire('event');
                     expect(rightOrder).toBe(true);
