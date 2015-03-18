@@ -11,8 +11,8 @@ sGis.spatialProcessor.controller.ClientLayer = function(spatialProcessor, option
         this._layer = new sGis.spatialProcessor.MapServer('VisualObjectsRendering/' + this._mapServiceId, this._spatialProcessor, { map: options.map, display: this._display });
         var self = this;
         
-        this._layer.addListner('initialize.sGis-controller-initialization', function() {
-            this.removeListner('.sGis-controller-initialization');
+        this._layer.addListener('initialize.sGis-controller-initialization', function() {
+            this.removeListener('.sGis-controller-initialization');
             self.fire('initialize');
         });
     });

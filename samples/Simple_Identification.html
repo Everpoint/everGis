@@ -27,11 +27,11 @@
                 }),
                 featureLayer = new sGis.FeatureLayer();
         
-            sp.service.osm.addListner('initialize', function() {
+            sp.service.osm.addListener('initialize', function() {
                 sp.map.addLayer(featureLayer);
             });
             
-            sp.map.addListner('click', function(sGisEvent) {
+            sp.map.addListener('click', function(sGisEvent) {
                 featureLayer.features = [];
                 sp.map.moveLayerToIndex(featureLayer, 10);
                 var point = sGisEvent.point,

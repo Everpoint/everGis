@@ -16,8 +16,8 @@
             var self = this;
 
             if (!serverConnector.sessionId) {
-                serverConnector.addListner('sessionInitialized.mapServer-' + name, function() {
-                    serverConnector.removeListner('sessionInitialized.mapServer-' + name);
+                serverConnector.addListener('sessionInitialized.mapServer-' + name, function() {
+                    serverConnector.removeListener('sessionInitialized.mapServer-' + name);
                     self.__initialize(name, serverConnector, options);
                 });
                 return;
@@ -49,9 +49,9 @@
                         self._layerInfo = parsedResponse.LayersInfo;
                         if (self.isEverGis) {
                             self._clientLayerController = new sGis.spatialProcessor.controller.ClientLayer(self._serverConnector, { serviceName: self._name, map: self._map });
-                            self._clientLayerController.addListner('initialize.sGis-mapServer', function() {
-                                this.removeListner('.sGis-mapServer');
-                                self._clientLayerController.mapServer.addListner('legendUpdate', function() {
+                            self._clientLayerController.addListener('initialize.sGis-mapServer', function() {
+                                this.removeListener('.sGis-mapServer');
+                                self._clientLayerController.mapServer.addListener('legendUpdate', function() {
                                     self.fire('legendUpdate');
                                 });
                                 self._initialized = true;
@@ -104,8 +104,8 @@
                     properties.additionalParameters = '_sb=' + this._serverConnector.sessionId;
                 } else {
                     var self = this;
-                    this._serverConnector.addListner('sessionInitialized.mapServer-' + this._name, function() {
-                        self._serverConnector.removeListner('sessionInitialized.mapServer-' + self._name);
+                    this._serverConnector.addListener('sessionInitialized.mapServer-' + this._name, function() {
+                        self._serverConnector.removeListener('sessionInitialized.mapServer-' + self._name);
                         self._layer.additionalParameters = '_sb=' + self._serverConnector.sessionId;
                     });
                 }

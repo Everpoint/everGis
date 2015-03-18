@@ -33,13 +33,13 @@
 
             var point = new sGis.feature.Point([55.755831, 37.617673], {size: 20, color: 'blue', style: { strokeWidth: 3, strokeColor: 'red' }});
 
-            point.addListner('dragStart', function(sGisEvent) {
+            point.addListener('dragStart', function(sGisEvent) {
                 sGisEvent.draggingObject = this;
             });
 
             var outputField = document.getElementById('output');
 
-            point.addListner('drag', function(sGisEvent) {
+            point.addListener('drag', function(sGisEvent) {
                 var projected = point.projectTo(sGis.CRS.webMercator),
                     newPoint = new sGis.Point(projected.x - sGisEvent.offset.x, projected.y - sGisEvent.offset.y, sGisEvent.point.crs),
                     projectedResult = newPoint.projectTo(sGis.CRS.geo);

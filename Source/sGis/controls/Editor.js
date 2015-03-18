@@ -16,13 +16,13 @@
             var features = this.activeLayer.features;
             for (var i = 0; i < features.length; i++) {
                 var feature = features[i];
-                feature.addListner('click.sGis-editor', selectFeature);
+                feature.addListener('click.sGis-editor', selectFeature);
             }
-            this.activeLayer.addListner('featureAdd.sGis-editor', function(sGisEvent) {
-                sGisEvent.feature.addListner('click.sGis-editor', selectFeature);
+            this.activeLayer.addListener('featureAdd.sGis-editor', function(sGisEvent) {
+                sGisEvent.feature.addListener('click.sGis-editor', selectFeature);
             });
-            this.activeLayer.addListner('featureRemove.sGis-editor', function(sGisEvent) {
-                sGisEvent.feature.removeListner('.sGis-editor');
+            this.activeLayer.addListener('featureRemove.sGis-editor', function(sGisEvent) {
+                sGisEvent.feature.removeListener('.sGis-editor');
             });
 
             this._active = true;
@@ -40,7 +40,7 @@
             if (this._active) {
                 if (this._selectedFeature) {
                     this._map.removeLayer(this._tempLayer);
-                    this._map.removeListner('.sGis-editor');
+                    this._map.removeListener('.sGis-editor');
 
                     this.fire('featureDeselect', {feature: this._selectedFeature});
                     this._selectedFeature = null;
@@ -48,9 +48,9 @@
 
                 var features = this._activeLayer.features;
                 for (var i = 0; i < features.length; i++) {
-                    features[i].removeListner('.sGis-editor');
+                    features[i].removeListener('.sGis-editor');
                 }
-                this._activeLayer.removeListner('.sGis-editor');
+                this._activeLayer.removeListener('.sGis-editor');
 
                 this._active = false;
             }
@@ -71,18 +71,18 @@
             this._map.moveLayerToIndex(tempLayer, tempLayerIndex);
             this._map.allowEvent('layerAdd');
 
-            feature.removeListner('click.sGis-editor');
-            feature.addListner('click.sGis-editor', doNothing.bind(this));
+            feature.removeListener('click.sGis-editor');
+            feature.addListener('click.sGis-editor', doNothing.bind(this));
 
             var self = this;
 
             this._tempLayer = tempLayer;
             this._selectedFeature = feature;
-            this._map.addListner('click.sGis-editor', function(sGisEvent) {
+            this._map.addListener('click.sGis-editor', function(sGisEvent) {
                 if (!self._deselectProhibited) self.deselectFeature();
             });
-            this._map.addListner('keydown.sGis-editor', onkeydown);
-            this._map.addListner('layerRemove.sGis-editor', function(sGisEvent) {
+            this._map.addListener('keydown.sGis-editor', onkeydown);
+            this._map.addListener('layerRemove.sGis-editor', function(sGisEvent) {
                 if (sGisEvent.layer === self.activeLayer) {
                     self.deselectFeature();
                     self._activeLayer = null;
@@ -107,9 +107,9 @@
                 self = this;
 
             this._map.removeLayer(this._tempLayer);
-            this._map.removeListner('.sGis-editor');
-            feature.removeListner('.sGis-editor');
-            feature.addListner('click.sGis-editor', function(sGisEvent) {
+            this._map.removeListener('.sGis-editor');
+            feature.removeListener('.sGis-editor');
+            feature.addListener('click.sGis-editor', function(sGisEvent) {
                 self.selectFeature(feature);
                 sGisEvent.stopPropagation();
                 sGisEvent.preventDefault();
@@ -171,9 +171,9 @@
                 anchorPoint: point.anchorPoint
             });
 
-            tempPoint.addListner('click', doNothing.bind(editor));
-            tempPoint.addListner('dragStart', pointDragStart);
-            tempPoint.addListner('drag', dragPoint);
+            tempPoint.addListener('click', doNothing.bind(editor));
+            tempPoint.addListener('dragStart', pointDragStart);
+            tempPoint.addListener('drag', dragPoint);
             return tempPoint;
 
             function dragPoint(sGisEvent) {
@@ -207,11 +207,11 @@
                 features = [tempPolyline];
 
             features = features.concat(getControlPoints(tempPolyline, editor));
-            tempPolyline.addListner('click', addControlPoint);
-            tempPolyline.addListner('dragStart',  function(sGisEvent) {
+            tempPolyline.addListener('click', addControlPoint);
+            tempPolyline.addListener('dragStart',  function(sGisEvent) {
                 sGisEvent.draggingObject = this;
             });
-            tempPolyline.addListner('drag', function(sGisEvent) {
+            tempPolyline.addListener('drag', function(sGisEvent) {
                 movePolyline(this, sGisEvent.offset, editor);
             });
 
@@ -248,22 +248,22 @@
                 features = [tempPolyline];
 
             features = features.concat(getControlPoints(tempPolyline, editor, true));
-            tempPolyline.addListner('click', addControlPoint);
-            tempPolyline.addListner('dragStart',  function(sGisEvent) {
+            tempPolyline.addListener('click', addControlPoint);
+            tempPolyline.addListener('dragStart',  function(sGisEvent) {
                 if (editor._ignoreEvents) return;
                 sGisEvent.draggingObject = this;
             });
-            tempPolyline.addListner('drag', function(sGisEvent) {
+            tempPolyline.addListener('drag', function(sGisEvent) {
                 if (editor.ignoreEvents) return;
                 movePolyline(this, sGisEvent.offset, editor);
             });
 
-            if (!polygon.hasListners('dragStart')) {
-                polygon.addListner('dragStart.sGis-editor', function(sGisEvent) {
+            if (!polygon.hasListeners('dragStart')) {
+                polygon.addListener('dragStart.sGis-editor', function(sGisEvent) {
                     if (editor._ignoreEvents) return;
                     sGisEvent.draggingObject = this;
                 });
-                polygon.addListner('drag.sGis-editor', function(sGisEvent) {
+                polygon.addListener('drag.sGis-editor', function(sGisEvent) {
                     if (editor._ignoreEvents) return;
                     movePolyline(editor._tempLayer.features[0], sGisEvent.offset, editor);
                 });
@@ -336,10 +336,10 @@
                 point.indexInPolyline = {ring: ring, i: i};
                 controlPoints.push(point);
 
-                point.addListner('click', doNothing.bind(editor));
-                point.addListner('dragStart', pointDragStart);
-                point.addListner('drag', dragControlPoint);
-                point.addListner('dblclick', removeControlPoint);
+                point.addListener('click', doNothing.bind(editor));
+                point.addListener('dragStart', pointDragStart);
+                point.addListener('drag', dragControlPoint);
+                point.addListener('dblclick', removeControlPoint);
             }
         }
 
@@ -422,8 +422,8 @@
                     point.scaleX = i !== 1;
                     point.scaleY = j !== 1;
 
-                    point.addListner('dragStart', startDrag);
-                    point.addListner('drag', scalingDrag);
+                    point.addListener('dragStart', startDrag);
+                    point.addListener('drag', scalingDrag);
 
                     scalingControls.push(point);
                 }
@@ -431,9 +431,9 @@
         }
 
         var rotationControl = new sGis.feature.Point([midX, bbox.p[1].y], {crs: feature.crs, style: {offset: {x: 0, y: -25}}});
-        rotationControl.addListner('dragStart', rotationStart);
-        rotationControl.addListner('drag', rotationDrag);
-        rotationControl.addListner('dragEnd', rotationEnd);
+        rotationControl.addListener('dragStart', rotationStart);
+        rotationControl.addListener('drag', rotationDrag);
+        rotationControl.addListener('dragEnd', rotationEnd);
 
         scalingControls.push(rotationControl);
 
@@ -520,7 +520,7 @@
             editor._map.redrawLayer(editor._activeLayer);
             editor._map.redrawLayer(editor._tempLayer);
 
-            editor._map.removeListner('.sGis-editor');
+            editor._map.removeListener('.sGis-editor');
 
             editor.fire('featureRemove', {feature: feature});
         }

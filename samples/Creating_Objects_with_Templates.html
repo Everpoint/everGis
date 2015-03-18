@@ -28,14 +28,14 @@
             services: ['osm']
         });
 
-        sp.service.osm.addListner('initialize', function() {
+        sp.service.osm.addListener('initialize', function() {
             sp.addController('clientLayer', {serviceName: 'eg_layer1'});
             
             var featureLayer = new sGis.FeatureLayer();
             sp.map.addLayer(featureLayer);
 
             var polygonControl = new sGis.controls.Polygon(sp.map, {activeLayer: featureLayer, style: {strokeColor: 'blue', fillColor: 'rgba(100, 255, 255, 0.5)', strokeWidth: 5}});
-            polygonControl.addListner('drawingFinish', addFeature);
+            polygonControl.addListener('drawingFinish', addFeature);
             polygonControl.activate();
 
             function addFeature(sGisEvent) {

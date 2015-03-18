@@ -12,9 +12,9 @@
 
         if (mapServer.serviceInfo) this.__onServiceInfoUpdate();
         if (mapServer.legend) this.__onLegendUpdate();
-        mapServer.addListner('initialize', function() { self.__onServiceInfoUpdate(); });
-        mapServer.addListner('legendUpdate', function() { self.__onLegendUpdate(); });
-        mapServer.addListner('layerVisibilityChange', function() {
+        mapServer.addListener('initialize', function() { self.__onServiceInfoUpdate(); });
+        mapServer.addListener('legendUpdate', function() { self.__onLegendUpdate(); });
+        mapServer.addListener('layerVisibilityChange', function() {
             self.__onLayerVisibilityChange();
         });
     };
@@ -66,7 +66,7 @@
                     } else {
                         children[serviceInfo.layers[i].parentLayerId].addChild(children[serviceInfo.layers[i].id]);
                     }
-                    children[serviceInfo.layers[i].id].addListner('activate deactivate', function() {
+                    children[serviceInfo.layers[i].id].addListener('activate deactivate', function() {
                         self.__updateLayerVisibility();
                     });
                 }

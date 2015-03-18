@@ -36,15 +36,15 @@
                 }),
                 featureLayer = new sGis.FeatureLayer();
 
-            sp.service.osm.addListner('initialize', function() {
+            sp.service.osm.addListener('initialize', function() {
                 var POINT_NUMBER = 500;
                 var POLYGON_NUMBER = 100;
                 var symbol = new sGis.symbol.point.Image({renderToCanvas: false});
 
                 for (var i = 0; i < POINT_NUMBER; i++) {
                     var point = new sGis.feature.Point(getRandomCoordinates(), { crs: sp.map.crs, symbol: symbol });
-                    point.addListner('mouseover', pointmouseover);
-                    point.addListner('mouseout', pointmouseout);
+                    point.addListener('mouseover', pointmouseover);
+                    point.addListener('mouseout', pointmouseout);
 
                     featureLayer.add(point);
                 }
@@ -52,8 +52,8 @@
                 for (var i = 0; i < POLYGON_NUMBER; i++) {
                     var point = getRandomCoordinates();
                     var polygon = new sGis.feature.Polygon([point, [point[0] + 10000, point[1] + 10000], [point[0] + 20000, point[1]]], { crs: sp.map.crs, fillColor: 'blue' });
-                    polygon.addListner('mouseover', polygonmouseover);
-                    polygon.addListner('mouseout', polygonmouseout);
+                    polygon.addListener('mouseover', polygonmouseover);
+                    polygon.addListener('mouseout', polygonmouseout);
 
                     featureLayer.add(polygon);
                 }

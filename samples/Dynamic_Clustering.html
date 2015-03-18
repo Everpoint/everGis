@@ -46,7 +46,7 @@
             var featureLayer = new sGis.FeatureLayer();
 
 
-            sp.service.evergisjs_mrc_test.addListner('initialize', function() {
+            sp.service.evergisjs_mrc_test.addListener('initialize', function() {
                 var clusteringService = new sGis.spatialProcessor.ClusteringService(sp.connector, 'ClusterService', {
                     map: sp.map,
                     layer: featureLayer,

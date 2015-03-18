@@ -106,7 +106,7 @@
                 population.opacity = 0.5;
 //                map.addLayer(population);
 
-                map.addListner('click', function(sGisEvent) {
+                map.addListener('click', function(sGisEvent) {
                     alert(JSON.stringify(map.position.projectTo(sGis.CRS.geo)));
                 } );
 

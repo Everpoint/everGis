@@ -31,7 +31,7 @@
             }),
                 featureLayer = new sGis.FeatureLayer();            
     
-            sp.service.osm.addListner('initialize', function() {
+            sp.service.osm.addListener('initialize', function() {
                 sp.map.addLayer(featureLayer);
             });
             document.getElementById('queryButton').onclick = search;
@@ -102,7 +102,7 @@
             }
             
             // If enter key is pressed perform search
-            sp.map.addListner('keypress', function(sGisEvent) {
+            sp.map.addListener('keypress', function(sGisEvent) {
                 if (sGisEvent.browserEvent.which === 13) {
                     search();
                 }

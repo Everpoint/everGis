@@ -32,7 +32,7 @@
             sp.map.addLayer(featureLayer);
             sp.controller.identify.hide();
         
-            sp.map.addListner('click', function(sGisEvent) {
+            sp.map.addListener('click', function(sGisEvent) {
                 var buffer = sp.map.resolution * 5,
                     point = sGisEvent.point,
                     identifyPolygon = new sGis.feature.Polygon([[point.x - buffer, point.y - buffer], [point.x - buffer, point.y + buffer], [point.x + buffer, point.y + buffer], [point.x + buffer, point.y - buffer]]);
@@ -80,7 +80,7 @@
                                 sp.map.wrapper.appendChild(player);                                
 
                                 function closeMaptip() {
-                                    sp.map.removeListner('.player');
+                                    sp.map.removeListener('.player');
                                     featureLayer.features = [];
                                     if (player) {
                                         sp.map.wrapper.removeChild(player);
@@ -89,7 +89,7 @@
                                     sp.map.redrawLayer(featureLayer);
                                 }
 
-                                sp.map.addListner('bboxChange.player', updatePlayerPosition);
+                                sp.map.addListener('bboxChange.player', updatePlayerPosition);
 
                                 function updatePlayerPosition() {
                                     var offset = sp.map.getPxPosition(position);
@@ -100,12 +100,12 @@
 
                                 var startResolution, startBbox;
 
-                                sp.map.addListner('animationStart.player', function() {
+                                sp.map.addListener('animationStart.player', function() {
                                     startResolution = sp.map.resolution;
                                     startBbox = sp.map.bbox;
                                 });
 
-                                sp.map.addListner('animationFrame.player', function() {
+                                sp.map.addListener('animationFrame.player', function() {
                                     var scale = startResolution / sp.map.resolution,
                                         offset = sp.map.getPxPosition(position);
 
@@ -115,7 +115,7 @@
                                     player.style.transform = 'scale(' + scale + ')';
                                 });
 
-                                sp.map.addListner('animationEnd.player', function() {
+                                sp.map.addListener('animationEnd.player', function() {
                                     updatePlayerPosition();
                                     player.style.transform = 'scale(1)';
                                 });

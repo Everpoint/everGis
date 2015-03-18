@@ -50,16 +50,16 @@
                 }
                 
                 var label = new sGis.feature.Label([0,0], {content: '', crs: sp.map.crs, style: {offset: {x: 5, y: -20}, align: 'left'}});
-                editor.addListner('rotationStart', function(sGisEvent) {
+                editor.addListener('rotationStart', function(sGisEvent) {
                     featureLayer.add(label);
                 });
                 
-                editor.addListner('rotation', function(sGisEvent) {
+                editor.addListener('rotation', function(sGisEvent) {
                     label.coordinates = sGisEvent.point;
                     label.content = '' + (sGisEvent.angle * 180 / Math.PI).toFixed(2) + '°';
                 });
                 
-                editor.addListner('rotationEnd', function(sGisEvent) {
+                editor.addListener('rotationEnd', function(sGisEvent) {
                     featureLayer.remove(label);
                     sp.map.redrawLayer(featureLayer);
                 });

@@ -47,7 +47,7 @@
             this.forwardEvent(sGisEvent);
         },
 
-        addListner: function(type, handler) {
+        addListener: function(type, handler) {
             if (!(handler instanceof Function)) utils.error('Function is expected but got ' + handler + ' instead');
             if (!utils.isString(type)) utils.error('String is expected but got ' + type + ' instead');
 
@@ -58,7 +58,7 @@
 
             for (var i in types) {
                 if (!this._eventHandlers[types[i]]) this._eventHandlers[types[i]] = [];
-                if (this.hasListner(types[i], handler)) {
+                if (this.hasListener(types[i], handler)) {
                     this._eventHandlers[types[i]].namespaces = utils.merge(this._eventHandlers[types[i]].namespaces, namespaces);
                 } else {
                     this._eventHandlers[types[i]].push({handler: handler, namespaces: namespaces});
@@ -66,7 +66,7 @@
             }
         },
 
-        removeListner: function(type, handler) {
+        removeListener: function(type, handler) {
             if (!this._eventHandlers) return;
 
             var types = getTypes(type),
@@ -90,9 +90,9 @@
             }
         },
 
-        addListners: function(handlers) {
+        addListeners: function(handlers) {
             for (var type in handlers) {
-                this.addListner(type, handlers[type]);
+                this.addListener(type, handlers[type]);
             }
         },
 
@@ -107,7 +107,7 @@
             if (index !== -1) this._prohibitedEvents.splice(index, 1);
         },
 
-        hasListner: function(type, handler) {
+        hasListener: function(type, handler) {
             if (!utils.isString(type) || !utils.isFunction(handler)) utils.error('Expected the name of the event and handler function, but got (' + type + ', ' + handler + ') instead');
 
             if (this._eventHandlers && this._eventHandlers[type]) {
@@ -119,9 +119,9 @@
             return false;
         },
 
-        hasListners: function(type) {
+        hasListeners: function(type) {
             if (!utils.isString(type)) utils.error('Expected the name of the event, but got ' + type + ' instead');
-            return this._eventHandlers && this._eventHandlers[type] && this._eventHandlers[type].length > 0;
+            return this._eventHandlers && this._eventHandlers[type] && this._eventHandlers[type].length > 0 || false;
         },
 
         getHandlers: function(type) {
@@ -133,6 +133,14 @@
         }
 
     };
+
+    // Deprecated names
+    sGis.IEventHandler.prototype.addListner = sGis.IEventHandler.prototype.addListener;
+    sGis.IEventHandler.prototype.addListners = sGis.IEventHandler.prototype.addListeners;
+    sGis.IEventHandler.prototype.removeListner = sGis.IEventHandler.prototype.removeListener;
+    sGis.IEventHandler.prototype.hasListner = sGis.IEventHandler.prototype.hasListener;
+    sGis.IEventHandler.prototype.hasListners = sGis.IEventHandler.prototype.hasListeners;
+
 
     function getTypes(string) {
         var names = string.match(/\.[A-Za-z0-9_-]+|[A-Za-z0-9_-]+/g),

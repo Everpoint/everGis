@@ -33,9 +33,9 @@
     sGis.controls.Point.prototype = new sGis.Control({
         _setActiveStatus: function(isActive) {
             if (isActive) {
-                this._map.addListner('click.sGis-point', this._addPoint);
+                this._map.addListener('click.sGis-point', this._addPoint);
             } else {
-                this._map.removeListner('click.sGis-point', this._addPoint);
+                this._map.removeListener('click.sGis-point', this._addPoint);
             }
             this._active = isActive;
         }

@@ -52,36 +52,36 @@
                 lineControl.activeLayer = featureLayer;
                 lineControl.activate();
                 
-                lineControl.addListner('drawingBegin', function() {
+                lineControl.addListener('drawingBegin', function() {
                     var feature = featureLayer.features[featureLayer.features.length - 1],
                         coord = feature.coordinates[0],
                         label = new sGis.feature.Label(coord[1], {content: '', style: {offset: {x: 2, y: -22}, css: 'distanceLabel', width: 100}, crs: sp.map.crs});
                         
                     featureLayer.add(label);
                         
-                    sp.map.addListner('mousemove.printingCoord', function() {
+                    sp.map.addListener('mousemove.printingCoord', function() {
                         label.coordinates = feature.coordinates[0][feature.coordinates[0].length - 1];
                         label.content = '' + sGis.geotools.length(feature).toFixed(2) + 'м';
                     });
                 });
                 
-                lineControl.addListner('pointAdd', showCoordinates);
+                lineControl.addListener('pointAdd', showCoordinates);
                 
                 polygonControl.activeLayer = featureLayer;
                 
-                polygonControl.addListner('drawingBegin', function() {
+                polygonControl.addListener('drawingBegin', function() {
                     var feature = featureLayer.features[featureLayer.features.length - 1],
                         label = new sGis.feature.Label(feature.centroid, {content: '', crs: feature.crs, style: {css: 'distanceLabel', offset: {x: -50, y: -10}, width: 100}});
                         
                     featureLayer.add(label);
                     
-                    sp.map.addListner('mousemove.printingCoord', function() {
+                    sp.map.addListener('mousemove.printingCoord', function() {
                         label.coordinates = feature.centroid;
                         label.content = '' + (sGis.geotools.area(feature) / 10000).toFixed(2) + 'га';
                     });
                 });
                 
-                polygonControl.addListner('pointAdd', showCoordinates);
+                polygonControl.addListener('pointAdd', showCoordinates);
                 
                 function showCoordinates(sGisEvent) {
                     var coord = this.activeFeature.coordinates,

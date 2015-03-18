@@ -111,16 +111,16 @@
 
             maptip.content = html;
             
-            point.addListner('click', function() {
+            point.addListener('click', function() {
                 maptip.show();
                 sp.map.redrawLayer(featureLayer);
             });
             
-            maptip.addListner('dragStart', function(sGisEvent) {
+            maptip.addListener('dragStart', function(sGisEvent) {
                 sGisEvent.draggingObject = this;
                 sGisEvent.stopPropagation();                        
             });
-            maptip.addListner('drag', function(sGisEvent) {
+            maptip.addListener('drag', function(sGisEvent) {
                 maptip.style.offset = {x: maptip.style.offset.x - sGisEvent.offset.xPx, y: maptip.style.offset.y - sGisEvent.offset.yPx};
                 sp.map.redrawLayer(featureLayer);
             });

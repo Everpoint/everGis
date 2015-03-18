@@ -30,7 +30,7 @@
                 }),
                 output = document.getElementById('output');
                 
-            sp.service.osm.addListner('initialize', function() {
+            sp.service.osm.addListener('initialize', function() {
                 sp.service.evergisjs_mrc_test.activeLayers = [0, 1];
 
                 var drawingControl = new sGis.controls.Polygon(sp.map);
@@ -39,7 +39,7 @@
                 var featureLayer = new sGis.FeatureLayer();
                 sp.map.addLayer(featureLayer);
             
-                drawingControl.addListner('drawingFinish', function(sGisEvent) {
+                drawingControl.addListener('drawingFinish', function(sGisEvent) {
                     output.innerHTML = 'Ожидаем ответ от сервера...';
 
                     sp.controller.identify.identify({geometry: sGisEvent.geom, success: function() {

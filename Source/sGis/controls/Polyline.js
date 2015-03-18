@@ -26,8 +26,8 @@
                     self.fire('pointAdd');
                 } else {
                     self._activeFeature = createNewPolyline(self.activeLayer, point, {style: self._prototype.style, symbol: self._prototype.symbol, crs: self._map.crs});
-                    self._map.addListner('mousemove.sGis-polyline', self._mousemoveHandler);
-                    self._map.addListner('dblclick.sGis-polyline', self._dblclickHandler);
+                    self._map.addListener('mousemove.sGis-polyline', self._mousemoveHandler);
+                    self._map.addListener('dblclick.sGis-polyline', self._dblclickHandler);
 
                     self._activeFeature.prohibitEvent('click');
 
@@ -62,10 +62,10 @@
     sGis.controls.Polyline.prototype = new sGis.Control({
         _setActiveStatus: function(isActive) {
             if (isActive) {
-                this._map.addListner('click.sGis-polyline', this._clickHandler);
+                this._map.addListener('click.sGis-polyline', this._clickHandler);
             } else {
                 if (this._activeFeature) finishDrawing(this);
-                this._map.removeListner('click.sGis-polyline', this._clickHandler);
+                this._map.removeListener('click.sGis-polyline', this._clickHandler);
             }
             this._active = isActive;
         },
@@ -118,8 +118,8 @@
             var geom = control._activeFeature;
         }
 
-        control._map.removeListner('mousemove.sGis-polyline');
-        control._map.removeListner('dblclick.sGis-polyline');
+        control._map.removeListener('mousemove.sGis-polyline');
+        control._map.removeListener('dblclick.sGis-polyline');
 
         control._activeFeature.allowEvent('click');
 

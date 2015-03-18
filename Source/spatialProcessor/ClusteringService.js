@@ -55,7 +55,7 @@ sGis.spatialProcessor.ClusteringService.prototype = {
                         var size = self._minSize + Math.round((self._maxSize - self._minSize) * (cluster.Items.length / maxSize));
                         var point = new sGis.feature.Point([cluster.X, cluster.Y], { crs: self._map.crs, size: size, color: 'red' });
                         point.items = cluster.Items;
-                        if (self._click) point.addListner('click', self._click);
+                        if (self._click) point.addListener('click', self._click);
                         self._layer.add(point);
                     });
 
@@ -75,14 +75,14 @@ Object.defineProperties(sGis.spatialProcessor.ClusteringService.prototype, {
             if (!(map instanceof sGis.Map)) utils.error('sGis.Map instance is expected but got ' + map + ' instead');
 
             if (this._map) {
-                this._map.removeListner('.sGis-clusteringService-' + this._id);
+                this._map.removeListener('.sGis-clusteringService-' + this._id);
                 if (this._layer) this._map.removeLayer(this._layer);
             }
 
             if (this._layer && map.getLayerIndex(this._layer === -1)) map.addLayer(this._layer);
 
             var self = this;
-            map.addListner('bboxChangeEnd.sGis-clusteringService-' + this._id, function() {
+            map.addListener('bboxChangeEnd.sGis-clusteringService-' + this._id, function() {
                 self.updateClusters();
             });
             this._map = map;

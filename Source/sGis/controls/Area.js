@@ -8,7 +8,7 @@
 
         this._polygonControl = new sGis.controls.Polygon(map, { activeLayer: options && options.activeLayer, style: { strokeWidth: 2, strokeColor: 'red', fillColor: 'rgba(100, 100, 100, 0.5)' } });
 
-        this._polygonControl.addListner('drawingBegin', function() {
+        this._polygonControl.addListener('drawingBegin', function() {
             if (this.activeLayer.features.length > 1) this.activeLayer.features = [this.activeLayer.features[this.activeLayer.features.length - 1]];
 
             var feature = this._activeLayer.features[this._activeLayer.features.length - 1],
@@ -16,14 +16,14 @@
 
             this.activeLayer.add(label);
 
-            map.addListner('mousemove.areaMeasureControl', function() {
+            map.addListener('mousemove.areaMeasureControl', function() {
                 label.coordinates = feature.centroid;
                 label.content = formatNumber(sGis.geotools.area(feature));
             });
         });
 
-        this._polygonControl.addListner('drawingFinish', function() {
-            map.removeListner('mousemove.areaMeasureControl');
+        this._polygonControl.addListener('drawingFinish', function() {
+            map.removeListener('mousemove.areaMeasureControl');
         });
     };
 

@@ -35,8 +35,8 @@
                             if (tree && tree.state === 'complete') {
                                 properties.success(tree);
                             } else {
-                                tree.addListner('ready.controller', function() {
-                                    tree.removeListner('ready.controller');
+                                tree.addListener('ready.controller', function() {
+                                    tree.removeListener('ready.controller');
                                     properties.success(tree);
                                 });
                             }
@@ -86,8 +86,8 @@
                             if (tree && tree.state === 'complete') {
                                 properties.success(tree);
                             } else {
-                                tree.addListner('ready.controller', function() {
-                                    tree.removeListner('ready.controller');
+                                tree.addListener('ready.controller', function() {
+                                    tree.removeListener('ready.controller');
                                     properties.success(tree);
                                 });
                             }

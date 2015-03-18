@@ -352,7 +352,7 @@ $(document).ready(function() {
                 expect(function() {map.addLayer('a');}).toThrow();
                 expect(function() {map.addLayer({});}).toThrow();
                     
-                map.addListner('layerAdd', function(sGisEvent) {
+                map.addListener('layerAdd', function(sGisEvent) {
                     fired = true;
                     eventLayer = sGisEvent.layer;
                 });
@@ -394,7 +394,7 @@ $(document).ready(function() {
                 expect(function() {map.removeLayer(layer3);}).toThrow();
 
                 expect(map.layers).toEqual([layer1, layer2]);
-                map.addListner('layerRemove', function(sGisEvent) {
+                map.addListener('layerRemove', function(sGisEvent) {
                     fired = true;
                     eventLayer = sGisEvent.layer;
                 });
@@ -430,7 +430,7 @@ $(document).ready(function() {
                     map = new sGis.Map({layers: [layer1, layer2, layer3, layer4]}),
                     firedNo = 0;
                     
-                map.addListner('layerOrderChange', function() {
+                map.addListener('layerOrderChange', function() {
                     firedNo++;
                 });
                 
@@ -485,10 +485,10 @@ $(document).ready(function() {
                     addFired = false,
                     moveFired = false;
                     
-                map.addListner('layerAdd', function() {
+                map.addListener('layerAdd', function() {
                     addFired = true;
                 });
-                map.addListner('layerOrderChange', function() {
+                map.addListener('layerOrderChange', function() {
                     moveFired = true;
                 });
                 

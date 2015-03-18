@@ -13,18 +13,18 @@
         _setActiveStatus: function(active) {
             var self = this;
             if (active) {
-                this._map.addListner('dragStart.sGis-RectangleControl', function(sGisEvent) {
+                this._map.addListener('dragStart.sGis-RectangleControl', function(sGisEvent) {
                     self._startDrawing(sGisEvent.point);
 
-                    this.addListner('drag.sGis-RectangleControl', function(sGisEvent) {
+                    this.addListener('drag.sGis-RectangleControl', function(sGisEvent) {
                         self._updateRectangle(sGisEvent.point);
                         sGisEvent.stopPropagation();
                         sGisEvent.preventDefault();
                     });
 
-                    this.addListner('dragEnd.sGis-RectangleControl', function() {
+                    this.addListener('dragEnd.sGis-RectangleControl', function() {
                         var feature = self._activeFeature;
-                        this.removeListner('drag dragEnd.sGis-RectangleControl');
+                        this.removeListener('drag dragEnd.sGis-RectangleControl');
                         this._activeFeature = null;
                         self.fire('drawingFinish', { geom: feature });
                     });
@@ -34,7 +34,7 @@
 
                 this._active = true;
             } else {
-                this._map.removeListner('.sGis-RectangleControl');
+                this._map.removeListener('.sGis-RectangleControl');
                 this._active = false;
             }
         },

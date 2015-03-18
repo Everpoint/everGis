@@ -32,7 +32,7 @@
             services: ['osm']
         });
 
-        sp.service.osm.addListner('initialize', function() {
+        sp.service.osm.addListener('initialize', function() {
 
             var clientLayer = sp.addController('clientLayer');
             clientLayer.loadFile({

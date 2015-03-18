@@ -66,8 +66,8 @@
                     services: ['esri_gray']
                 });
 
-                sp1.map.addListner('bboxChange animationEnd', synchronizePosition);
-                sp2.service.esri_gray.addListner('initialize', synchronizePosition);
+                sp1.map.addListener('bboxChange animationEnd', synchronizePosition);
+                sp2.service.esri_gray.addListener('initialize', synchronizePosition);
                 
                 var changing = null;
                 
@@ -82,7 +82,7 @@
                     }
                 }
                 
-                sp2.map.addListner('bboxChange animationEnd', backSynchronizePosition);
+                sp2.map.addListener('bboxChange animationEnd', backSynchronizePosition);
                 
                 function backSynchronizePosition() {
                     if (changing !== sp1.map) {

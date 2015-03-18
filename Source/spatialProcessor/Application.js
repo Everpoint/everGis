@@ -56,7 +56,7 @@
                 this._mapItems.addChild(mapItem);
             }
 
-            mapServer.addListner('initialize', function() {
+            mapServer.addListener('initialize', function() {
                 var index = mapItem.parent.getChildIndex(mapItem);
                 mapItem.parent.moveChildToIndex(mapItem, index === -1 ? 0 : index);
             });
@@ -89,7 +89,7 @@
         connect: function(url, login, password) {
             this._serverConnector = new sGis.spatialProcessor.Connector(url, this._mapItems, login, password);
 
-            everGis._serverConnector.addListner('sessionInitialized', function() {
+            everGis._serverConnector.addListener('sessionInitialized', function() {
                 isInitialized = true;
                 for (var i in everGis._onInitialized) {
                     everGis._onInitialized[i]();

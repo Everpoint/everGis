@@ -713,7 +713,7 @@ $(function() {
             describe('featureSelect', function() {
                 it('should be fired when a feature is selected', function() {
                     var fired = false;
-                    editor.addListner('featureSelect', function() {
+                    editor.addListener('featureSelect', function() {
                         fired = true;
                     });
 
@@ -727,7 +727,7 @@ $(function() {
 
                 it('should provide the selected feature as a parameter', function() {
                     var selected;
-                    editor.addListner('featureSelect', function(sGisEvent) {
+                    editor.addListener('featureSelect', function(sGisEvent) {
                         selected = sGisEvent.feature;
                     });
 
@@ -740,7 +740,7 @@ $(function() {
 
                 it('should not be fired if trying to selected already selected feature', function() {
                     var fired = false;
-                    editor.addListner('featureSelect', function() {
+                    editor.addListener('featureSelect', function() {
                         fired = true;
                     });
 
@@ -755,7 +755,7 @@ $(function() {
 
                 it('should be fired if select a new feature when there is already a selected feature', function() {
                     var fired = false;
-                    editor.addListner('featureSelect', function() {
+                    editor.addListener('featureSelect', function() {
                         fired = true;
                     });
 
@@ -770,7 +770,7 @@ $(function() {
 
                 it('should not be fired if trying to select feature when there is no active layer', function() {
                     var fired = false;
-                    editor.addListner('featureSelect', function() {
+                    editor.addListener('featureSelect', function() {
                         fired = true;
                     });
 
@@ -782,7 +782,7 @@ $(function() {
 
                 it('should not be fired if trying to select feature that is not in the layer', function() {
                     var fired = false;
-                    editor.addListner('featureSelect', function() {
+                    editor.addListener('featureSelect', function() {
                         fired = true;
                     });
 
@@ -796,7 +796,7 @@ $(function() {
             describe('featureDeselect', function() {
                 it('should be fired when a feature is deselected', function() {
                     var fired = false;
-                    editor.addListner('featureDeselect', function() {
+                    editor.addListener('featureDeselect', function() {
                         fired = true;
                     });
 
@@ -811,7 +811,7 @@ $(function() {
 
                 it('should provide the deselected feature as a parameter', function() {
                     var selected;
-                    editor.addListner('featureDeselect', function(sGisEvent) {
+                    editor.addListener('featureDeselect', function(sGisEvent) {
                         selected = sGisEvent.feature;
                     });
 
@@ -825,7 +825,7 @@ $(function() {
 
                 it('should be fired if another feature is selected', function() {
                     var selected;
-                    editor.addListner('featureDeselect', function(sGisEvent) {
+                    editor.addListener('featureDeselect', function(sGisEvent) {
                         selected = sGisEvent.feature;
                     });
 
@@ -839,7 +839,7 @@ $(function() {
 
                 it('should be fired if active layer is changed', function() {
                     var selected;
-                    editor.addListner('featureDeselect', function(sGisEvent) {
+                    editor.addListener('featureDeselect', function(sGisEvent) {
                         selected = sGisEvent.feature;
                     });
 
@@ -853,7 +853,7 @@ $(function() {
 
                 it('should be fired if the active layer is set to null', function() {
                     var selected;
-                    editor.addListner('featureDeselect', function(sGisEvent) {
+                    editor.addListener('featureDeselect', function(sGisEvent) {
                         selected = sGisEvent.feature;
                     });
 
@@ -867,7 +867,7 @@ $(function() {
 
                 it('should be fired if the editor is deactivated', function() {
                     var selected;
-                    editor.addListner('featureDeselect', function(sGisEvent) {
+                    editor.addListener('featureDeselect', function(sGisEvent) {
                         selected = sGisEvent.feature;
                     });
 
@@ -881,7 +881,7 @@ $(function() {
 
                 it('should not be fired if trying to select currently selected feature', function() {
                     var selected;
-                    editor.addListner('featureDeselect', function(sGisEvent) {
+                    editor.addListener('featureDeselect', function(sGisEvent) {
                         selected = sGisEvent.feature;
                     });
 
@@ -895,7 +895,7 @@ $(function() {
 
                 it('should be fired if trying to select a feature that is not in the active layer', function() {
                     var selected;
-                    editor.addListner('featureDeselect', function(sGisEvent) {
+                    editor.addListener('featureDeselect', function(sGisEvent) {
                         selected = sGisEvent.feature;
                     });
 
@@ -909,7 +909,7 @@ $(function() {
 
                 it('should be fired if the feature is being deleted by controller', function() {
                     var selected;
-                    editor.addListner('featureDeselect', function(sGisEvent) {
+                    editor.addListener('featureDeselect', function(sGisEvent) {
                         selected = sGisEvent.feature;
                     });
 
@@ -925,7 +925,7 @@ $(function() {
             describe('featureRemove', function() {
                 it('should be fired when feature is removed by the controller, and should send the feature as a parameter', function() {
                     var selected;
-                    editor.addListner('featureRemove', function(sGisEvent) {
+                    editor.addListener('featureRemove', function(sGisEvent) {
                         selected = sGisEvent.feature;
                     });
 
@@ -939,7 +939,7 @@ $(function() {
 
                 it('should not be fired if there is not selected feature', function() {
                     var fired = false;
-                    editor.addListner('featureRemove', function(sGisEvent) {
+                    editor.addListener('featureRemove', function(sGisEvent) {
                         fired = true;
                     });
 
@@ -952,7 +952,7 @@ $(function() {
 
                 it('should not be fired if the deletion is prohibited', function() {
                     var fired = false;
-                    editor.addListner('featureRemove', function(sGisEvent) {
+                    editor.addListener('featureRemove', function(sGisEvent) {
                         fired = true;
                     });
 

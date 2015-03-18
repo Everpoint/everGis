@@ -29,12 +29,12 @@
                             if (self._tree && self._tree.state === 'complete') {
                                 properties.success(tree);
                             } else {
-                                self._tree.addListner('ready.controller', function() {
-                                    self._tree.removeListner('ready.controller');
+                                self._tree.addListener('ready.controller', function() {
+                                    self._tree.removeListener('ready.controller');
                                     properties.success(tree);
                                 });
-                                self._tree.addListner('error.controller', function(text) {
-                                    self._tree.removeListner('error.controller');
+                                self._tree.addListener('error.controller', function(text) {
+                                    self._tree.removeListener('error.controller');
                                     if (properties.error) properties.error(text);
                                 });
                             }

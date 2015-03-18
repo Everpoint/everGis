@@ -76,7 +76,7 @@
 
         _setSliderEvents: function() {
             var self = this;
-            this._map.addListner('dragStart' + this._eventNamespace, function(sGisEvent) {
+            this._map.addListener('dragStart' + this._eventNamespace, function(sGisEvent) {
                 if (sGisEvent.browserEvent.target === self._slider) {
                     sGisEvent.draggingObject = self;
                     self._map.painter.prohibitUpdate();
@@ -84,7 +84,7 @@
                 }
             });
 
-            this._map.addListner('layerAdd layerRemove bboxChangeEnd', this._updateSliderPosition.bind(this));
+            this._map.addListener('layerAdd layerRemove bboxChangeEnd', this._updateSliderPosition.bind(this));
         },
 
         _updateSliderPosition: function() {

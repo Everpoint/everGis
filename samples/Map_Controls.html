@@ -42,7 +42,7 @@
             polygonControl = new sGis.controls.Polygon(sp.map, {activeLayer: featureLayer, style: {fillColor: 'rgba(100, 255, 255, 0.5)', strokeWidth: 3}});
             editorControl = new sGis.controls.Editor(sp.map, {activeLayer: featureLayer, allowDeletion: false});
 
-            editorControl.addListner('featureMove', function(sGisEvent) {
+            editorControl.addListener('featureMove', function(sGisEvent) {
                 console.log(sGisEvent.feature.id);
             });
 

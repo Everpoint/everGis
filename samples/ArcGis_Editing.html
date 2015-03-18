@@ -37,7 +37,7 @@
             services: ['osm', 'evergisjs_mrc_fs_test']
         });
         
-        sp.service.evergisjs_mrc_fs_test.addListner('initialize', function() {
+        sp.service.evergisjs_mrc_fs_test.addListener('initialize', function() {
             var editor = new sGis.controls.Editor(sp.map),
                 featureLayer = new sGis.FeatureLayer(),
                 lastSelectedId;
@@ -51,7 +51,7 @@
                 polygonLayerStorage = this.layerInfo[2].LayerInfo.storageId;
 
             var buffer = sp.map.resolution * 5;
-            sp.map.addListner('click', function(sGisEvent) {
+            sp.map.addListener('click', function(sGisEvent) {
 
                 var tempPolygon = new sGis.feature.Polygon([
                     [sGisEvent.point.x - buffer, sGisEvent.point.y - buffer],
@@ -80,7 +80,7 @@
                 });
             });
 
-            editor.addListner('featureDeselect', function(sGisEvent) {
+            editor.addListener('featureDeselect', function(sGisEvent) {
                 dataAccess.save({
                     updated: [sGisEvent.feature],
                     layerStorageId: self.layerInfo[getLayerIndex()].LayerInfo.storageId,
@@ -93,7 +93,7 @@
                 });
             });
 
-            editor.addListner('featureRemove', function(sGisEvent) {
+            editor.addListener('featureRemove', function(sGisEvent) {
                 dataAccess.save({
                     deleted: [sGisEvent.feature],
                     layerStorageId: self.layerInfo[getLayerIndex()].LayerInfo.storageId

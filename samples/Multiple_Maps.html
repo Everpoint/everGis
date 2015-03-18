@@ -36,8 +36,8 @@
                         services: ['esri_gray']
                     });
             
-            sp1.map.addListner('bboxChange', synchronizePosition);
-            sp2.service.esri_gray.addListner('initialize', synchronizePosition);
+            sp1.map.addListener('bboxChange', synchronizePosition);
+            sp2.service.esri_gray.addListener('initialize', synchronizePosition);
             
             function synchronizePosition() {
                 var position = sp1.map.position;
@@ -46,16 +46,16 @@
                 sp2.map.resolution = sp1.map.resolution;                
             }
 
-            sp1.map.addListner('animationStart', function() {
+            sp1.map.addListener('animationStart', function() {
                 sp2.map.painter.prohibitUpdate();
             });
 
-            sp1.map.addListner('animationEnd', function() {
+            sp1.map.addListener('animationEnd', function() {
                 sp2.map.painter.allowUpdate();
             });
 
             // Delete the lower map on 'esc' pressing 
-            sp1.map.addListner('keydown', function(sGisEvent) {
+            sp1.map.addListener('keydown', function(sGisEvent) {
                 if (sGisEvent.browserEvent.which === 27) {
                     sp2.kill();
                 }

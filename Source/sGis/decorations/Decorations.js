@@ -64,7 +64,7 @@ sGis.decorations.Scale.prototype = {
             map.wrapper.appendChild(buttons.plus);
             map.wrapper.appendChild(buttons.minus);
         } else {
-            map.addListner('wrapperSet', function() {
+            map.addListener('wrapperSet', function() {
                 map.wrapper.appendChild(buttons.plus);
                 map.wrapper.appendChild(buttons.minus);
             });

@@ -161,7 +161,7 @@
                             if (self._synchronized !== false) {
                                 self.requestNotifications();
                             } else {
-                                self.addListner('synchronize.self', function() {self.removeListner('.self'); self.requestNotifications();});
+                                self.addListener('synchronize.self', function() {self.removeListener('.self'); self.requestNotifications();});
                             }
 
                             self._failedNotificationRequests = 0;
@@ -268,12 +268,12 @@
             connector.synchronize();
         };
         var childRemoveHandler = function(sGisEvent) {
-            sGisEvent.child.removeListner('.sGis-connector');
+            sGisEvent.child.removeListener('.sGis-connector');
             connector.synchronize();
         };
 
-        if (!mapItem.hasListner('addChild', childAddHandler)) {
-            mapItem.addListners({
+        if (!mapItem.hasListener('addChild', childAddHandler)) {
+            mapItem.addListeners({
                 'addChild.sGis-connector': childAddHandler,
                 'removeChild.sGis-connector': childRemoveHandler,
                 'propertyChange.sGis-connector': handler,

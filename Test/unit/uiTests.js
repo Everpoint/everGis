@@ -104,7 +104,7 @@ $(document).ready(function() {
 //                    
 //                    loaded = !!application._mapItems;
 //                    
-//                    application.addListner('loaded', function() {
+//                    application.addListener('loaded', function() {
 //                        loaded = true;
 //                    });
 //                });

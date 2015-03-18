@@ -139,7 +139,7 @@
                     });
                 }
 
-                sp.map.addListner('keypress', function(sGisEvent) {
+                sp.map.addListener('keypress', function(sGisEvent) {
                     if (sGisEvent.browserEvent.which === 27) {
                         mapTipLayer.features = [];
                         if (sp.map.getLayerIndex(mapTipLayer) !== -1) {

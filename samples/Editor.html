@@ -35,7 +35,7 @@
                 featureLayer = new sGis.FeatureLayer(),
                 editor = new sGis.controls.Editor(sp.map);
     
-            sp.service.osm.addListner('initialize', function() {
+            sp.service.osm.addListener('initialize', function() {
                 sp.map.addLayer(featureLayer);
                 editor.activeLayer = featureLayer;
                 editor.activate();
@@ -104,12 +104,12 @@
                 );                
             }
             
-            editor.addListner('featureDeselect', function(sGisEvent) {
+            editor.addListener('featureDeselect', function(sGisEvent) {
                 document.getElementById('output').innerHTML = JSON.stringify(sGisEvent.feature.coordinates);
             })
             
             // If enter key is pressed perform search
-            sp.map.addListner('keypress', function(sGisEvent) {
+            sp.map.addListener('keypress', function(sGisEvent) {
                 if (sGisEvent.browserEvent.which === 13) {
                     search();
                 }

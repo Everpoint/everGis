@@ -8,7 +8,7 @@
 
         this._polylineControl = new sGis.controls.Polyline(map, { activeLayer: options && options.activeLayer, style: {strokeWidth: 2, strokeColor: 'red'} });
 
-        this._polylineControl.addListner('drawingBegin', function() {
+        this._polylineControl.addListener('drawingBegin', function() {
             if (this.activeLayer.features.length > 1) this.activeLayer.features = [this.activeLayer.features[this.activeLayer.features.length - 1]];
 
             var feature = this.activeLayer.features[this.activeLayer.features.length - 1],
@@ -17,14 +17,14 @@
 
             this.activeLayer.add(label);
 
-            map.addListner('mousemove.distanceMeasureControl', function() {
+            map.addListener('mousemove.distanceMeasureControl', function() {
                 label.coordinates = feature.coordinates[0][feature.coordinates[0].length - 1];
                 label.content = formatNumber(sGis.geotools.length(feature));
             });
         });
 
-        this._polylineControl.addListner('drawingFinish', function() {
-            map.removeListner('mousemove.distanceMeasureControl');
+        this._polylineControl.addListener('drawingFinish', function() {
+            map.removeListener('mousemove.distanceMeasureControl');
         });
     };
 

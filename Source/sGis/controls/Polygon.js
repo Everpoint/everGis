@@ -30,8 +30,8 @@ sGis.controls.Polygon = function(map, options) {
                 self.fire('pointAdd');
             } else {
                 self._activeFeature = createNewPolygon(self.activeLayer, point, {style: self._prototype.style, symbol: self._prototype.symbol, crs: self._map.crs});
-                self._map.addListner('mousemove.sGis-polygon', self._mousemoveHandler);
-                self._map.addListner('dblclick.sGis-polygon', self._dblclickHandler);
+                self._map.addListener('mousemove.sGis-polygon', self._mousemoveHandler);
+                self._map.addListener('dblclick.sGis-polygon', self._dblclickHandler);
 
                 self._activeFeature.prohibitEvent('click');
 
@@ -71,10 +71,10 @@ sGis.controls.Polygon = function(map, options) {
 sGis.controls.Polygon.prototype = new sGis.Control({
     _setActiveStatus: function(isActive) {
         if (isActive) {
-            this._map.addListner('click.sGis-polygon', this._clickHandler);
+            this._map.addListener('click.sGis-polygon', this._clickHandler);
         } else {
             if (this._activeFeature) finishDrawing(this);
-            this._map.removeListner('click.sGis-polygon');
+            this._map.removeListener('click.sGis-polygon');
         }
         this._active = isActive;        
     },
@@ -128,8 +128,8 @@ Object.defineProperties(sGis.controls.Polygon.prototype, {
             }
 
             this._activeFeature = feature;
-            this._map.addListner('mousemove.sGis-polygon', this._mousemoveHandler);
-            this._map.addListner('dblclick.sGis-polygon', this._dblclickHandler);
+            this._map.addListener('mousemove.sGis-polygon', this._mousemoveHandler);
+            this._map.addListener('dblclick.sGis-polygon', this._dblclickHandler);
 
             this._activeFeature.prohibitEvent('click');
 
@@ -155,8 +155,8 @@ function finishDrawing(control) {
 
     control._activeFeature.allowEvent('click');
 
-    control._map.removeListner('mousemove.sGis-polygon');
-    control._map.removeListner('dblclick.sGis-polygon');
+    control._map.removeListener('mousemove.sGis-polygon');
+    control._map.removeListener('dblclick.sGis-polygon');
     control._activeFeature = null;
 
     control._map.redrawLayer(control.activeLayer);

@@ -15,7 +15,7 @@
         this._id = utils.getGuid();
 
         var self = this;
-        this._map.addListner('bboxChange', function() {
+        this._map.addListener('bboxChange', function() {
             self._bboxChanged = true;
 
             var layers = this.layers;
@@ -24,18 +24,18 @@
             }
         });
 
-        this._map.addListner('bboxChangeEnd', function() {
+        this._map.addListener('bboxChangeEnd', function() {
             var layers = self.layers;
             for (var i = 0, len = layers.length; i < len; i++) {
                 if (layers[i].delayedUpdate && self._layerData[layers[i].id]) self._layerData[layers[i].id].needUpdate = true;
             }
         });
 
-        this._map.addListner(this._listensFor.join(' ') + '.sGis-painter-' + this._id, function(sGisEvent) {
+        this._map.addListener(this._listensFor.join(' ') + '.sGis-painter-' + this._id, function(sGisEvent) {
             self._handleEvent(sGisEvent);
         });
 
-        this._map.addListner('layerOrderChange layerRemove', function() {
+        this._map.addListener('layerOrderChange layerRemove', function() {
             self._updateLayerOrder();
         });
 
@@ -169,7 +169,7 @@
             };
 
             var self = this;
-            layer.addListner('propertyChange.sGis-painter-' + this._id, function() {
+            layer.addListener('propertyChange.sGis-painter-' + this._id, function() {
                 self._layerData[layer.id].needUpdate = true;
             });
         },
@@ -682,7 +682,7 @@
 
                 var displayedFeatures = this._layerData[layers[i].id].displayedFeatures;
                 for (var j = displayedFeatures.length - 1; j >= 0; j--) {
-                    if (displayedFeatures[j].hasListners(sGisEvent.eventType) || sGisEvent.eventType === 'mousemove' && (displayedFeatures[j].hasListners('mouseout') || displayedFeatures[j].hasListners('mouseover'))) {
+                    if (displayedFeatures[j].hasListeners(sGisEvent.eventType) || sGisEvent.eventType === 'mousemove' && (displayedFeatures[j].hasListeners('mouseout') || displayedFeatures[j].hasListeners('mouseover'))) {
                         var objects = this._layerData[layers[i].id].displayedObjects[displayedFeatures[j].id];
                         if (objects) {
                             for (var k = objects.length - 1; k >= 0; k--) {

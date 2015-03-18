@@ -53,7 +53,7 @@
             var printer = new sGis.spatialProcessor.Printer(sp),
                 templates;
 
-            sp.connector.addListner('sessionInitialized', function() {
+            sp.connector.addListener('sessionInitialized', function() {
                 printer.getTemplates({
                     success: function(obj) {
                         templates = obj;

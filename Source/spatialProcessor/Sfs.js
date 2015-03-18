@@ -80,11 +80,11 @@
             if (this._spatialProcessor.sessionId) {
                 requestOperation();
             } else {
-                this._spatialProcessor.addListner('sessionInitialized.sfs', requestOperation);
+                this._spatialProcessor.addListener('sessionInitialized.sfs', requestOperation);
             }
 
             function requestOperation() {
-                self._spatialProcessor.removeListner('.sfs');
+                self._spatialProcessor.removeListener('.sfs');
                 utils.ajax({
                     url: self._spatialProcessor.url + 'sfs/?operation=' + operation + '&path=' + encodeURIComponent(properties.path) + '&_sb=' + self._spatialProcessor.sessionId,
                     error: function(data) {

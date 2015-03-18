@@ -45,10 +45,10 @@
                 }
 
                 var self = this;
-                this._activeLayer.addListner('featureAdd.' + this._ns, function(sGisEvent) { self._setFeatureClickHandler(sGisEvent.feature); });
-                this._activeLayer.addListner('featureRemove.' + this._ns, this._featureRemoveHandler.bind(this));
+                this._activeLayer.addListener('featureAdd.' + this._ns, function(sGisEvent) { self._setFeatureClickHandler(sGisEvent.feature); });
+                this._activeLayer.addListener('featureRemove.' + this._ns, this._featureRemoveHandler.bind(this));
 
-                this._map.addListner('keydown.' + this._ns, this._keydownHandler.bind(this));
+                this._map.addListener('keydown.' + this._ns, this._keydownHandler.bind(this));
             }
         },
 
@@ -63,9 +63,9 @@
                 for (var i = 0; i < features.length; i++) {
                     this._removeFeatureClickHandler(features[i]);
                 }
-                this._activeLayer.removeListner('.' + this._ns);
+                this._activeLayer.removeListener('.' + this._ns);
             }
-            this._map.removeListner('keydown.' + this._ns);
+            this._map.removeListener('keydown.' + this._ns);
         },
 
         _keydownHandler: function(sGisEvent) {
@@ -104,11 +104,11 @@
 
         _setFeatureClickHandler: function(feature) {
             var self = this;
-            feature.addListner('click.' + this._ns, function(sGisEvent) { self._featureClickHandler(sGisEvent, this); });
+            feature.addListener('click.' + this._ns, function(sGisEvent) { self._featureClickHandler(sGisEvent, this); });
         },
 
         _removeFeatureClickHandler: function(feature) {
-            feature.removeListner('click.' + this._ns);
+            feature.removeListener('click.' + this._ns);
         },
 
         _featureClickHandler: function(sGisEvent, feature) {
@@ -122,7 +122,7 @@
             this.deselect();
 
             if (this._isActive && this._activeLayer && this._activeLayer.has(feature)) {
-                this._map.addListner('click.' + this._ns, this._mapClickHandler.bind(this));
+                this._map.addListener('click.' + this._ns, this._mapClickHandler.bind(this));
                 this._selectedFeature = feature;
                 this._activeLayer.moveToTop(feature);
                 this._setSelectedListeners();
@@ -138,7 +138,7 @@
         deselect: function() {
             if (this._selectedFeature) {
                 var feature = this._selectedFeature;
-                this._map.removeListner('click.' + this._ns);
+                this._map.removeListener('click.' + this._ns);
                 this._clearTempSymbol();
                 this._removeSelectedListeners();
                 this._removeSnappingLayer();
@@ -183,9 +183,9 @@
                         var control = new sGis.feature.Point([0,0], {crs: this._map.crs, symbol: symbol, xIndex: x, yIndex: y});
                         control.hide();
 
-                        control.addListner('dragStart', this._transformControlDragStartHandler);
-                        control.addListner('drag', function(sGisEvent) { self._transformControlDragHandler(sGisEvent, this) });
-                        control.addListner('dragEnd', this._saveState.bind(this));
+                        control.addListener('dragStart', this._transformControlDragStartHandler);
+                        control.addListener('drag', function(sGisEvent) { self._transformControlDragHandler(sGisEvent, this) });
+                        control.addListener('dragEnd', this._saveState.bind(this));
 
                         this._transformControls[x][y] = control;
                         this._snappingLayer.add(control);
@@ -194,13 +194,13 @@
             }
 
             var rotationControl = new sGis.feature.Point([0,0], {crs: this._map.crs, symbol: this._rotationControlSymbol});
-            rotationControl.addListner('dragStart', function(sGisEvent) {
+            rotationControl.addListener('dragStart', function(sGisEvent) {
                 self._rotationBase = self._selectedFeature.centroid;
                 self._transformControlDragStartHandler.call(this, sGisEvent);
                 self.fire('rotationStart');
             });
-            rotationControl.addListner('drag', this._rotationControlDragHandler.bind(this));
-            rotationControl.addListner('dragEnd', function() {
+            rotationControl.addListener('drag', this._rotationControlDragHandler.bind(this));
+            rotationControl.addListener('dragEnd', function() {
                 self._saveState();
                 self.fire('rotationEnd');
             });
@@ -304,25 +304,25 @@
 
         _setSelectedListeners: function() {
             var self = this;
-            this._selectedFeature.addListner('dragStart.' + this._ns, function(sGisEvent) { self._dragStartHandler(sGisEvent, this); });
-            this._selectedFeature.addListner('drag.' + this._ns, function(sGisEvent) { self._dragHandler(sGisEvent, this); });
-            this._selectedFeature.addListner('dragEnd.' + this._ns, this._saveState.bind(this));
+            this._selectedFeature.addListener('dragStart.' + this._ns, function(sGisEvent) { self._dragStartHandler(sGisEvent, this); });
+            this._selectedFeature.addListener('drag.' + this._ns, function(sGisEvent) { self._dragHandler(sGisEvent, this); });
+            this._selectedFeature.addListener('dragEnd.' + this._ns, this._saveState.bind(this));
 
             if (this._selectedFeature instanceof sGis.feature.Polyline) {
-                this._selectedFeature.addListner('mousemove.' + this._ns, function(sGisEvent) { self._polylineMousemoveHandler(sGisEvent, this); });
-                this._selectedFeature.addListner('mouseout.' + this._ns, function(sGisEvent) { self._polylineMouseoutHandler(sGisEvent, this); });
-                this._selectedFeature.addListner('dblclick.' + this._ns, function(sGisEvent) { self._polylineDblclickHandler(sGisEvent, this); });
+                this._selectedFeature.addListener('mousemove.' + this._ns, function(sGisEvent) { self._polylineMousemoveHandler(sGisEvent, this); });
+                this._selectedFeature.addListener('mouseout.' + this._ns, function(sGisEvent) { self._polylineMouseoutHandler(sGisEvent, this); });
+                this._selectedFeature.addListener('dblclick.' + this._ns, function(sGisEvent) { self._polylineDblclickHandler(sGisEvent, this); });
             }
 
         },
 
         _removeSelectedListeners: function() {
-            this._selectedFeature.removeListner('dragStart.' + this._ns);
-            this._selectedFeature.removeListner('drag.' + this._ns);
-            this._selectedFeature.removeListner('dragEnd.' + this._ns);
-            this._selectedFeature.removeListner('mousemove.' + this._ns);
-            this._selectedFeature.removeListner('mouseout.' + this._ns);
-            this._selectedFeature.removeListner('dblclick.' + this._ns);
+            this._selectedFeature.removeListener('dragStart.' + this._ns);
+            this._selectedFeature.removeListener('drag.' + this._ns);
+            this._selectedFeature.removeListener('dragEnd.' + this._ns);
+            this._selectedFeature.removeListener('mousemove.' + this._ns);
+            this._selectedFeature.removeListener('mouseout.' + this._ns);
+            this._selectedFeature.removeListener('dblclick.' + this._ns);
         },
 
         _dragStartHandler: function(sGisEvent, feature) {

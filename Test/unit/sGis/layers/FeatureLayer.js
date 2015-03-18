@@ -27,7 +27,7 @@ $(function() {
                         feature = sGisEvent.feature;
                     };
 
-                    layer.addListner('featureAdd', handler);
+                    layer.addListener('featureAdd', handler);
 
                     layer.add(point);
                     expect(feature).toBe(point);
@@ -39,7 +39,7 @@ $(function() {
                         features.push(sGisEvent.feature);
                     };
 
-                    layer.addListner('featureAdd', handler);
+                    layer.addListener('featureAdd', handler);
 
                     layer.add([point, polygon, line]);
                     expect(features).toEqual([point, polygon, line]);
@@ -51,7 +51,7 @@ $(function() {
                         features.push(sGisEvent.feature);
                     };
 
-                    layer.addListner('featureAdd', handler);
+                    layer.addListener('featureAdd', handler);
 
                     layer.features = [point, polygon, line];
                     expect(features).toEqual([point, polygon, line]);

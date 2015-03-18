@@ -160,7 +160,7 @@ $(document).ready(function() {
 
             it('.addLayer() should fire the "layerAdd" event', function() {
                 var fired = false;
-                layerGroup.addListner('layerAdd', function() {
+                layerGroup.addListener('layerAdd', function() {
                     fired = true;
                 });
                 layerGroup.addLayer(layer4);
@@ -217,7 +217,7 @@ $(document).ready(function() {
 
             it('.removeLayer() should fire "layerRemove"', function() {
                 var fired = false;
-                layerGroup.addListner('layerRemove', function() {
+                layerGroup.addListener('layerRemove', function() {
                     fired = true;
                 });
                 layerGroup.removeLayer(layer1);
@@ -342,7 +342,7 @@ $(document).ready(function() {
 
             it('.insertLayer() should fire "layerAdd" event', function() {
                 var fired = false;
-                layerGroup.addListner('layerAdd', function() {
+                layerGroup.addListener('layerAdd', function() {
                     fired = true;
                 });
                 layerGroup.insertLayer(layer4, 1);

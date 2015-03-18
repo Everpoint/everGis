@@ -37,14 +37,14 @@
             if (this._services[name].initialized) {
                 setTimeout(function() { initializationHandler.call(self._services[name]); }, 0);
             } else {
-                this._services[name].addListner('initialize.spInitialization', initializationHandler);
+                this._services[name].addListener('initialize.spInitialization', initializationHandler);
             }
 
             this.fire('serviceAdd', { service: name });
             return this._services[name];
 
             function initializationHandler() {
-                this.removeListner('initialize.spInitialization');
+                this.removeListener('initialize.spInitialization');
                 initializeService(self, this.mapItem);
 
                 var allInitialized = true;
@@ -132,7 +132,7 @@
                 if (this._services[list[i].name].initialized) {
                     this._baseMapControl.addLayer(this._services[list[i].name].layer, list[i].imageUrl);
                 } else {
-                    this._services[list[i].name].addListner('initialize.spatialProcessor-baseMap', (function (i) {
+                    this._services[list[i].name].addListener('initialize.spatialProcessor-baseMap', (function (i) {
                         return function() {
                             self._baseMapControl.addLayer(this.layer, list[i].imageUrl);
                             if (!self._baseMapControl.isActive) self._baseMapControl.activate();
@@ -144,7 +144,7 @@
             this._activeBaseMapItem = this._baseMapItems[list[0].name];
             this._rootMapItem.addChild(this._activeBaseMapItem);
 
-            this._baseMapControl.addListner('activeLayerChange', function() {
+            this._baseMapControl.addListener('activeLayerChange', function() {
                 var index = self._rootMapItem.getChildIndex(self._activeBaseMapItem);
                 self._rootMapItem.removeChild(self._activeBaseMapItem);
 
@@ -183,14 +183,14 @@
             if (baseService.initialized) {
                 addServiceToMap(sp, mapItem);
             } else {
-                baseService.addListner('initialize.init-' + mapItem.id, function() {
-                    baseService.removeListner('initialize.init-' + mapItem.id);
+                baseService.addListener('initialize.init-' + mapItem.id, function() {
+                    baseService.removeListener('initialize.init-' + mapItem.id);
                     initializeService(sp, mapItem);
                 });
             }
         } else {
-            sp.addListner('serviceAdd.initWaiting-' + mapItem.id, function() {
-                sp.removeListner('serviceAdd.initWaiting-' + mapItem.id);
+            sp.addListener('serviceAdd.initWaiting-' + mapItem.id, function() {
+                sp.removeListener('serviceAdd.initWaiting-' + mapItem.id);
                 initializeService(sp, mapItem);
             });
         }

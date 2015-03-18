@@ -40,7 +40,7 @@ sGis.spatialProcessor.Controller.prototype = {
             this.__connect(properties, callback);
         } else {
             var self = this;
-            spatialProcessor.addListner('sessionInitialized', function() {self.__initialize(spatialProcessor, properties, callback);});
+            spatialProcessor.addListener('sessionInitialized', function() {self.__initialize(spatialProcessor, properties, callback);});
         }
     },
     
@@ -91,14 +91,14 @@ sGis.spatialProcessor.Controller.prototype = {
             if (this._spatialProcessor.synchronized) {
                 requestOperation();
             } else {
-                this._spatialProcessor.addListner('synchronize.' + this.id, requestOperation);
+                this._spatialProcessor.addListener('synchronize.' + this.id, requestOperation);
             }
         } else {
             this._operationQueue.push(f);
         }
         
         function requestOperation() {
-            self._spatialProcessor.removeListner('.' + self.id);
+            self._spatialProcessor.removeListener('.' + self.id);
             utils.ajax({
                 url: self._url + self._id + '/' + parameters.operation + '?' + (parameters.uriParameters || '') + '_sb=' + self._spatialProcessor.sessionId,
                 type: parameters.dataParameters ? 'POST' : 'GET',
