@@ -6,6 +6,15 @@ $(function() {
 
     describe('sGis.utils.proto', function () {
         var Class, obj;
+
+        beforeEach(function() {
+            $('#map').width(500).height(500);
+        });
+
+        afterEach(function() {
+            $('#map').html('').width(0).height(0);
+        });
+
         beforeEach(function() {
             Class = function() {};
             Class.prototype = {};
@@ -178,6 +187,39 @@ $(function() {
                     expect(function() { obj.prop = null; }).not.toThrow();
                     expect(obj.prop).toBe(null);
                 });
+            });
+        });
+
+        describe('.setMethods()', function() {
+            var methods;
+            beforeEach(function() {
+                methods = {
+                    m1: function() {},
+                    m2: function() {}
+                }
+            });
+
+            it('should set methods for the object', function() {
+                sGis.utils.proto.setMethods(Class.prototype, methods);
+                expect(obj.m1).toBe(methods.m1);
+                expect(obj.m2).toBe(methods.m2);
+            });
+
+            it('should set not enumerable properties', function() {
+                sGis.utils.proto.setMethods(Class.prototype, methods);
+
+                var counter = 0;
+                for (var i in obj) {
+                    counter++;
+                }
+
+                expect(counter).toBe(0);
+            });
+
+            it('should set not configurable properties', function() {
+                sGis.utils.proto.setMethods(Class.prototype, methods);
+                expect(function() { Class.prototype.m1 = 1; }).toThrow();
+                expect(function() { obj.m1 = 1; }).toThrow();
             });
         });
     });

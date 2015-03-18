@@ -31,6 +31,15 @@
         }
     };
 
+    sGis.utils.proto.setMethods = function(obj, properties) {
+        var keys = Object.keys(properties);
+        for (var i = 0; i < keys.length; i++) {
+            Object.defineProperty(obj, keys[i], {
+                value: properties[keys[i]]
+            });
+        }
+    };
+
     sGis.utils.proto.getGetter = function(key, getter) {
         if (getter !== null) {
             return function () {
