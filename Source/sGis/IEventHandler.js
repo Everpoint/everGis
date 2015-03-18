@@ -39,8 +39,11 @@
             var sGisEvent = {};
             if (parameters) utils.mixin(sGisEvent, parameters);
 
+            var types = getTypes(eventType);
+            if (types.length !== 1) utils.error('Exactly on type of event can be fired at a time, but ' + types.length + ' is given');
+
             sGisEvent.sourceObject = this;
-            sGisEvent.eventType = eventType;
+            sGisEvent.eventType = types[0];
             sGisEvent.stopPropagation = function() {sGisEvent._cancelPropagation = true;};
             sGisEvent.preventDefault = function() {sGisEvent._cancelDefault = true;};
 
@@ -51,18 +54,16 @@
             if (!(handler instanceof Function)) utils.error('Function is expected but got ' + handler + ' instead');
             if (!utils.isString(type)) utils.error('String is expected but got ' + type + ' instead');
 
-            var types = getTypes(type),
-                namespaces = getNamespaces(type);
+            var types = getTypes(type);
+            if (types.length < 1) utils.error('No event type is specified');
+
+            var namespaces = getNamespaces(type);
 
             if (!this._eventHandlers) this._eventHandlers = {};
 
             for (var i in types) {
                 if (!this._eventHandlers[types[i]]) this._eventHandlers[types[i]] = [];
-                if (this.hasListener(types[i], handler)) {
-                    this._eventHandlers[types[i]].namespaces = utils.merge(this._eventHandlers[types[i]].namespaces, namespaces);
-                } else {
-                    this._eventHandlers[types[i]].push({handler: handler, namespaces: namespaces});
-                }
+                this._eventHandlers[types[i]].push({handler: handler, namespaces: namespaces});
             }
         },
 
@@ -133,6 +134,17 @@
         }
 
     };
+
+    /**
+     * @alias sGis.IEventHandler.prototype.addListener
+     */
+    sGis.IEventHandler.prototype.on = sGis.IEventHandler.prototype.addListener;
+
+    /**
+     * @alias sGis.IEventHandler.prototype.removeListener
+     */
+    sGis.IEventHandler.prototype.off = sGis.IEventHandler.prototype.removeListener;
+
 
     // Deprecated names
     sGis.IEventHandler.prototype.addListner = sGis.IEventHandler.prototype.addListener;

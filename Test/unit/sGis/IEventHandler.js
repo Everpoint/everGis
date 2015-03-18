@@ -17,13 +17,14 @@ $(function() {
                     expect(object.hasListeners('hello')).toBe(true);
                 });
 
-                it('should understand the namespaces', function () {
+                it('should distinguish event types and namespaces', function () {
                     object.addListener('event.namespace', f);
                     expect(object.hasListeners('event')).toBe(true);
                     expect(object.hasListeners('namespace')).toBe(false);
 
                     object.addListener('event1 .namespace1 .namespace2', f);
                     expect(object.hasListeners('event1')).toBe(true);
+                    expect(object.hasListeners('namespace1')).toBe(false);
                 });
 
                 it('should set the handler for different events if several event names are provided', function() {
@@ -42,11 +43,35 @@ $(function() {
                     expect(object.hasListeners('ns')).toBe(false);
                     expect(object.hasListeners('ns2')).toBe(false);
                 });
+
+                it('should throw an exception if event name is not a valid string', function() {
+                    expect(function() { object.addListener(undefined, f); }).toThrow();
+                    expect(function() { object.addListener(null, f); }).toThrow();
+                    expect(function() { object.addListener(1, f); }).toThrow();
+                    expect(function() { object.addListener(['a'], f); }).toThrow();
+                    expect(function() { object.addListener({a:'a'}, f); }).toThrow();
+                    expect(function() { object.addListener('', f); }).toThrow();
+                    expect(function() { object.addListener('.ns', f); }).toThrow();
+                });
+
+                it('should throw an exception if the handler is not a function', function() {
+                    expect(function() { object.addListner('a'); }).toThrow();
+                    expect(function() { object.addListner('a', 1); }).toThrow();
+                    expect(function() { object.addListner('a', 'Function'); }).toThrow();
+                    expect(function() { object.addListner('a', {}); }).toThrow();
+                    expect(function() { object.addListner('a', []); }).toThrow();
+                });
             });
 
             describe('.addListner()', function() {
                 it('should be alias for .addListener', function() {
                     expect(object.addListner).toBe(object.addListener);
+                });
+            });
+
+            describe('.on()', function() {
+                it('should be alias for .addListener', function() {
+                    expect(object.on).toBe(object.addListener);
                 });
             });
 
@@ -81,7 +106,7 @@ $(function() {
                     });
                     object.addListener('type1 .namespace', function () {
                     });
-                    object.addListener('type2 .namespece1', function () {
+                    object.addListener('type2 .namespace1', function () {
                     });
 
                     object.removeListener('.namespace');
@@ -107,6 +132,12 @@ $(function() {
             describe('.removeListner()', function() {
                 it('should be alias for .removeListener', function() {
                     expect(object.removeListner).toBe(object.removeListener);
+                });
+            });
+
+            describe('.off()', function() {
+                it('should be alias for .removeListener', function() {
+                    expect(object.off).toBe(object.removeListener);
                 });
             });
 
@@ -178,6 +209,104 @@ $(function() {
             describe('.hasListner()', function() {
                 it('should be alias for .hasListener', function() {
                     expect(object.hasListner).toBe(object.hasListener);
+                });
+            });
+
+            describe('.fire()', function() {
+                var fired1, fired2, f1, f2;
+                beforeEach(function() {
+                    fired1 = false;
+                    fired2 = false;
+                    f1 = function() { fired1 = true; };
+                    f2 = function() { fired2 = true; };
+                });
+
+                it('should call the event handler', function() {
+                    object.on('event', f1);
+                    object.fire('event');
+
+                    expect(fired1).toBe(true);
+                    expect(fired2).toBe(false);
+                });
+
+                it('should call all handlers for the given event', function() {
+                    object.on('event', f1);
+                    object.on('event', f2);
+
+                    object.fire('event');
+                    expect(fired1).toBe(true);
+                    expect(fired2).toBe(true);
+                });
+
+                it('should not call handlers of hte different events', function() {
+                    object.on('event', f1);
+                    object.on('event1', f2);
+
+                    object.fire('event1');
+                    expect(fired1).toBe(false);
+                    expect(fired2).toBe(true);
+                });
+
+                it('should call handlers in the order they were added', function() {
+                    var rightOrder = false;
+                    var f3 = function() {
+                        if (fired1 && !fired2) rightOrder = true;
+                    };
+
+                    object.on('event', f1);
+                    object.on('event', f3);
+                    object.on('event', f2);
+
+                    object.fire('event');
+                    expect(rightOrder).toBe(true);
+                });
+
+                it('should call the same handler for each time it was added', function() {
+                    var counter = 0;
+                    var f3 = function() { counter++; };
+
+                    object.on('event', f3);
+                    object.on('event', f1);
+                    object.on('event', f3);
+                    object.on('event', f3);
+                    object.fire('event');
+
+                    expect(counter).toBe(3);
+                });
+
+                it('should throw an exception if no event type is given', function() {
+                    object.on('event', f1);
+                    expect(function() { object.fire(); }).toThrow();
+                    expect(function() { object.fire(1); }).toThrow();
+                    expect(function() { object.fire([]); }).toThrow();
+                    expect(function() { object.fire({}); }).toThrow();
+                    expect(function() { object.fire(null); }).toThrow();
+                    expect(function() { object.fire('.ns'); }).toThrow();
+                });
+
+                it('should throw an exception if more then one event type is given', function() {
+                    object.on('event', f1);
+                    expect(function() { object.fire('event event1'); }).toThrow();
+                });
+
+                it('should ignore the namespaces in the description', function() {
+                    object.on('event.ns', f1);
+                    object.on('event.ns1', f2);
+
+                    object.fire('event.ns1');
+                    expect(fired1).toBe(true);
+                    expect(fired2).toBe(true);
+                });
+
+                it('should call the handle in the source object context', function() {
+                    var correct = false;
+                    var f3 = function() {
+                        correct = this === object;
+                    };
+                    object.on('event', f3);
+                    object.fire('event');
+
+                    expect(correct).toBe(true);
                 });
             });
         });
