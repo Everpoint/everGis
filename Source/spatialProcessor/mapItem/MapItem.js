@@ -181,7 +181,7 @@
         }
     };
 
-    utils.mixin(sGis.MapItem.prototype, sGis.IEventHandler.prototype);
+    sGis.utils.proto.setMethods(sGis.MapItem.prototype, sGis.IEventHandler);
 
     Object.defineProperties(sGis.MapItem.prototype, {
         id: {

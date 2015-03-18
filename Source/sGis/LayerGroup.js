@@ -84,7 +84,7 @@
         }
     };
 
-    utils.mixin(sGis.LayerGroup.prototype, sGis.IEventHandler.prototype);
+    sGis.utils.proto.setMethods(sGis.LayerGroup.prototype, sGis.IEventHandler);
 
     Object.defineProperties(sGis.LayerGroup.prototype, {
         layers: {

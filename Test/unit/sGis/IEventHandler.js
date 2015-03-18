@@ -6,7 +6,7 @@ $(function() {
         var f = function() {};
         beforeEach(function () {
             object = {};
-            utils.mixin(object, sGis.IEventHandler.prototype);
+            sGis.utils.proto.setMethods(object, sGis.IEventHandler);
         });
 
         describe('methods', function () {

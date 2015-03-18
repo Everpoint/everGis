@@ -185,7 +185,7 @@
         }
     });
 
-    utils.mixin(sGis.spatialProcessor.DataTree.prototype, sGis.IEventHandler.prototype);
+    sGis.utils.proto.setMethods(sGis.spatialProcessor.DataTree.prototype, sGis.IEventHandler);
 
     function getDynatreeRow(row, tree) {
         var displayedRow = {title: getRowTitle(row, tree), treeRow: row};

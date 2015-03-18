@@ -318,6 +318,6 @@
         }
     });
 
-    utils.mixin(sGis.spatialProcessor.MapServer.prototype, sGis.IEventHandler.prototype);
+    sGis.utils.proto.setMethods(sGis.spatialProcessor.MapServer.prototype, sGis.IEventHandler);
 
 })();

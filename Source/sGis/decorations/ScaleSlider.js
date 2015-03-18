@@ -223,7 +223,7 @@
         }
     });
 
-    utils.mixin(sGis.decorations.ScaleSlider.prototype, sGis.IEventHandler.prototype);
+    sGis.utils.proto.setMethods(sGis.decorations.ScaleSlider.prototype, sGis.IEventHandler);
 
     var defaultCss = '.sGis-decorations-scaleSlider-grid {' +
             'border: 1px solid gray; ' +

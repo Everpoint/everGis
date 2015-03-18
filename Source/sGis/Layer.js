@@ -99,6 +99,6 @@
         }
     });
 
-    utils.mixin(sGis.Layer.prototype, sGis.IEventHandler.prototype);
+    sGis.utils.proto.setMethods(sGis.Layer.prototype, sGis.IEventHandler);
 
 })();

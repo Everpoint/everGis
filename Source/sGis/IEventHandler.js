@@ -2,14 +2,12 @@
 
 (function() {
 
-    sGis.IEventHandler = function() {};
-
     /**
      * Provides methods for handling events.
      * @mixin
      */
 
-    sGis.IEventHandler.prototype = {
+    sGis.IEventHandler = {
         forwardEvent: function(sGisEvent) {
             if (this._prohibitedEvents && this._prohibitedEvents.indexOf(sGisEvent.eventType) !== -1) return;
             var eventType = sGisEvent.eventType;
@@ -138,20 +136,20 @@
     /**
      * @alias sGis.IEventHandler.prototype.addListener
      */
-    sGis.IEventHandler.prototype.on = sGis.IEventHandler.prototype.addListener;
+    sGis.IEventHandler.on = sGis.IEventHandler.addListener;
 
     /**
      * @alias sGis.IEventHandler.prototype.removeListener
      */
-    sGis.IEventHandler.prototype.off = sGis.IEventHandler.prototype.removeListener;
+    sGis.IEventHandler.off = sGis.IEventHandler.removeListener;
 
 
     // Deprecated names
-    sGis.IEventHandler.prototype.addListner = sGis.IEventHandler.prototype.addListener;
-    sGis.IEventHandler.prototype.addListners = sGis.IEventHandler.prototype.addListeners;
-    sGis.IEventHandler.prototype.removeListner = sGis.IEventHandler.prototype.removeListener;
-    sGis.IEventHandler.prototype.hasListner = sGis.IEventHandler.prototype.hasListener;
-    sGis.IEventHandler.prototype.hasListners = sGis.IEventHandler.prototype.hasListeners;
+    sGis.IEventHandler.addListner = sGis.IEventHandler.addListener;
+    sGis.IEventHandler.addListners = sGis.IEventHandler.addListeners;
+    sGis.IEventHandler.removeListner = sGis.IEventHandler.removeListener;
+    sGis.IEventHandler.hasListner = sGis.IEventHandler.hasListener;
+    sGis.IEventHandler.hasListners = sGis.IEventHandler.hasListeners;
 
 
     function getTypes(string) {

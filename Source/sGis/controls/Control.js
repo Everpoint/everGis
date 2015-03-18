@@ -75,6 +75,6 @@
         }
     });
 
-    utils.mixin(sGis.Control.prototype, sGis.IEventHandler.prototype);
+    sGis.utils.proto.setMethods(sGis.Control.prototype, sGis.IEventHandler);
 
 })();

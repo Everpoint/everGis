@@ -760,7 +760,7 @@
         }
     });
 
-    utils.mixin(utils.Painter.prototype, sGis.IEventHandler.prototype);
+    sGis.utils.proto.setMethods(utils.Painter.prototype, sGis.IEventHandler);
 
     function toDrawOnCanvas(object) {
         return sGis.useCanvas && (object instanceof sGis.geom.Arc || object instanceof sGis.geom.Polyline || object.renderToCanvas);

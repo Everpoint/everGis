@@ -265,7 +265,7 @@
         }
     });
 
-    utils.mixin(sGis.SpatialProcessor.prototype, sGis.IEventHandler.prototype);
+    sGis.utils.proto.setMethods(sGis.SpatialProcessor.prototype, sGis.IEventHandler);
 
     var controllerList = {
         'identify': sGis.spatialProcessor.controller.Identify,

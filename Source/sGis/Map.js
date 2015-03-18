@@ -601,7 +601,7 @@
         }
     });
 
-    utils.mixin(sGis.Map.prototype, sGis.IEventHandler.prototype);
+    sGis.utils.proto.setMethods(sGis.Map.prototype, sGis.IEventHandler);
 
     function initializeCrs(map, crs) {
         if (!(crs instanceof sGis.Crs)) utils.error('sGis.Crs instance is expected but got ' + crs + ' instead');

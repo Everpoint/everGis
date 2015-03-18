@@ -279,7 +279,7 @@ sGis.spatialProcessor.Controller.prototype = {
     }
 };
 
-utils.mixin(sGis.spatialProcessor.Controller.prototype, sGis.IEventHandler.prototype);
+sGis.utils.proto.setMethods(sGis.spatialProcessor.Controller.prototype, sGis.IEventHandler);
 
 function createFeatures(response, crs) {
     var features = [];

@@ -241,7 +241,7 @@
         }
     });
 
-    utils.mixin(sGis.spatialProcessor.Connector.prototype, sGis.IEventHandler.prototype);
+    sGis.utils.proto.setMethods(sGis.spatialProcessor.Connector.prototype, sGis.IEventHandler);
 
     sGis.spatialProcessor.processNotification = {
         'dynamic layer': function(connector, data, type) {

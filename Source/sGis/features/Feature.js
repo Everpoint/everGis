@@ -137,7 +137,7 @@
         }
     });
 
-    utils.mixin(sGis.Feature.prototype, sGis.IEventHandler.prototype);
+    sGis.utils.proto.setMethods(sGis.Feature.prototype, sGis.IEventHandler);
 
     //todo: remove this
     var id = 0;
