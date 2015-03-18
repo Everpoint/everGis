@@ -37,7 +37,7 @@
         },
 
         clone: function() {
-            return new sGis.feature.Polyline(this._coordinates, {crs: this._crs, color: this._color, width: this._width, style: this.style, symbol: this.symbol});
+            return new sGis.feature.Polyline(this._coordinates, {crs: this._crs, color: this._color, width: this._width, symbol: this.symbol});
         },
 
         projectTo: function(crs) {

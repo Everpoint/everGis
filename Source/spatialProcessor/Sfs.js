@@ -17,7 +17,7 @@
                     var list = utils.parseJSON(response);
                     successHandler(list);
                 }
-            }
+            };
 
             this.__operation('list', properties);
         },
@@ -29,21 +29,21 @@
         getTemplate: function(properties) {
             var successHandler = properties.success;
             properties.success = function(response) {
-                //try {
+                try {
                     for (var i = response.length - 1; i >= 0; i--) {
                         if (response.charCodeAt(i) === 0) {
-                            response = response.slice(0, i), response.slice(i + 1);
+                            response = response.slice(0, i);
                         }
                     }
 
-                    var asset = utils.parseJSON(response)
+                    var asset = utils.parseJSON(response);
                     var template = new sGis.spatialProcessor.Template(asset, properties.path);
                     if (successHandler) {
                         successHandler(template);
                     }
-                //} catch(e) {
-                //    if (properties.error) properties.error('Could not read the template');
-                //}
+                } catch(e) {
+                    if (properties.error) properties.error('Could not read the template');
+                }
             };
 
             this.download(properties);
