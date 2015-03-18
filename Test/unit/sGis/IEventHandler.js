@@ -422,6 +422,94 @@ $(function() {
                     expect(correct).toBe(true);
                 });
             });
+
+            describe('.prohibitEvent() and .allowEvent()', function() {
+                it('should prohibit and allow triggering an event', function() {
+                    var fired = false;
+                    var handler = function() { fired = true; };
+
+                    object.on('event', handler);
+                    object.prohibitEvent('event');
+                    object.fire('event');
+                    expect(fired).toBe(false);
+
+                    object.forwardEvent('event', {});
+                    expect(fired).toBe(false);
+
+                    object.allowEvent('event');
+                    object.fire('event');
+                    expect(fired).toBe(true);
+                });
+
+                it('should not affect any other events', function() {
+                    var fired = false;
+                    var handler = function() { fired = true; };
+
+                    object.on('event', handler);
+                    object.on('event1', f);
+                    object.prohibitEvent('event1');
+                    object.fire('event');
+
+                    expect(fired).toBe(true);
+                });
+
+                it('should stack the prohibitions and unstack when allowing', function() {
+                    var fired = false;
+                    var handler = function() { fired = true; };
+
+                    object.on('event', handler);
+                    object.prohibitEvent('event');
+                    object.prohibitEvent('event');
+                    object.fire('event');
+                    expect(fired).toBe(false);
+
+                    object.forwardEvent('event', {});
+                    expect(fired).toBe(false);
+
+                    object.allowEvent('event');
+                    object.fire('event');
+                    expect(fired).toBe(false);
+
+                    object.allowEvent('event');
+                    object.fire('event');
+                    expect(fired).toBe(true);
+                });
+            });
+
+            describe('.getHandlers()', function() {
+                it('should return the list of handler descriptions', function() {
+                    var f1 = function() {};
+
+                    object.on('event', f);
+                    object.on('event event1', f1);
+
+                    expect(object.getHandlers('event').length).toBe(2);
+                    expect(object.getHandlers('event1').length).toBe(1);
+                    expect(object.getHandlers('event')[0].handler).toBe(f);
+                    expect(object.getHandlers('event')[1].handler).toBe(f1);
+                });
+
+                it('should return a copy of the array', function() {
+                    object.on('event', f);
+
+                    var list = object.getHandlers('event');
+                    expect(object.getHandlers('event')).not.toBe(list);
+                    expect(object.getHandlers('event')).toEqual(list);
+
+                    list[0].handler = null;
+
+                    expect(object.getHandlers('event')[0].handler).toBe(f);
+                });
+
+                it('should return an empty array if there are no handlers for given type', function() {
+                    expect(object.getHandlers('event')).toEqual([]);
+                    object.on('event', f);
+                    expect(object.getHandlers('event1')).toEqual([]);
+
+                    object.off('event', f);
+                    expect(object.getHandlers('event')).toEqual([]);
+                });
+            });
         });
     });
 });

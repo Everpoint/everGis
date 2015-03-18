@@ -142,11 +142,19 @@
             }
         },
 
+        /**
+         * Prohibits triggering of the event. The prohibitions are stacked - if the same event is prohibited N times, you need to allow it N times to make it work.
+         * @param {String} type - name of the event to be prohibited.
+         */
         prohibitEvent: function(type) {
             if (!this._prohibitedEvents) this._prohibitedEvents = [];
             this._prohibitedEvents.push(type);
         },
 
+        /**
+         * Allows a previously prohibited event. The prohibitions are stacked - if the same event is prohibited N times, you need to allow it N times to make it work. If no prohibitions were set for the event, the operation is ignored.
+         * @param {String} type - name of the event to be allowed.
+         */
         allowEvent: function(type) {
             if (!this._prohibitedEvents) return;
             var index = this._prohibitedEvents.indexOf(type);
@@ -201,10 +209,15 @@
             return false;
         },
 
+        /**
+         * Returns the list of the event handler description in format { handler: Func, namespaces: ['.ns1, ...], oneTime: ifTheHandlerOneTimeHandler }.
+         * @param {String} type - name of the event.
+         * @returns {Array}
+         */
         getHandlers: function(type) {
             if (!utils.isString(type)) utils.error('Expected the name of the event, but got ' + type + ' instead');
             if (this._eventHandlers && this._eventHandlers[type]) {
-                return this._eventHandlers[type];
+                return utils.copyObject(this._eventHandlers[type]);
             }
             return [];
         }
