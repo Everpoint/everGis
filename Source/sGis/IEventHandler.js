@@ -14,6 +14,10 @@
             if (this._eventHandlers && this._eventHandlers[eventType]) {
                 var handlerList = utils.copyArray(this._eventHandlers[eventType]); //This is needed in case one of the handlers is deleted in the process of handling
                 for (var i = 0, len = handlerList.length; i < len; i++) {
+                    if (handlerList[i].oneTime) {
+                        var currentIndex = this._eventHandlers[eventType].indexOf(handlerList[i]);
+                        this._eventHandlers[eventType].splice(currentIndex, 1);
+                    }
                     handlerList[i].handler.call(this, sGisEvent);
                     if (sGisEvent._cancelPropagation) break;
                 }
@@ -63,6 +67,19 @@
                 if (!this._eventHandlers[types[i]]) this._eventHandlers[types[i]] = [];
                 this._eventHandlers[types[i]].push({handler: handler, namespaces: namespaces});
             }
+        },
+
+        once: function(type, handler) {
+            if (!(handler instanceof Function)) utils.error('Function is expected but got ' + handler + ' instead');
+            if (!utils.isString(type)) utils.error('String is expected but got ' + type + ' instead');
+
+            var types = getTypes(type);
+            if (types.length !== 1) utils.error('Only one event type can be specified with .once() method');
+            var namespaces = getNamespaces(type);
+
+            if (!this._eventHandlers) this._eventHandlers = [];
+            if (!this._eventHandlers[types[0]]) this._eventHandlers[types[0]] = [];
+            this._eventHandlers[types[0]].push({handler: handler, namespaces: namespaces, oneTime: true});
         },
 
         removeListener: function(type, handler) {

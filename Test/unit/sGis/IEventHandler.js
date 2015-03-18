@@ -75,6 +75,60 @@ $(function() {
                 });
             });
 
+            describe('.once()', function() {
+                it('should set one time listener for the event', function() {
+                    var fired = false;
+                    var handler = function() { fired = true; };
+
+                    object.once('event', handler);
+                    expect(object.hasListener('event', handler)).toBe(true);
+
+                    object.fire('event');
+                    expect(fired).toBe(true);
+                    expect(object.hasListeners('event')).toBe(false);
+                });
+
+                it('should not remove other listeners', function() {
+                    var f1 = function() {};
+                    var f2 = function() {};
+                    var f3 = function() {};
+
+                    object.once('event', f);
+                    object.on('event', f1);
+                    object.once('event', f2);
+                    object.on('event', f3);
+
+                    object.fire('event');
+                    expect(object.hasListener('event', f)).toBe(false);
+                    expect(object.hasListener('event', f1)).toBe(true);
+                    expect(object.hasListener('event', f2)).toBe(false);
+                    expect(object.hasListener('event', f3)).toBe(true);
+                });
+
+                it('should set the namespaces for the listener', function() {
+                    object.once('event.ns .ns1', f);
+                    expect(object.hasListeners('.ns')).toBe(true);
+                    expect(object.hasListeners('.ns1')).toBe(true);
+                });
+
+                it('should throw an error if no event type is specified', function() {
+                    expect(function() { object.once(undefined, f); }).toThrow();
+                    expect(function() { object.once(1, f); }).toThrow();
+                    expect(function() { object.once('', f); }).toThrow();
+                    expect(function() { object.once([], f); }).toThrow();
+                    expect(function() { object.once({}, f); }).toThrow();
+                    expect(function() { object.once('.ns', f); }).toThrow();
+                });
+
+                it('should throw an error if no handler is specified', function() {
+                    expect(function() { object.once('event'); }).toThrow();
+                    expect(function() { object.once('event', 1); }).toThrow();
+                    expect(function() { object.once('event', 'as'); }).toThrow();
+                    expect(function() { object.once('event', []); }).toThrow();
+                    expect(function() { object.once('event', {}); }).toThrow();
+                });
+            });
+
             describe('.removeListener()', function() {
                 it('should remove the listener from the object', function () {
                     object.on('event', f);
