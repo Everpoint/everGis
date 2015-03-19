@@ -215,13 +215,19 @@
          * @returns {Array}
          */
         getHandlers: function(type) {
-            if (!utils.isString(type)) utils.error('Expected the name of the event, but got ' + type + ' instead');
+            if (!utils.isString(type)) utils.error('Expected the name of the e*vent, but got ' + type + ' instead');
             if (this._eventHandlers && this._eventHandlers[type]) {
                 return utils.copyObject(this._eventHandlers[type]);
             }
             return [];
-        }
+        },
 
+        /**
+         * Removes all event listeners from the object.
+         */
+        removeAllListeners: function() {
+            delete this._eventHandlers;
+        }
     };
 
     /**

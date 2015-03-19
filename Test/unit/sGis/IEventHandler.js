@@ -510,6 +510,17 @@ $(function() {
                     expect(object.getHandlers('event')).toEqual([]);
                 });
             });
+
+            describe('.removeAllListeners()', function() {
+                it('should remove all event listeners', function() {
+                    object.on('event', f);
+                    object.on('event1', function() {});
+
+                    object.removeAllListeners();
+                    expect(object.hasListeners('event')).toBe(false);
+                    expect(object.hasListeners('event1')).toBe(false);
+                });
+            });
         });
     });
 });
