@@ -497,6 +497,51 @@ $(document).ready(function() {
                 expect(addFired).toBeTruthy();
                 expect(moveFired).toBeTruthy();
             });
+
+            describe('.move()', function() {
+                var map;
+                beforeEach(function() {
+                    map = new sGis.Map();
+                });
+
+                it('should move the position of the map by the specified amount', function() {
+                    map.wrapper = 'map';
+                    var position = map.position;
+                    map.move(10, 20);
+                    var newPosition = map.position;
+                    expect(position.x + 10).toBe(newPosition.x);
+                    expect(position.y + 20).toBe(newPosition.y);
+                });
+
+                it('should work with no wrapper', function() {
+                    var position = map.position;
+                    map.move(10, 20);
+                    var newPosition = map.position;
+                    expect(position.x + 10).toBe(newPosition.x);
+                    expect(position.y + 20).toBe(newPosition.y);
+                });
+
+                it('should fire the "bboxChange" event', function() {
+                    map.wrapper = 'map';
+                    var fired = false;
+                    var handler = function() { fired = true; };
+                    map.on('bboxChange', handler);
+                    map.move(10, 20);
+                    expect(fired).toBe(true);
+                });
+
+                it('should throw an exception if the input is incorrect', function() {
+                    expect(function() { map.move(); }).toThrow();
+                    expect(function() { map.move(10); }).toThrow();
+                    expect(function() { map.move(undefined, 20); }).toThrow();
+                    expect(function() { map.move(NaN, 0); }).toThrow();
+                    expect(function() { map.move('10', 10); }).toThrow();
+                    expect(function() { map.move(10, '10'); }).toThrow();
+                    expect(function() { map.move([10,10]); }).toThrow();
+                    expect(function() { map.move({x:10, y:10}); }).toThrow();
+                    expect(function() { map.move(null, null); }).toThrow();
+                });
+            });
         });
     });
 });

@@ -145,7 +145,7 @@
     };
 
     utils.isNumber = function(n) {
-        return !utils.isArray(n) && !isNaN(parseFloat(n)) && isFinite(n);
+        return typeof n === 'number' && isFinite(n);
     };
 
     utils.isInteger = function(n) {

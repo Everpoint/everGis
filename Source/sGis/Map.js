@@ -82,17 +82,16 @@
         },
 
         /**
-         * Moves the map bounding box by the given number of pixels
-         * @param {int} dx - Offset along X axis in pixels, positive direction is right
-         * @param {int} dy - Offset along Y axis in pixels, positive direction is down
+         * Moves the map position by the specified offset
+         * @param {Number} dx - Offset along X axis in map coordinates, positive direction is right
+         * @param {Number} dy - Offset along Y axis in map coordinates, positive direction is down
          */
         move: function(dx, dy) {
-            for (var i = 0; i < 2; i++) {
-                this._bbox.p[i].x += dx;
-                this._bbox.p[i].y += dy;
-            }
-            adjustCoordinates();
-            this.fire('bboxChange', {map: this});
+            if (!utils.isNumber(dx) || !utils.isNumber(dy)) utils.error('Number, Number is expected but got ' + dx + ', ' + dy + ' instead');
+            var position = this.position;
+            position.x += dx;
+            position.y += dy;
+            this.position = position;
         },
 
         /**
@@ -624,7 +623,7 @@
         wrapper.style.position = 'relative';
         wrapper.style.overflow = 'hidden';
         parent.appendChild(wrapper);
-        parent.map = map;
+        parent.map = map; //todo: this should be deleted
 
         var layerWrapper = document.createElement('div');
         layerWrapper.className = 'sGis-layerWrapper';
@@ -633,7 +632,7 @@
 
         map._parent = parent;
         map._wrapper = wrapper;
-        map._eventWrapper = parent;
+        map._eventWrapper = parent; //todo: why have two names for one thing?
         map._layerWrapper = layerWrapper;
     }
 
@@ -886,10 +885,6 @@
 
         mouseHandler.activeObject._draggingObject = null;
         mouseHandler.activeObject = null;
-    }
-
-    function adjustCoordinates(map) {
-
     }
 
     function isFormElement(e) {
