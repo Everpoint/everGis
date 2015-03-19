@@ -254,12 +254,7 @@
 
 
     function getTypes(string) {
-        var names = string.match(/\.[A-Za-z0-9_-]+|[A-Za-z0-9_-]+/g),//todo: this function can be written with just one line...
-            types = [];
-        for (var i = 0; i < names.length; i++) {
-            if (names[i].charAt(0) !== '.') types.push(names[i]);
-        }
-        return types;
+        return string.replace(/\.[A-Za-z0-9_-]+/g, '').match(/[A-Za-z0-9_-]+/g) || [];
     }
 
     function getNamespaces(string) {

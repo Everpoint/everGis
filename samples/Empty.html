@@ -13,8 +13,8 @@
         }
 
         div#map {
-            width: 100%;
-            height: 100%;
+            width: 50%;
+            height: 50%;
         }
     </style>
 
@@ -101,25 +101,26 @@
 
         window.onload = function() {
             var sp = new sGis.SpatialProcessor({
-                url: 'http://dev2.everpoint.ru/eg_public/SpatialProcessor/IIS/', login: 'jspublic', password: 'jspublic',
-                mapWrapper: 'map',
+                url: 'http://dev2.everpoint.ru/eg_public/SpatialProcessor/IIS/', login: 'jspublic', password: '1jspublic',
+//                mapWrapper: 'map',
                 services: ['osm']
             });
 
-            var featureLayer = new sGis.FeatureLayer();
-            var point = new sGis.feature.Point([55.5, 37], {color: 'red', size: 20});
-            featureLayer.add(point);
+            sp.addListener('initialize', function() {
+                var sfs = new sGis.spatialProcessor.Sfs(sp.connector);
 
-            var line = new sGis.feature.Polyline([[55.6, 37], [55.7, 37.1], [55.8, 36.9]], {style: {strokeColor: 'green', strokeWidth: 5}});
-            featureLayer.add(line);
+                sfs.getTemplates({
+                    path: 'd:\\Startup\\public.assetlib',
+                    success: function(templates) {
+                        for (var i = 0; i < templates.length; i++) {
+                            var template = templates[i];
+                            var image = template.getImage();
+                            document.body.appendChild(image);
+                        }
+                    }
+                });
+            });
 
-            var polygon = new sGis.feature.Polygon([[55.6, 37.5], [55.7, 37.6], [55.8, 37.4]], {style: {strokeColor: 'green', strokeWidth: 5, fillColor: 'rgba(0, 0, 255, 0.5'}});
-            featureLayer.add(polygon);
-
-            sp.map.addLayer(featureLayer);
-
-            var editor = new sGis.controls.Editor(sp.map, {activeLayer: featureLayer});
-            editor.activate();
         }
     </script>
 </body>
