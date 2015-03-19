@@ -117,7 +117,7 @@
             var tileScheme = this.tileScheme;
 
             if (this._animationTarget) {
-                var currResolution = this._animationTarget.width / this.width;
+                var currResolution = this._animationTarget[1];
             } else {
                 currResolution = this.resolution;
             }
@@ -184,38 +184,51 @@
          */
         animateSetResolution: function(resolution, basePoint) {
             var adjustedResolution = this.getAdjustedResolution(resolution);
-            var bbox = getScaledBbox(this, adjustedResolution, basePoint);
-            this._animateTo(bbox);
-            this.fire('animationStart', {targetBbox: bbox});
+            var newPosition = this._getScaledPosition(adjustedResolution, basePoint);
+            this._animateTo(newPosition, adjustedResolution);
+            this.fire('animationStart');
         },
 
         _animationTime: 300,
 
-        _animateTo: function(targetBbox) {
+        _animateTo: function(position, resolution) {
             this.stopAnimation();
 
-            var originalBbox = this.bbox;
+            var originalPosition = this.position;
+            var originalResolution = this.resolution;
+            var dx = position.x - originalPosition.x;
+            var dy = position.y - originalPosition.y;
+            var dr = resolution - originalResolution;
             var startTime = Date.now();
             this._painter.prohibitUpdate();
             this._animationStopped = false;
-            this._animationTarget = targetBbox;
+            this._animationTarget = [position, resolution];
 
             var self = this;
             this._animationTimer = setInterval(function() {
                 var time = Date.now() - startTime;
                 if (time >= self._animationTime || self._animationStopped) {
-                    self._bbox = targetBbox;
+                    self.position = position;
+                    self.resolution = resolution;
                     self.stopAnimation();
                     self.fire('animationEnd');
                 } else {
-                    var x1 = self._easeFunction(time, originalBbox.p[0].x, targetBbox.p[0].x - originalBbox.p[0].x, self._animationTime);
-                    var y1 = self._easeFunction(time, originalBbox.p[0].y, targetBbox.p[0].y - originalBbox.p[0].y, self._animationTime);
-                    var x2 = self._easeFunction(time, originalBbox.p[1].x, targetBbox.p[1].x - originalBbox.p[1].x, self._animationTime);
-                    var y2 = self._easeFunction(time, originalBbox.p[1].y, targetBbox.p[1].y - originalBbox.p[1].y, self._animationTime);
-                    self._bbox = new sGis.Bbox(new sGis.Point(x1, y1, self.crs), new sGis.Point(x2, y2, self.crs));
+                    var x = self._easeFunction(time, originalPosition.x, dx, self._animationTime);
+                    var y = self._easeFunction(time, originalPosition.y, dy, self._animationTime);
+                    var r = self._easeFunction(time, originalResolution, dr, self._animationTime);
+                    self.position = new sGis.Point(x, y, self.crs);
+                    self.resolution = r;
                 }
                 self.fire('bboxChange');
             }, 1000 / 60);
+        },
+
+        _getScaledPosition: function(newResolution, basePoint) {
+            var position = this.position;
+            basePoint = basePoint ? basePoint.projectTo(this.crs) : position;
+            var resolution = this.resolution;
+            var scalingK = newResolution / resolution;
+            return new sGis.Point((position.x - basePoint.x) * scalingK + basePoint.x, (position.y - basePoint.y) * scalingK + basePoint.y, position.crs);
         },
 
         stopAnimation: function() {
