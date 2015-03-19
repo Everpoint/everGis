@@ -522,5 +522,16 @@ $(function() {
                 });
             });
         });
+
+        it('should not crate any enumerable properties if connected properly', function() {
+            object.on('event', f);
+
+            var counter = 0;
+            for (var i in object) {
+                counter++;
+            }
+
+            expect(counter).toBe(0);
+        });
     });
 });

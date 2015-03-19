@@ -74,7 +74,7 @@
 
             var namespaces = getNamespaces(description);
 
-            if (!this._eventHandlers) this._eventHandlers = {};
+            if (!this._eventHandlers) this._setHandlerList();
 
             for (var i = 0; i < types.length; i++) {
                 if (!this._eventHandlers[types[i]]) this._eventHandlers[types[i]] = [];
@@ -95,7 +95,7 @@
             if (types.length !== 1) utils.error('Only one event type can be specified with .once() method');
             var namespaces = getNamespaces(description);
 
-            if (!this._eventHandlers) this._eventHandlers = [];
+            if (!this._eventHandlers) this._setHandlerList();
             if (!this._eventHandlers[types[0]]) this._eventHandlers[types[0]] = [];
             this._eventHandlers[types[0]].push({handler: handler, namespaces: namespaces, oneTime: true});
         },
@@ -227,6 +227,10 @@
          */
         removeAllListeners: function() {
             delete this._eventHandlers;
+        },
+
+        _setHandlerList: function() {
+            Object.defineProperty(this, '_eventHandlers', { value: {}, configurable: true });
         }
     };
 
