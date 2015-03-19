@@ -187,7 +187,6 @@
             var bbox = getScaledBbox(this, adjustedResolution, basePoint);
             this._animateTo(bbox);
             this.fire('animationStart', {targetBbox: bbox});
-            this._resolutionChanged = true;
         },
 
         _animationTime: 300,
@@ -238,7 +237,6 @@
         setResolution: function(resolution, basePoint) {
             var bbox = getScaledBbox(this, resolution, basePoint);
             this.__setBbox(bbox.p[0], bbox.p[1]);
-            this._resolutionChanged = true;
         },
 
         /**
