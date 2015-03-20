@@ -31,14 +31,26 @@
         }
     };
 
-    sGis.utils.proto.setMethods = function(obj, properties) {
+    sGis.utils.proto.setMethods = function(obj, properties, collisions) {
         var keys = Object.keys(properties);
         for (var i = 0; i < keys.length; i++) {
-            Object.defineProperty(obj, keys[i], {
-                value: properties[keys[i]]
-            });
+            if (obj.hasOwnProperty(keys[i])) {
+                if (collisions === 'override') {
+                    _define(obj, keys[i], properties[keys[i]]);
+                } else if (collisions !== 'ignore') {
+                    utils.error('Cannot copy property .' + keys[i] + ' - the object already has this property. Use options "ignore" or "override" if this is expected.');
+                }
+            } else {
+                _define(obj, keys[i], properties[keys[i]]);
+            }
         }
     };
+
+    function _define(obj, key, value) {
+        Object.defineProperty(obj, key, {
+            value: value
+        });
+    }
 
     sGis.utils.proto.getGetter = function(key, getter) {
         if (getter !== null) {

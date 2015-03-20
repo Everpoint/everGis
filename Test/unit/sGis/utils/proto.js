@@ -221,6 +221,52 @@ $(function() {
                 expect(function() { Class.prototype.m1 = 1; }).toThrow();
                 expect(function() { obj.m1 = 1; }).toThrow();
             });
+
+            it('should throw an error if the object already has such property', function() {
+                Class.prototype.m1 = undefined;
+                expect(function() { sGis.utils.proto.setMethods(Class.prototype, methods); }).toThrow();
+                expect(Class.prototype.m1).toBe(undefined);
+
+                Class.prototype.m1 = null;
+                expect(function() { sGis.utils.proto.setMethods(Class.prototype, methods); }).toThrow();
+                expect(Class.prototype.m1).toBe(null);
+
+                Class.prototype.m1 = 1;
+                expect(function() { sGis.utils.proto.setMethods(Class.prototype, methods); }).toThrow();
+                expect(Class.prototype.m1).toBe(1);
+
+                Class.prototype.m1 = 'abc';
+                expect(function() { sGis.utils.proto.setMethods(Class.prototype, methods, 'argument'); }).toThrow();
+                expect(Class.prototype.m1).toBe('abc');
+
+                Class.prototype.m1 = {};
+                expect(function() { sGis.utils.proto.setMethods(Class.prototype, methods); }).toThrow();
+                expect(Class.prototype.m1).toEqual({});
+
+                Class.prototype.m1 = function() {};
+                expect(function() { sGis.utils.proto.setMethods(Class.prototype, methods); }).toThrow();
+            });
+
+            it('should set the property fine if the object\'s parent has the property, but object itself does not have', function() {
+                Class.prototype.m1 = 1;
+                expect(obj.m1).toBe(1);
+                sGis.utils.proto.setMethods(obj, methods);
+                expect(obj.m1).toBe(methods.m1);
+            });
+
+            it('should ignore already existing property if the third argument is "ignore"', function() {
+                obj.m1 = 1;
+                sGis.utils.proto.setMethods(obj, methods, 'ignore');
+                expect(obj.m1).toBe(1);
+                expect(obj.m2).toBe(methods.m2);
+            });
+
+            it('should override the existing properties if the third argument is "override"', function() {
+                obj.m1 = 1;
+                sGis.utils.proto.setMethods(obj, methods, 'override');
+                expect(obj.m1).toBe(methods.m1);
+                expect(obj.m2).toBe(methods.m2);
+            });
         });
     });
 });
