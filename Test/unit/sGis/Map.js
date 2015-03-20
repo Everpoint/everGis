@@ -3,6 +3,7 @@
 $(document).ready(function() {
 
     $(document.body).html('<div id="map" style="width: 500px; height: 500px;"></div>');
+    var $wrapper = $('#map');
 
     /*
      * sGis.Map
@@ -10,12 +11,15 @@ $(document).ready(function() {
 
     describe('Map', function() {
         beforeEach(function() {
-            $('#map').width(500).height(500);
+            $wrapper.width(500).height(500).show();
+
         });
 
         afterEach(function() {
-            $('#map').html('').width(0).height(0);
+            $wrapper.html('').hide();
         });
+
+
         
         describe('creation', function() {
             it('should be created with default parameters', function() {
@@ -71,11 +75,22 @@ $(document).ready(function() {
         
         describe('properties', function() {
             var map;
+            var triggerAnimationFrame;
+
             beforeEach(function() {
+                var callsList = [];
+
+                spyOn(utils, 'requestAnimationFrame').and.callFake(function (f) {
+                    callsList.push(f);
+                    triggerAnimationFrame = function () {
+                        callsList.forEach(function(handler) { handler(); });
+                    };
+                });
                 map = new sGis.Map({wrapper: 'map'});
             });
 
             describe('.width and .height', function() {
+
                 it('should throw an exception if assigned value', function() {
                     expect(function() { map.width = 200; }).toThrow();
                     expect(function() { map.height = 200; }).toThrow();
@@ -90,9 +105,26 @@ $(document).ready(function() {
                     var $wrapper = $('#map');
                     $wrapper.width(200).height(300);
 
-                    map.updateSize();
+                    triggerAnimationFrame();
+
                     expect(map.width).toBe(200);
                     expect(map.height).toBe(300);
+                });
+
+                it('should return 0 if the wrapper is not displayed on the screen', function() {
+                    $wrapper.hide();
+
+                    triggerAnimationFrame();
+                    expect(map.width).toBe(0);
+                    expect(map.height).toBe(0);
+                });
+
+                it('should return undefined if the map has no wrapper', function() {
+                    map.wrapper = null;
+
+                    triggerAnimationFrame();
+                    expect(map.width).toBe(undefined);
+                    expect(map.height).toBe(undefined);
                 });
             });
 
@@ -163,6 +195,8 @@ $(document).ready(function() {
                     map = new sGis.Map({wrapper: 'map'});
                     
                 map.wrapper = null;
+
+                triggerAnimationFrame();
                 expect(map.wrapper).toBe(null);
                 expect(map.layerWrapper).toBe(undefined);
                 expect(map.width).toBe(undefined);
@@ -266,7 +300,8 @@ $(document).ready(function() {
                 expect(map.bbox).toBeDefined();
                 
                 map.wrapper = null;
-                
+                triggerAnimationFrame();
+
                 expect(map.bbox).toBe(undefined);
             });
             
@@ -283,8 +318,9 @@ $(document).ready(function() {
                 expect(map.bbox).not.toEqual(bbox);
                 expect(map.bbox.p[0].crs).toBe(sGis.CRS.ellipticalMercator);
                 
-                var map = new sGis.Map({wrapper: 'map', crs: sGis.CRS.plain});
-                expect(map.bbox.p[0].crs).toBe(sGis.CRS.plain);
+                var map1 = new sGis.Map({wrapper: 'map', crs: sGis.CRS.plain});
+
+                expect(map1.bbox.p[0].crs).toBe(sGis.CRS.plain);
             });
             
             it('.bbox should change if the position is changed', function() {
@@ -314,6 +350,7 @@ $(document).ready(function() {
                     bbox = map.bbox;
                     
                 map.resolution *= 2;
+
                 expect(map.bbox).not.toEqual(bbox);
             });
             

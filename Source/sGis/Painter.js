@@ -130,15 +130,7 @@
             layerData.zIndex = zIndex;
         },
 
-        _clearCache: function() {
-            this._width = null;
-            this._height = null;
-            this._resolution = null;
-        },
-
         _repaint: function() {
-            this._clearCache();
-
             if (this._needUpdate && this._updateAllowed) {
                 this._setNewContainer();
                 this._needUpdate = false;
@@ -740,22 +732,19 @@
 
         width: {
             get: function() {
-                if (!this._width) this._width = this._map.width;
-                return this._width;
+                return this._map.width;
             }
         },
 
         height: {
             get: function() {
-                if (!this._height) this._height = this._map.height;
-                return this._height;
+                return this._map.height;
             }
         },
 
         resolution: {
             get: function() {
-                if (!this._resolution) this._resolution = this._map.resolution;
-                return this._resolution;
+                return this._map.resolution;
             }
         }
     });

@@ -15,7 +15,6 @@
      */
 
     sGis.Map = function(options) {
-        if (options && options.crs) initializeCrs(this, options.crs);
         utils.init(this, options);
         this._layerGroup = new sGis.LayerGroup(options ? options.layers : undefined);
     };
@@ -28,39 +27,11 @@
         _autoUpdateSize: true,
 
         /**
-         * Sets the size of map equal to size of its wrapper
-         * TODO: need to get reed of this function
+         * @deprecated
+         * Does nothing
          */
         updateSize: function() {
-            var resolution = this.resolution,
-                bbox = this.bbox,
-                width = this._parent.clientWidth,
-                height = this._parent.clientHeight;
 
-            if (!width || ! height) return;
-
-            this._wrapper.style.height = this._layerWrapper.style.height = height + 'px';
-            this._wrapper.style.width = this._layerWrapper.style.width = width + 'px';
-
-            if (bbox) {
-                var p1 = new sGis.Point(bbox.p[0].x, bbox.p[1].y - this.height * resolution, this.crs),
-                    p2 = new sGis.Point(bbox.p[0].x + this.width * resolution, bbox.p[1].y, this.crs);
-                this.__setBbox(p1, p2);
-                this.forceUpdate();
-            }
-
-            this._width = null;
-            this._height = null;
-        },
-
-        /**
-         * Sets the bounding box (extent) of the map to the rectangle, limited by start and end points
-         * @param {sGis.Point} startPoint
-         * @param {sGis.Point} endPoint
-         */
-        __setBbox: function(startPoint, endPoint) {
-            this._bbox = new sGis.Bbox(startPoint, endPoint);
-            this.fire('bboxChange', {map: this});
         },
 
         /**
@@ -208,18 +179,15 @@
             this._animationTimer = setInterval(function() {
                 var time = Date.now() - startTime;
                 if (time >= self._animationTime || self._animationStopped) {
-                    self.position = position;
-                    self.resolution = resolution;
+                    self.setPosition(position, resolution);
                     self.stopAnimation();
                     self.fire('animationEnd');
                 } else {
                     var x = self._easeFunction(time, originalPosition.x, dx, self._animationTime);
                     var y = self._easeFunction(time, originalPosition.y, dy, self._animationTime);
                     var r = self._easeFunction(time, originalResolution, dr, self._animationTime);
-                    self.position = new sGis.Point(x, y, self.crs);
-                    self.resolution = r;
+                    self.setPosition(new sGis.Point(x, y, self.crs), r);
                 }
-                self.fire('bboxChange');
             }, 1000 / 60);
         },
 
@@ -242,14 +210,21 @@
             return b + c * t / d;
         },
 
+        setPosition: function(position, resolution) {
+            this.prohibitEvent('bboxChange');
+            this.position = position;
+            if (resolution) this.resolution = resolution;
+            this.allowEvent('bboxChange');
+            this.fire('bboxChange');
+        },
+
         /**
          * Sets new resolution to the map
          * @param {Number} resolution
          * @param {sGis.Point} [basePoint] - Base point of zooming
          */
         setResolution: function(resolution, basePoint) {
-            var bbox = getScaledBbox(this, resolution, basePoint);
-            this.__setBbox(bbox.p[0], bbox.p[1]);
+            this.setPosition(this.getAdjustedResolution(resolution), this._getScaledPosition(this.resolution, basePoint));
         },
 
         /**
@@ -403,23 +378,37 @@
             contextmenu: function(sGisEvent) {
 
             }
+        },
+
+        _autoupdateSize: function() {
+            if (this._wrapper) {
+                var width = this._wrapper.clientWidth || this._wrapper.offsetWidth;
+                var height = this._wrapper.clientHeight || this._wrapper.offsetHeight;
+                var changed = width !== this._width || height !== this._height;
+
+                this._width = width;
+                this._height = height;
+                if (changed) {
+                    this.fire('bboxChange');
+                }
+
+                utils.requestAnimationFrame(this._autoupdateSize.bind(this));
+            } else {
+                this._width = this._height = undefined;
+            }
         }
     };
 
     Object.defineProperties(sGis.Map.prototype, {
         bbox: {
             get: function() {
-                if (this._wrapper) {
-                    if (!this._bbox) {
-                        return undefined;
-                    } else if (this._bbox.p[0].crs !== this.crs && (!this._bbox.p[0].crs.from || !this.crs.from)) {
-                        this._bbox = new sGis.Bbox(new sGis.Point(0 - this.width / 2, 0 - this.height / 2, this.crs), new sGis.Point(this.width / 2, this.height / 2, this.crs));
-                        return this._bbox;
-                    } else {
-                        return this._bbox.projectTo(this.crs);
-                    }
-                } else {
-                    return undefined;
+                var resolution = this.resolution;
+                var halfWidth = this.width / 2 * resolution;
+                var halfHeight = this.height / 2 * resolution;
+                var position = this.position;
+
+                if (halfWidth && halfHeight) {
+                    return new sGis.Bbox([position.x - halfWidth, position.y - halfHeight], [position.x + halfWidth, position.y + halfHeight], position.crs);
                 }
             }
         },
@@ -470,34 +459,25 @@
 
         resolution: {
             get: function() {
-                if (this.bbox) {
-                    var bbox = this.bbox;
-                    return (bbox.p[1].x - bbox.p[0].x) / this.width || this._resolution;
-                } else {
-                    return this._resolution;
-                }
+                return this._resolution;
             },
 
             set: function(resolution) {
                 if (!utils.isNumber(resolution) || resolution <= 0) utils.error('Positive number is expected but got ' + resolution + ' instead');
-
-                if (this.wrapper) {
-                    this.setResolution(resolution);
-                } else {
-                    this._resolution = resolution;
-                }
+                this._resolution = resolution;
+                this.fire('bboxChange');
             }
         },
 
         height: {
             get: function() {
-                return this._wrapper ? this._wrapper.clientHeight || this._wrapper.offsetWidth : undefined;
+                return this._height;
             }
         },
 
         width: {
             get: function() {
-                return this._wrapper ? this._wrapper.clientWidth || this._wrapper.offsetWidth : undefined;
+                return this._width;
             }
         },
 
@@ -513,7 +493,7 @@
                 }
                 if (wrapperId !== null) {
                     setDOMstructure(wrapperId, this);
-                    this.updateSize();
+                    this._autoupdateSize();
 
                     if (this._position) {
                         this.prohibitEvent('bboxChange');
@@ -538,31 +518,12 @@
 
         position: {
             get: function() {
-                if (this.bbox) {
-                    var bbox = this.bbox;
-                    return new sGis.Point(
-                        (bbox.p[1].x + bbox.p[0].x) / 2,
-                        (bbox.p[1].y + bbox.p[0].y) / 2,
-                        this.crs
-                    );
-                } else {
-                    return this._position.projectTo(this.crs);
-                }
+                return this._position.projectTo(this.crs);
             },
 
             set: function(position) {
-                if (this.wrapper) {
-                    var height = this.height,
-                        width = this.width,
-                        crs = this.crs,
-                        center = position.projectTo(crs),
-                        startPoint = new sGis.Point(center.x - width / 2 * this.resolution, center.y - height / 2 * this.resolution, crs),
-                        endPoint = new sGis.Point(center.x + width / 2 * this.resolution, center.y + height / 2 * this.resolution, crs);
-                    this.__setBbox(startPoint, endPoint);
-                } else {
-                    this._position = position.projectTo(this.crs);
-                    this._resolution = this.resolution;
-                }
+                this._position = position.projectTo(this.crs);
+                this.fire('bboxChange');
             }
         },
 
@@ -613,16 +574,6 @@
 
     sGis.utils.proto.setMethods(sGis.Map.prototype, sGis.IEventHandler);
 
-    function initializeCrs(map, crs) {
-        if (!(crs instanceof sGis.Crs)) utils.error('sGis.Crs instance is expected but got ' + crs + ' instead');
-        map._crs = crs;
-        if (!crs.from) {
-            map._position = new sGis.Point(0, 0, crs);
-        } else {
-            map._position = map._position.projectTo(crs);
-        }
-    }
-
     function setDOMstructure(parentId, map) {
         var parent = document.getElementById(parentId);
         if (!parent) utils.error('The element with ID "' + parentId + '" could not be found. Cannot create a Map object');
@@ -633,39 +584,22 @@
         wrapper.map = map;
         wrapper.style.position = 'relative';
         wrapper.style.overflow = 'hidden';
+        wrapper.style.width = '100%';
+        wrapper.style.height = '100%';
         parent.appendChild(wrapper);
         parent.map = map; //todo: this should be deleted
 
         var layerWrapper = document.createElement('div');
         layerWrapper.className = 'sGis-layerWrapper';
         layerWrapper.style.position = 'absolute';
+        layerWrapper.style.width = '100%';
+        layerWrapper.style.height = '100%';
         wrapper.appendChild(layerWrapper);
 
         map._parent = parent;
         map._wrapper = wrapper;
         map._eventWrapper = parent; //todo: why have two names for one thing?
         map._layerWrapper = layerWrapper;
-    }
-
-    function getScaledBbox(map, resolution, basePoint) {
-        var crs = map.crs;
-
-        basePoint = basePoint ? basePoint.projectTo(crs) : map.position;
-
-        var currResolution = map.resolution,
-            scalingK = resolution / currResolution,
-            bbox = map.bbox,
-            startPoint = new sGis.Point(
-                basePoint.x - (basePoint.x - bbox.p[0].x) * scalingK,
-                basePoint.y - (basePoint.y - bbox.p[0].y) * scalingK,
-                crs
-            ),
-            endPoint = new sGis.Point(
-                basePoint.x + (bbox.p[1].x - basePoint.x) * scalingK,
-                basePoint.y + (bbox.p[1].y - basePoint.y) * scalingK,
-                crs
-            );
-        return new sGis.Bbox(startPoint, endPoint, crs);
     }
 
     function setEventHandlers(map) {
