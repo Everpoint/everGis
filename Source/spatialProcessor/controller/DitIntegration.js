@@ -38,7 +38,9 @@
                         if (properties.success) {
                             properties.success();
                         }
-                    }};
+                    },
+                    error: properties.error
+                };
             });
         },
 
@@ -55,7 +57,9 @@
                         if (properties.success) {
                             properties.success();
                         }
-                    }};
+                    },
+                    error: properties.error
+                };
             });
         }
     });
