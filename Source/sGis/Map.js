@@ -24,7 +24,6 @@
         _position: new sGis.Point(55.755831, 37.617673).projectTo(sGis.CRS.webMercator),
         _resolution: 611.4962262812505 / 2,
         _wrapper: null,
-        _autoUpdateSize: true,
 
         /**
          * @deprecated
@@ -386,10 +385,20 @@
                 var height = this._wrapper.clientHeight || this._wrapper.offsetHeight;
                 var changed = width !== this._width || height !== this._height;
 
-                this._width = width;
-                this._height = height;
                 if (changed) {
-                    this.fire('bboxChange');
+                    var resolution = this.resolution;
+                    var dx = (width - this._width) * resolution;
+                    var dy = (height - this._height) * resolution;
+
+                    this._width = width;
+                    this._height = height;
+
+                    if (!isNaN(dx) && !isNaN(dy)) {
+                        this.prohibitEvent('bboxChange');
+                        this.move(dx / 2, -dy / 2);
+                        this.allowEvent('bboxChange');
+                        this.fire('bboxChange', {isSizeChange: true});
+                    }
                 }
 
                 utils.requestAnimationFrame(this._autoupdateSize.bind(this));
@@ -569,6 +578,12 @@
             get: function() {
                 return this._painter;
             }
+        },
+
+        isDisplayed: {
+            get: function() {
+                return !!(this._height && this._width);
+            }
         }
     });
 
@@ -618,12 +633,6 @@
             map.fire('keypress', {browserEvent: event});
         });
         Event.add(document, 'keyup', function(event) {map.fire('keyup', {browserEvent: event});});
-        Event.add(window, 'resize', function() {
-            if (map._autoUpdateSize && (map._parent.clientHight !== map._wrapper.clientHeight || map._parent.clientWidth !== map._wrapper.clientWidth) ) {
-                map.updateSize();
-            }
-        });
-
     }
 
     function onmouseout(event) {

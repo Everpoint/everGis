@@ -131,19 +131,21 @@
         },
 
         _repaint: function() {
-            if (this._needUpdate && this._updateAllowed) {
-                this._setNewContainer();
-                this._needUpdate = false;
-            } else if (this._bboxChanged) {
-                if (this._container) this._setContainerTransform(this._container);
-                if (this._oldContainer) this._setContainerTransform(this._oldContainer);
-                this._bboxChanged = false;
-            }
+            if (this._map.isDisplayed) {
+                if (this._needUpdate && this._updateAllowed) {
+                    this._setNewContainer();
+                    this._needUpdate = false;
+                } else if (this._bboxChanged) {
+                    if (this._container) this._setContainerTransform(this._container);
+                    if (this._oldContainer) this._setContainerTransform(this._oldContainer);
+                    this._bboxChanged = false;
+                }
 
-            var layers = this.layers;
-            for (var i = layers.length - 1; i >= 0; i--) {
-                if (!this._layerData[layers[i].id]) this._setLayerData(layers[i]);
-                if (this._layerData[layers[i].id].needUpdate && this._updateAllowed) this._updateLayer(layers[i]);
+                var layers = this.layers;
+                for (var i = layers.length - 1; i >= 0; i--) {
+                    if (!this._layerData[layers[i].id]) this._setLayerData(layers[i]);
+                    if (this._layerData[layers[i].id].needUpdate && this._updateAllowed) this._updateLayer(layers[i]);
+                }
             }
 
             utils.requestAnimationFrame(this._repaint.bind(this));
