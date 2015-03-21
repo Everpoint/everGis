@@ -3,16 +3,12 @@
 $(document).ready(function() {
 
     $(document.body).html('<div id="map" style="width: 500px; height: 500px;"></div>');
-    var $wrapper = $('#map');
-
-    /*
-     * sGis.Map
-     */
 
     describe('Map', function() {
+        var $wrapper;
         beforeEach(function() {
+            $wrapper = $('#map');
             $wrapper.width(500).height(500).show();
-
         });
 
         afterEach(function() {
@@ -376,163 +372,282 @@ $(document).ready(function() {
         });
         
         describe('methods', function() {
-            it('.addLayer() should add the layer and fire event, and throw exceptions in case of incorrect parameters', function() {
-                var map = new sGis.Map(),
-                   layer1 = new sGis.FeatureLayer(),
-                   layer2 = new sGis.FeatureLayer(),
-                   fired = false,
-                   eventLayer = null;
-                    
-                expect(function() {map.addLayer();}).toThrow();
-                expect(function() {map.addLayer(1);}).toThrow();
-                expect(function() {map.addLayer([]);}).toThrow();
-                expect(function() {map.addLayer('a');}).toThrow();
-                expect(function() {map.addLayer({});}).toThrow();
-                    
-                map.addListener('layerAdd', function(sGisEvent) {
-                    fired = true;
-                    eventLayer = sGisEvent.layer;
-                });
-                
-                expect(map.layers.length).toBe(0);
-                map.addLayer(layer1);
-                expect(map.layers.length).toBe(1);
-                expect(map.layers[0]).toBe(layer1);
-                expect(fired).toBeTruthy();
-                expect(eventLayer).toBe(layer1);
-                
-                map.addLayer(layer2);
-                expect(map.layers.length).toBe(2);
-                expect(map.layers[1]).toBe(layer2);
+            var map, layer1, layer2, layer3;
+            beforeEach(function() {
+                map = new sGis.Map();
+                layer1 = new sGis.TileLayer('url');
+                layer2 = new sGis.ESRIDynamicLayer('url');
+                layer3 = new sGis.FeatureLayer();
             });
-            
-            it('.addLayer() should throw an error if the layer is already on the map', function() {
-                var map = new sGis.Map(),
-                    layer = new sGis.FeatureLayer();
-                    
-                map.addLayer(layer);
-                expect(function() {map.addLayer(layer);}).toThrow();
-                expect(map.layers.length).toBe(1);
-            });
-            
-            it('.removeLayer() should remove the layer and fire event, and throw exception if the layer is not found', function() {
-                var layer1 = new sGis.FeatureLayer(),
-                    layer2 = new sGis.FeatureLayer(),
-                    layer3 = new sGis.FeatureLayer(),
-                    map = new sGis.Map({layers: [layer1, layer2]}),
-                    fired = false,
-                    eventLayer = null;
-                
-                expect(function() {map.removeLayer();}).toThrow();
-                expect(function() {map.removeLayer(1);}).toThrow();
-                expect(function() {map.removeLayer('a');}).toThrow();
-                expect(function() {map.removeLayer({});}).toThrow();
-                expect(function() {map.removeLayer([]);}).toThrow();
-                expect(function() {map.removeLayer(layer3);}).toThrow();
 
-                expect(map.layers).toEqual([layer1, layer2]);
-                map.addListener('layerRemove', function(sGisEvent) {
-                    fired = true;
-                    eventLayer = sGisEvent.layer;
-                });
-                
-                map.removeLayer(layer1);
-                expect(map.layers.length).toBe(1);
-                expect(map.layers[0]).toBe(layer2);
-                expect(fired).toBeTruthy();
-                expect(eventLayer).toBe(layer1);
-                
-                map.removeLayer(layer2);
-                expect(map.layers.length).toBe(0);
-            });
-            
-            it('.getLayerIndex() should return the index of the layer in the layer list', function() {
-                var layer1 = new sGis.FeatureLayer({name: 'layer1'}),
-                    layer2 = new sGis.FeatureLayer({name: 'layer2'}),
-                    layer3 = new sGis.TileLayer('url', {name: 'layer3'}),
-                    layer4 = new sGis.ESRIDynamicLayer('url', {name: 'layer4'}),
-                    map = new sGis.Map({layers: [layer1, layer2, layer3, layer4]});
-                    
-                expect(map.getLayerIndex(layer1)).toBe(0);
-                expect(map.getLayerIndex(layer2)).toBe(1);
-                expect(map.getLayerIndex(layer3)).toBe(2);
-                expect(map.getLayerIndex(layer4)).toBe(3);
-            });
-            
-            it('.moveLayerToIndex() should change the order of the layers and fire the event', function() {
-                var layer1 = new sGis.FeatureLayer({name: 'layer1'}),
-                    layer2 = new sGis.FeatureLayer({name: 'layer2'}),
-                    layer3 = new sGis.TileLayer('url', {name: 'layer3'}),
-                    layer4 = new sGis.ESRIDynamicLayer('url', {name: 'layer4'}),
-                    map = new sGis.Map({layers: [layer1, layer2, layer3, layer4]}),
-                    firedNo = 0;
-                    
-                map.addListener('layerOrderChange', function() {
-                    firedNo++;
-                });
-                
-                expect(function() {map.moveLayerToIndex();}).toThrow();
-                expect(function() {map.moveLayerToIndex('not a layer');}).toThrow();
-                expect(function() {map.moveLayerToIndex(layer1, 'not a number');}).toThrow();
-                expect(function() {map.moveLayerToIndex(layer1, 1.5);}).toThrow();
-                
-                map.moveLayerToIndex(layer1, 0);
-                expect(map.layers).toEqual([layer1, layer2, layer3, layer4]);
-                map.moveLayerToIndex(layer3, 2);
-                expect(map.layers).toEqual([layer1, layer2, layer3, layer4]);
-                
-                map.moveLayerToIndex(layer2, 2);
-                expect(map.layers).toEqual([layer1, layer3, layer2, layer4]);
-                
-                map.moveLayerToIndex(layer4, 0);
-                expect(map.layers).toEqual([layer4, layer1, layer3, layer2]);
-                
-                map.moveLayerToIndex(layer3, 5);
-                expect(map.layers).toEqual([layer4, layer1, layer2, layer3]);
-                
-                map.moveLayerToIndex(layer1, 0);
-                expect(map.layers).toEqual([layer1, layer4, layer2, layer3]);
-                
-                expect(firedNo).toBe(6);
-            });
-            
-            it('.moveLayerToIndex() should count negative indexes from the end of the list', function() {
-                var layer1 = new sGis.FeatureLayer({name: 'layer1'}),
-                    layer2 = new sGis.FeatureLayer({name: 'layer2'}),
-                    layer3 = new sGis.TileLayer('url', {name: 'layer3'}),
-                    layer4 = new sGis.ESRIDynamicLayer('url', {name: 'layer4'}),
-                    map = new sGis.Map({layers: [layer1, layer2, layer3, layer4]});
-                    
-                map.moveLayerToIndex(layer4, -1);
-                expect(map.layers).toEqual([layer1, layer2, layer3, layer4]);
-                
-                map.moveLayerToIndex(layer4, -2);
-                expect(map.layers).toEqual([layer1, layer2, layer4, layer3]);
+            describe('.addLayer()', function() {
+                it('should add the layer to the end of map layer list', function() {
+                    map.addLayer(layer1);
+                    expect(map.layers.length).toBe(1);
+                    expect(map.layers[0]).toBe(layer1);
 
-                map.moveLayerToIndex(layer1, -4);
-                expect(map.layers).toEqual([layer1, layer2, layer4, layer3]);
-                
-                map.moveLayerToIndex(layer2, -7);
-                expect(map.layers).toEqual([layer2, layer1, layer4, layer3]);
+                    map.addLayer(layer2);
+                    map.addLayer(layer3);
+                    expect(map.layers).toEqual([layer1, layer2, layer3]);
+                });
+
+                it('should trigger the layerAdd event and provide the layer as parameter', function() {
+                    var layer = null;
+                    var handler = function(e) {
+                        layer = e.layer;
+                    };
+
+                    map.on('layerAdd', handler);
+                    map.addLayer(layer1);
+                    expect(layer).toBe(layer1);
+
+                    map.addLayer(layer2);
+                    expect(layer).toBe(layer2);
+
+                    map.addLayer(layer3);
+                    expect(layer).toBe(layer3);
+                });
+
+                it('should throw an exception in case of incorrect parameter', function() {
+                    expect(function() { map.addLayer(); }).toThrow();
+                    expect(function() { map.addLayer(null); }).toThrow();
+                    expect(function() { map.addLayer(1); }).toThrow();
+                    expect(function() { map.addLayer('a'); }).toThrow();
+                    expect(function() { map.addLayer({}); }).toThrow();
+                    expect(function() { map.addLayer([]); }).toThrow();
+                    expect(function() { map.addLayer(new sGis.feature.Point([0,0])); }).toThrow();
+                });
+
+                it('should throw an exception if the layer is already on the map', function () {
+                    map.addLayer(layer1);
+                    expect(function () { map.addLayer(layer1); }).toThrow();
+                    expect(map.layers.length).toBe(1);
+                });
             });
-            
-            it('.moveLayerToIndex() should add the layer to the map if it was not there and should fire the layerAdd event', function() {
-                var map = new sGis.Map(),
-                    layer = new sGis.FeatureLayer(),
-                    addFired = false,
-                    moveFired = false;
-                    
-                map.addListener('layerAdd', function() {
-                    addFired = true;
+
+            describe('.removeLayer()', function() {
+                beforeEach(function() {
+                    map.layers = [layer1, layer2, layer3];
                 });
-                map.addListener('layerOrderChange', function() {
-                    moveFired = true;
+
+                it('should remove the layer from the map', function() {
+                    map.removeLayer(layer2);
+                    expect(map.layers).toEqual([layer1, layer3]);
+
+                    map.removeLayer(layer1);
+                    map.removeLayer(layer3);
+                    expect(map.layers).toEqual([]);
                 });
-                
-                map.moveLayerToIndex(layer, 2);
-                expect(map.layers).toEqual([layer]);
-                expect(addFired).toBeTruthy();
-                expect(moveFired).toBeTruthy();
+
+                it('should trigger the "layerRemove" event and provide the layer as a parameter', function() {
+                    var layer;
+                    var handler = function(e) { layer = e.layer; };
+                    map.on('layerRemove', handler);
+                    map.removeLayer(layer2);
+
+                    expect(layer).toBe(layer2);
+
+                    map.removeLayer(layer1);
+                    expect(layer).toBe(layer1);
+                });
+
+                it('should throw an exception in case of incorrect parameters', function() {
+                    expect(function() { map.removeLayer(); }).toThrow();
+                    expect(function() { map.removeLayer(null); }).toThrow();
+                    expect(function() { map.removeLayer(1); }).toThrow();
+                    expect(function() { map.removeLayer('a'); }).toThrow();
+                    expect(function() { map.removeLayer({}); }).toThrow();
+                    expect(function() { map.removeLayer([]); }).toThrow();
+                    expect(function() { map.removeLayer(new sGis.feature.Point([0,0])); }).toThrow();
+                });
+
+                it('should throw an exception if there is no such layer in the map', function() {
+                    map.removeLayer(layer3);
+                    expect(function() { map.removeLayer(layer3); }).toThrow();
+                });
+            });
+
+            describe('.getLayerIndex()', function() {
+                beforeEach(function() {
+                    map.layers = [layer1, layer2, layer3];
+                });
+
+                it('should return the index of the layer in the layer list', function() {
+                    expect(map.getLayerIndex(layer1)).toBe(0);
+                    expect(map.getLayerIndex(layer2)).toBe(1);
+                    expect(map.getLayerIndex(layer3)).toBe(2);
+                });
+
+                it('should return -1 if the layer is not on the map', function() {
+                    map.removeLayer(layer2);
+                    expect(map.getLayerIndex(layer2)).toBe(-1);
+                });
+
+                it('should return correct index after layer list change', function() {
+                    map.removeLayer(layer2);
+                    expect(map.getLayerIndex(layer3)).toBe(1);
+                });
+
+                it('should return -1 if the argument is not a layer', function() {
+                    expect(map.getLayerIndex({})).toBe(-1);
+                    expect(map.getLayerIndex('layer')).toBe(-1);
+                    expect(map.getLayerIndex(123)).toBe(-1);
+                    expect(map.getLayerIndex()).toBe(-1);
+                });
+            });
+
+            describe('.moveLayerToIndex()', function() {
+                var layer4;
+                beforeEach(function() {
+                    map.layers = [layer1, layer2, layer3];
+                    layer4 = new sGis.FeatureLayer();
+                });
+
+                it('should move the layer to the specified index', function() {
+                    map.moveLayerToIndex(layer1, 2);
+                    expect(map.layers).toEqual([layer2, layer3, layer1]);
+
+                    map.moveLayerToIndex(layer3, 0);
+                    expect(map.layers).toEqual([layer3, layer2, layer1]);
+                });
+
+                it('should move the layer to the end of list if the index is higher then the number of layers on the map', function() {
+                    map.moveLayerToIndex(layer2, 4);
+                    expect(map.layers).toEqual([layer1, layer3, layer2]);
+
+                    map.moveLayerToIndex(layer3, 1000);
+                    expect(map.layers).toEqual([layer1, layer2, layer3]);
+                });
+
+                it('should count negative indexes from the end of the list', function() {
+                    map.moveLayerToIndex(layer1, -1);
+                    expect(map.layers).toEqual([layer2, layer3, layer1]);
+
+                    map.moveLayerToIndex(layer3, -2);
+                    expect(map.layers).toEqual([layer2, layer3, layer1]);
+                });
+
+                it('should move the layer to the beginning of the list if the negative value is higher then the number of layer on the map', function() {
+                    map.moveLayerToIndex(layer2, -4);
+                    expect(map.layers).toEqual([layer2, layer1, layer3]);
+
+                    map.moveLayerToIndex(layer3, -10000);
+                    expect(map.layers).toEqual([layer3, layer2, layer1]);
+                });
+
+                it('should add a layer to the map if it is not there yet', function() {
+                    map.moveLayerToIndex(layer4, 1);
+                    expect(map.layers).toEqual([layer1, layer4, layer2, layer3]);
+
+                    map.removeLayer(layer1);
+                    map.moveLayerToIndex(layer1, -2);
+                    expect(map.layers).toEqual([layer4, layer2, layer1, layer3]);
+
+                    map.removeLayer(layer4);
+                    map.moveLayerToIndex(layer4, -1);
+                    expect(map.layers).toEqual([layer2, layer1, layer3, layer4]);
+                });
+
+                it('should trigger a "layerOrderChange" event and provide the layer as a parameter', function() {
+                    var arg1, arg2;
+                    var handler1 = function(e) { arg1 = e.layer; };
+                    var handler2 = function(e) { arg2 = e.layer; };
+
+                    map.on('layerOrderChange', handler1);
+                    map.on('layerAdd', handler2);
+
+                    map.moveLayerToIndex(layer1, -2);
+                    expect(arg1).toBe(layer1);
+                    expect(arg2).toBe(undefined);
+                });
+
+                it('should fire a "layerAdd" event and not fire "layerOrderChange" if the layer is added to the map', function() {
+                    var arg1, arg2;
+                    var handler1 = function(e) { arg1 = e.layer; };
+                    var handler2 = function(e) { arg2 = e.layer; };
+
+                    map.on('layerOrderChange', handler1);
+                    map.on('layerAdd', handler2);
+
+                    map.moveLayerToIndex(layer4, 1);
+                    expect(arg1).toBe(undefined);
+                    expect(arg2).toBe(layer4);
+                });
+
+                it('should throw an exception if the first argument is not layer', function() {
+                    expect(function() { map.moveLayerToIndex(undefined, 1); }).toThrow();
+                    expect(function() { map.moveLayerToIndex(null, 1); }).toThrow();
+                    expect(function() { map.moveLayerToIndex(1, 1); }).toThrow();
+                    expect(function() { map.moveLayerToIndex({}, 1); }).toThrow();
+                    expect(function() { map.moveLayerToIndex([layer1], 1); }).toThrow();
+                });
+
+                it('should throw an exceptions if the second argument is not an index', function() {
+                    expect(function() { map.moveLayerToIndex(layer1, undefined); }).toThrow();
+                    expect(function() { map.moveLayerToIndex(layer1, '1'); }).toThrow();
+                    expect(function() { map.moveLayerToIndex(layer1, NaN); }).toThrow();
+                    expect(function() { map.moveLayerToIndex(layer1, Infinity); }).toThrow();
+                    expect(function() { map.moveLayerToIndex(layer1, {}); }).toThrow();
+                    expect(function() { map.moveLayerToIndex(layer1, 1.5); }).toThrow();
+                });
+            });
+
+            describe('moveLayerToTop', function() {
+                var layer4;
+                beforeEach(function() {
+                    map.layers = [layer1, layer2, layer3];
+                    layer4 = new sGis.FeatureLayer();
+                });
+
+                it('should move the layer to the end of the layer list', function() {
+                    map.moveLayerToTop(layer1);
+                    expect(map.layers).toEqual([layer2, layer3, layer1]);
+
+                    map.moveLayerToTop(layer3);
+                    expect(map.layers).toEqual([layer2, layer1, layer3]);
+                });
+
+                it('should add the layer if it is not on the map', function() {
+                    map.moveLayerToTop(layer4);
+
+                    expect(map.layers).toEqual([layer1, layer2, layer3, layer4]);
+                });
+
+                it('should trigger the "layerOrderChange" event if the layer was already on the map', function() {
+                    var arg1, arg2;
+                    var handler1 = function(e) { arg1 = e.layer; };
+                    var handler2 = function(e) { arg2 = e.layer; };
+
+                    map.on('layerOrderChange', handler1);
+                    map.on('layerAdd', handler2);
+
+                    map.moveLayerToTop(layer2);
+
+                    expect(arg1).toBe(layer2);
+                    expect(arg2).toBe(undefined);
+                });
+
+                it('should trigger the "layerAdd" event if the layer was not on the map', function() {
+                    var arg1, arg2;
+                    var handler1 = function(e) { arg1 = e.layer; };
+                    var handler2 = function(e) { arg2 = e.layer; };
+
+                    map.on('layerOrderChange', handler1);
+                    map.on('layerAdd', handler2);
+
+                    map.moveLayerToTop(layer4);
+
+                    expect(arg1).toBe(undefined);
+                    expect(arg2).toBe(layer4);
+                });
+
+                it('should throw an exception if the argument is not a layer', function() {
+                    expect(function() { map.moveLayerToTop(); }).toThrow();
+                    expect(function() { map.moveLayerToTop(1); }).toThrow();
+                    expect(function() { map.moveLayerToTop('layer'); }).toThrow();
+                    expect(function() { map.moveLayerToTop([layer1]); }).toThrow();
+                    expect(function() { map.moveLayerToTop({}); }).toThrow();
+                });
             });
 
             describe('.move()', function() {

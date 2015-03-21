@@ -3,6 +3,7 @@
 (function() {
 
     sGis.LayerGroup = function(layers) {
+        this._layers = [];
         this.layers = layers || [];
     };
 
@@ -55,18 +56,12 @@
         },
 
         indexOf: function(layer) {
-            if (!(layer instanceof sGis.Layer) && !(layer instanceof sGis.LayerGroup)) utils.error('sGis.Layer instance is expected but got ' + layer + ' instead');
-
             return this._layers.indexOf(layer);
         },
 
         insertLayer: function(layer, index) {
             if (!(layer instanceof sGis.Layer) && !(layer instanceof sGis.LayerGroup)) utils.error('sGis.Layer instance is expected but got ' + layer + ' instead');
             if (!utils.isInteger(index)) utils.error('Integer is expected but got ' + index + ' instead');
-
-            var length = this._layers.length;
-            index = index > length ? length : index < 0 && index < -length ? -length : index;
-            if (index < 0) index = length + index;
 
             var currIndex = this._layers.indexOf(layer);
 
@@ -78,9 +73,16 @@
                 var added = true;
             }
 
+            var length = this._layers.length;
+            index = index > length ? length : index < 0 && index < -length ? -length : index;
+            if (index < 0) index = length + index;
+
+
+
             this._layers.splice(currIndex, 1);
             this._layers.splice(index, 0, layer);
-            if (added) this.fire('layerAdd', {layer: layer});
+            var event = added ? 'layerAdd' : 'layerOrderChange';
+            this.fire(event, {layer: layer});
         }
     };
 
@@ -94,8 +96,12 @@
 
             set: function(layers) {
                 if (!utils.isArray(layers)) utils.error('Array is expected but got ' + layers + ' instead');
-                this._layers = [];
-                for (var i = 0, l = layers.length; i < l; i++) {
+                var list = this.layers;
+                for (var i = 0; i < list.length; i++) {
+                    this.removeLayer(list[i]);
+                }
+
+                for (i = 0; i < layers.length; i++) {
                     this.addLayer(layers[i]);
                 }
             }

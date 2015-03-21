@@ -15,8 +15,8 @@
      */
 
     sGis.Map = function(options) {
+        this._initLayerGroup();
         utils.init(this, options);
-        this._layerGroup = new sGis.LayerGroup(options ? options.layers : undefined);
     };
 
     sGis.Map.prototype = {
@@ -25,30 +25,66 @@
         _resolution: 611.4962262812505 / 2,
         _wrapper: null,
 
+        _initLayerGroup: function() {
+            this._layerGroup = new sGis.LayerGroup();
+            var self = this;
+            this._layerGroup.on('layerAdd layerRemove layerOrderChange', function(sGisEvent) {
+                self.forwardEvent(sGisEvent);
+            });
+        },
+
         /**
          * @deprecated
          * Does nothing
          */
-        updateSize: function() {
-
-        },
+        updateSize: function() {},
 
         /**
          * Adds a layer to the map
-         * @param {sGis.Layer} layer
+         * @param {sGis.Layer} layer - the layer to be added. If the layer is already on the map, an exception will be thrown.
+         * @fires sGis.Map#layerAdd
          */
         addLayer: function(layer) {
             this._layerGroup.addLayer(layer);
-            this.fire('layerAdd', {layer: layer});
         },
 
         /**
          * Removes the layer from the map
-         * @param {sGis.Layer} layer
+         * @param {sGis.Layer} layer - the layer to be removed. If the layer is not on the map, an exception will be thrown.
+         * @fires sGis.Map#layerRemove
          */
         removeLayer: function(layer) {
             this._layerGroup.removeLayer(layer);
-            this.fire('layerRemove', {layer: layer});
+        },
+
+        /**
+         * Changes order of layers, moves layer to the specified index. If the layer is not on the map, it will be added to the map.
+         * @param {sGis.Layer} layer - layer to be moved.
+         * @param {Number} index - new index of the layer.
+         * @fires sGis.Map#layerOrderChange - in case the layer is on the map
+         * @fires sGis.Map#layerAdd - in case the layer is not on the map
+         */
+        moveLayerToIndex: function(layer, index) {
+            this._layerGroup.insertLayer(layer, index);
+        },
+
+        /**
+         * Moves the layer to the end of the layer list. If the layer is not on the map, it will be added to the map.
+         * @param {sGis.Layer} layer - layer to be moved.
+         * @fires sGis.Map#layerOrderChange - in case the layer is on the map
+         * @fires sGis.Map#layerAdd - in case the layer is not on the map
+         */
+        moveLayerToTop: function(layer) {
+            this.moveLayerToIndex(layer, -1);
+        },
+
+        /**
+         * Returns the order of the layer on the map
+         * @param {type} layer
+         * @returns {int}
+         */
+        getLayerIndex: function(layer) {
+            return this._layerGroup.indexOf(layer);
         },
 
         /**
@@ -261,13 +297,6 @@
         /**
          * TODO: remove
          */
-        cancelAnimation: function() {
-
-        },
-
-        /**
-         * TODO: remove
-         */
         update: function() {
 
         },
@@ -282,33 +311,6 @@
          */
         redrawLayer: function(layer) {
             if (this._painter) this._painter.redrawLayer(layer);
-        },
-
-        /**
-         * Changes order of layers, moves layer to the specified index
-         * @param layer
-         * @param index
-         */
-        moveLayerToIndex: function(layer, index) {
-            var add = !this._layerGroup.contains(layer);
-            this._layerGroup.insertLayer(layer, index);
-            if (add) {
-                this.fire('layerAdd', {layer: layer});
-            }
-            this.fire('layerOrderChange', {layer: layer});
-        },
-
-        moveLayerToTop: function(layer) {
-            this.moveLayerToIndex(layer, Number.MAX_VALUE);
-        },
-
-        /**
-         * Returns the order of the layer on the map
-         * @param {type} layer
-         * @returns {int}
-         */
-        getLayerIndex: function(layer) {
-            return this._layerGroup.indexOf(layer);
         },
 
         _defaultHandlers: {
@@ -424,21 +426,11 @@
 
         layers: {
             get: function() {
-                if (this._layerGroup) {
-                    return this._layerGroup.layers;
-                } else {
-                    return [];
-                }
+                return this._layerGroup.layers;
             },
 
-            set: function(array) {
-                var layers = this.layers;
-                for (var i = 0; i < layers.length; i++) {
-                    this.removeLayer(layers[i]);
-                }
-                for (i = 0; i < array.length; i++) {
-                    this.addLayer(array[i]);
-                }
+            set: function(layers) {
+                this._layerGroup.layers = layers;
             }
         },
 
