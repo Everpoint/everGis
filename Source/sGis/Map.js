@@ -424,6 +424,10 @@
             }
         },
 
+        /**
+         * Returns a copy of the list of layers on the map. The first layer in the list is displayed on the bottom.<br>
+         * If assigned, first removes all layers from the map (triggering "layerRemove" event) and then adds layers one by one (triggering "layerAdd" event for each).
+         */
         layers: {
             get: function() {
                 return this._layerGroup.layers;

@@ -70,7 +70,7 @@ $(document).ready(function() {
         });
         
         describe('properties', function() {
-            var map;
+            var map, layer1, layer2, layer3;
             var triggerAnimationFrame;
 
             beforeEach(function() {
@@ -83,7 +83,9 @@ $(document).ready(function() {
                     };
                 });
                 map = new sGis.Map({wrapper: 'map'});
-            });
+                layer1 = new sGis.TileLayer('url');
+                layer2 = new sGis.ESRIDynamicLayer('url');
+                layer3 = new sGis.FeatureLayer();            });
 
             describe('.width and .height', function() {
 
@@ -349,25 +351,74 @@ $(document).ready(function() {
 
                 expect(map.bbox).not.toEqual(bbox);
             });
-            
-            it('.layers should return the list of the layers on the map', function() {
-                var map = new sGis.Map(),
-                    tileLayer = new sGis.TileLayer('url'),
-                    featureLayer = new sGis.FeatureLayer();
-                
-                expect(map.layers).toEqual([]);
-                
-                map.addLayer(tileLayer);
-                expect(map.layers).toEqual([tileLayer]);
-                
-                map.addLayer(featureLayer);
-                expect(map.layers).toEqual([tileLayer, featureLayer]);
-                
-                var list = [tileLayer, featureLayer];
-                map = new sGis.Map({layers: list});
-                
-                expect(map.layers).not.toBe(list);
-                expect(map.layers).toEqual(list);
+
+            describe('.layers', function() {
+                it('should set and return the list of the layers on the map', function() {
+                    var list = [layer1, layer2, layer3];
+                    map.layers = list;
+
+                    var map1 = new sGis.Map();
+                    map1.layers = [layer2];
+
+                    expect(map.layers).toEqual(list);
+                    expect(map.layers).not.toBe(list);
+
+                    expect(map1.layers).toEqual([layer2]);
+                });
+
+                it('should be empty list by default', function() {
+                    expect(map.layers).toEqual([]);
+                });
+
+                it('should be set through the constructor', function() {
+                    var list = [layer2, layer3];
+                    var map1 = new sGis.Map({layers: list});
+
+                    expect(map1.layers).toEqual(list);
+                    expect(map1.layers).not.toBe(list);
+                    expect(map.layers).not.toEqual(list);
+                });
+
+                it('should remove all the layers that were previously on the map', function() {
+                    map.layers = [layer1, layer2];
+                    map.layers = [layer3];
+                    expect(map.layers).toEqual([layer3]);
+                });
+
+                it('should trigger the layerAdd event when assigned', function() {
+                    var firedList = [];
+                    var handler = function(e) { firedList.push(e.layer); };
+
+                    map.on('layerAdd', handler);
+
+                    var list = [layer1, layer2, layer3];
+                    map.layers = list;
+                    expect(firedList).toEqual(list);
+                });
+
+                it('should trigger the layerRemove event for each layer that is already on the map', function() {
+                    var firedList = [];
+                    var handler = function(e) { firedList.push(e.layer); };
+                    var list = [layer1, layer3];
+
+                    map.on('layerRemove', handler);
+                    map.layers = list;
+                    expect(firedList).toEqual([]);
+
+                    map.layers = [layer1, layer2];
+                    expect(firedList).toEqual(list);
+                });
+
+                it('should throw an exception in case of incorrect assignment', function() {
+                    expect(function() { map.layers = undefined; });
+                    expect(function() { map.layers = 1; });
+                    expect(function() { map.layers = 'layer'; });
+                    expect(function() { map.layers = NaN; });
+                    expect(function() { map.layers = {}; });
+                    expect(function() { map.layers = [1]; });
+                    expect(function() { map.layers = [{}]; });
+                    expect(function() { map.layers = [layer1, 'not a layer']; });
+                });
             });
         });
         
