@@ -18,12 +18,12 @@ $(function() {
 
         describe('.path()', function() {
             it('should return an svg element', function() {
-                var path = sGis.utils.svg.path();
+                var path = sGis.utils.svg.path({});
                 expect(path instanceof SVGSVGElement).toBe(true);
             });
 
             it('should have a path element as its only child', function() {
-                var path = sGis.utils.svg.path();
+                var path = sGis.utils.svg.path({});
                 expect(path.childNodes[0] instanceof SVGPathElement).toBe(true);
                 expect(path.childNodes.length).toBe(1);
             });

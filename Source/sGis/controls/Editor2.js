@@ -84,11 +84,11 @@
                 sGisEvent.stopPropagation();
                 sGisEvent.preventDefault();
             } else if (event.which === 90 && event.ctrlKey) { //ctrl + z
-                this.undo()
+                this.undo();
                 sGisEvent.stopPropagation();
                 sGisEvent.preventDefault();
             } else if (event.which === 89 && event.ctrlKey) { //ctrl + y
-                this.redo()
+                this.redo();
                 sGisEvent.stopPropagation();
                 sGisEvent.preventDefault();
             }
@@ -136,7 +136,7 @@
         },
 
         deselect: function() {
-            if (this._selectedFeature) {
+            if (this.deselectionAllowed && this._selectedFeature) {
                 var feature = this._selectedFeature;
                 this._map.removeListner('click.' + this._ns);
                 this._clearTempSymbol();
@@ -147,6 +147,14 @@
 
                 this.fire('featureDeselect', {feature: feature});
             }
+        },
+
+        prohibitDeselect: function() {
+            this.deselectionAllowed = false;
+        },
+
+        allowDeselect: function() {
+            this.deselectionAllowed = true;
         },
 
         _setSnappingLayer: function() {
@@ -383,7 +391,7 @@
         },
 
         deleteSelected: function() {
-            if (this.allowDeletion && this.selectedFeature) {
+            if (this.deselectionAllowed && this.allowDeletion && this.selectedFeature) {
                 var feature = this._selectedFeature;
                 this.activeLayer.remove(this.selectedFeature);
                 this.deselect();
@@ -601,6 +609,7 @@
         pointSnappingFunctions: { default: ['vertex', 'midpoint', 'line'], get: function() { return this._pointSnappingFunctions.concat(); }},
         polylineSnappingFunctions: { default: ['vertex', 'midpoint', 'line', 'axis', 'orthogonal'], get: function() { return this._polylineSnappingFunctions.concat(); }},
         rotationControlSymbol: { default: new sGis.symbol.point.Point({offset: {x: 0, y: -30}}) },
+        deselectionAllowed: true,
 
         selectedFeature: {
             default: null,
@@ -610,7 +619,7 @@
         },
 
         /**
-         * @depricated
+         * @deprecated
          */
         activeFeature: {
             get: function() {
@@ -656,6 +665,11 @@
             set: null
         }
     });
+
+    /**
+     * @deprecated
+     */
+    sGis.controls.Editor.prototype.deselectFeature = sGis.controls.Editor.prototype.deselect;
 
     var selectionSymbols = {
         point: sGis.symbol.editor.Point,

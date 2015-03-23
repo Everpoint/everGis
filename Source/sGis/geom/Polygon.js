@@ -88,6 +88,7 @@
                 if (!this._cachedSvg) {
                     var path = this._getSvgPath();
                     path.d += ' Z';
+                    path.d = path.d.replace(/ M/g, ' Z M');
 
                     this._cachedSvg = sGis.utils.svg.path({
                         stroke: this._color,
