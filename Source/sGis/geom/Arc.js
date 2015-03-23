@@ -33,6 +33,8 @@
                 this._center = [parseFloat(coordinates[0]), parseFloat(coordinates[1])];
 
                 if (this._cachedSvg) {
+                    var r2 = this._radius * 2 + this._strokeWidth;
+
                     this._cachedSvg.childNodes[0].setAttribute('cx', coordinates[0]);
                     this._cachedSvg.childNodes[0].setAttribute('cy', coordinates[1]);
                     this._cachedSvg.position = coordinates;
@@ -88,7 +90,7 @@
         },
         svg: {
             get: function() {
-                var r2 = this._radius * 2;
+                var r2 = this._radius * 2 + this._strokeWidth;
                 if (!this._cachedSvg) {
                     this._cachedSvg = sGis.utils.svg.circle({
                         r: this._radius,
