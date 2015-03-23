@@ -273,22 +273,42 @@ $(document).ready(function() {
                 expect(map.position).toEqual(point);
                 expect(function() {map.position = point2;}).toThrow();
             });
-            
-            it('.resolution should set the resolution with base point in the center of the map, or throw an exception in case of incorrect parameters', function() {
-                var map = new sGis.Map();
 
-                expect(function() {map.resolution = undefined;}).toThrow();
-                expect(function() {map.resolution = 0;}).toThrow();
-                expect(function() {map.resolution = -1;}).toThrow();
-                expect(function() {map.resolution = NaN;}).toThrow();
-                expect(function() {map.resolution = [1];}).toThrow();
-                expect(function() {map.resolution = {};}).toThrow();
-                
-                expect(map.resolution).toBe(sGis.Map.prototype._resolution);
-                map.resolution = 200;
-                expect(map.resolution).toBe(200);
+            describe('.resolution', function() {
+                it('should set and return the resolution of the map', function() {
+                    map.resolution = 100;
+                    expect(map.resolution).toBe(100);
+                });
+
+                it('should be set by default', function() {
+                    expect(map.resolution).toBeTruthy();
+                });
+
+                it('should be set in constructor', function() {
+                    var map1 = new sGis.Map({resolution: 200});
+                    expect(map1.resolution).toBe(200);
+                });
+
+                it('should trigger the "bboxChange" if assigned', function() {
+                    var fired = false;
+                    var handler = function() { fired = true; };
+                    map.on('bboxChange', handler);
+
+                    map.resolution = 10;
+                    expect(fired).toBe(true);
+                });
+
+                it('should throw an exception if assigned an invalid value', function() {
+                    expect(function() { map.resolution = undefined; }).toThrow();
+                    expect(function() { map.resolution = null; }).toThrow();
+                    expect(function() { map.resolution = NaN; }).toThrow();
+                    expect(function() { map.resolution = -10; }).toThrow();
+                    expect(function() { map.resolution = 0; }).toThrow();
+                    expect(function() { map.resolution = '10'; }).toThrow();
+                    expect(function() { map.resolution = [10]; }).toThrow();
+                });
             });
-            
+
             it('.bbox should return undefined if no wrapper is set for the map', function() {
                 var map = new sGis.Map();
                 

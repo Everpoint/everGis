@@ -462,6 +462,10 @@
             }
         },
 
+        /**
+         * Returns or sets the resolution of the map. Triggers the "bboxChange" event if assigned. Throws an exception if assigned value is invalid.<br>
+         * Valid values are any positive numbers;
+         */
         resolution: {
             get: function() {
                 return this._resolution;
