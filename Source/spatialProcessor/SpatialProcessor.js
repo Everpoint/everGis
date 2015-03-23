@@ -47,15 +47,25 @@
                 this.removeListner('initialize.spInitialization');
                 initializeService(self, this.mapItem);
 
-                var allInitialized = true;
-                for (var service in self._services) {
-                    if (!self._services[service].initialized) allInitialized = false;
-                }
-                if (allInitialized & !self._initialized) {
-                    self._initialized = true;
-                    self.fire('initialize');
-                }
+                self._checkInitialization();
             }
+        },
+
+        _checkInitialization: function() {
+            if (this._initialized) return;
+
+            var services = Object.keys(this._services);
+            for (var i = 0; i < services.length; i++) {
+                if (!this._services[services[i]].initialized) return;
+            }
+
+            var controllers = Object.keys(this._controllers);
+            for (i = 0; i < controllers.length; i++) {
+                if (!this._controllers[controllers[i]].initialized) return;
+            }
+
+            this._initialized = true;
+            this.fire('initialize');
         },
 
         _createServiceMapItem: function(name) {
@@ -84,11 +94,13 @@
         },
 
         addController: function(controllerName, options) {
-            if (!controllerList[controllerName]) utils.error('Unknow controller: ' + controllerName);
+            if (!controllerList[controllerName]) utils.error('Unknown controller: ' + controllerName);
             if (!options) options = {};
             options.map = this.map;
             options.sp = this;
             this._controllers[controllerName] = new controllerList[controllerName](this._connector, options);
+            this._controllers[controllerName].addListner('initialize', this._checkInitialization.bind(this));
+
             return this._controllers[controllerName];
         },
 

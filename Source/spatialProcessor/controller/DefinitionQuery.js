@@ -1,7 +1,10 @@
 (function() {
 
     sGis.spatialProcessor.controller.DefinitionQuery = function(spatialProcessor, options) {
-        this.__initialize(spatialProcessor);
+        this.__initialize(spatialProcessor, {}, function() {
+            this.initialized = true;
+            this.fire('initialize');
+        });
     };
 
     sGis.spatialProcessor.controller.DefinitionQuery.prototype = new sGis.spatialProcessor.Controller({
