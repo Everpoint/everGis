@@ -10,6 +10,7 @@
             self._mapServer = options.sp.addService('VisualObjectsRendering/' + this._mapServiceId);
             self._layer = self._mapServer;
 
+            self.initialized = true;
             self.fire('initialize');
         });
     };

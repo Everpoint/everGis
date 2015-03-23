@@ -11,6 +11,8 @@
 
         this.__initialize(spatialProcessor, {}, function() {
             this._layer = new sGis.spatialProcessor.MapServer('VisualObjectsRendering/' + this._mapServiceId, this._spatialProcessor, {map: this._map, display: this._display});
+            this.initialized = true;
+            this.fire('initialize');
         });
     };
 

@@ -149,6 +149,7 @@
 
             var attributes = getNodeAttributes(node);
             parsed.symbol[attributes.Key] = {
+                symbol: 'SimplePolygonSymbol',
                 strokeThickness: attributes.StrokeThickness,
                 opacity: attributes.Opacity,
                 fill: parsed.brush[attributes.Fill] ? parsed.brush[attributes.Fill].color || parsed.brush[attributes.Fill] : undefined,
@@ -161,6 +162,7 @@
 
             var attributes = getNodeAttributes(node);
             parsed.symbol[attributes.Key] = {
+                symbol: 'SimplePolylineSymbol',
                 strokeThickness: attributes.StrokeThickness,
                 opacity: attributes.Opacity,
                 stroke: parsed.brush[attributes.Stroke].color
@@ -172,6 +174,7 @@
 
             var attributes = getNodeAttributes(node);
             parsed.symbol[attributes.Key] = {
+                symbol: 'SimplePointSymbol',
                 size: attributes.Size === '0' ? 10 : attributes.Size,
                 strokeThickness: attributes.StrokeThickness,
                 fill: parsed.brush[attributes.Fill].color,
@@ -185,6 +188,7 @@
 
             var attributes = getNodeAttributes(node);
             parsed.symbol[attributes.Key] = {
+                symbol: 'ImagePointSymbol',
                 size: attributes.Size === '0' ? 10 : attributes.Size,
                 color: attributes.Color,
                 anchorPoint: {x: attributes.AnchorPointX, y: attributes.AnchorPointY},

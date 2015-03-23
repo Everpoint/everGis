@@ -363,6 +363,38 @@ $(function() {
                     expect(editor.rotationControlSymbol).toBe(sGis.controls.Editor.prototype.rotationControlSymbol);
                 });
             });
+
+            describe('.deselectionAllowed', function() {
+                beforeEach(function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                });
+
+                it('should make it impossible to deselect the feature if false', function() {
+                    editor.deselectionAllowed = false;
+                    editor.deselect();
+                    expect(editor.activeFeature).toBe(point);
+                    expect(editor.deselectionAllowed).toBe(false);
+                });
+
+                it('should make it possible to deselect the feature if true', function() {
+                    editor.deselectionAllowed = true;
+                    editor.deselect();
+                    expect(editor.activeFeature).toBe(null);
+                    expect(editor.deselectionAllowed).toBe(true);
+                });
+
+                it('should be true by default', function() {
+                    expect(editor.deselectionAllowed).toBe(true);
+                });
+
+                it('should be set by constructor', function() {
+                    var editor2 = new sGis.controls.Editor(map, {deselectionAllowed: false});
+                    expect(editor2.deselectionAllowed).toBe(false);
+                    expect(editor.deselectionAllowed).toBe(true);
+                });
+            });
         });
 
         describe('methods', function() {
@@ -700,6 +732,40 @@ $(function() {
                     editor.deleteSelected();
                     expect(layer.has(point)).toBe(true);
                     expect(layer.features.length).toBe(3);
+                });
+            });
+
+            describe('.prohibitDeselect()', function() {
+                beforeEach(function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                });
+
+                it('should make it impossible to deselect the feature', function() {
+                    var fired = false;
+                    editor.prohibitDeselect();
+                    editor.addListner('featureDeselect', function() { fired = true; });
+
+                    editor.deselect();
+                    expect(editor.selectedFeature).toBe(point);
+                    expect(fired).toBe(false);
+                });
+            });
+
+            describe('.allowDeselect()', function() {
+                beforeEach(function() {
+                    editor.activeLayer = layer;
+                    editor.activate();
+                    editor.select(point);
+                });
+
+                it('should allow deselection after prohibiting it', function() {
+                    editor.prohibitDeselect();
+                    editor.allowDeselect();
+                    editor.deselect();
+
+                    expect(editor.selectedFeature).toBe(null);
                 });
             });
         });
