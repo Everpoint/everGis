@@ -13,8 +13,8 @@ sGis.spatialProcessor.controller.ClientLayer = function(spatialProcessor, option
         
         this._layer.addListner('initialize.sGis-controller-initialization', function() {
             this.removeListner('.sGis-controller-initialization');
-            this.initialized = true;
-            this.fire('initialize');
+            self.initialized = true;
+            self.fire('initialize');
         });
     });
 };
