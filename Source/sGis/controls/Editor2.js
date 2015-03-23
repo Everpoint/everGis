@@ -84,11 +84,11 @@
                 sGisEvent.stopPropagation();
                 sGisEvent.preventDefault();
             } else if (event.which === 90 && event.ctrlKey) { //ctrl + z
-                this.undo()
+                this.undo();
                 sGisEvent.stopPropagation();
                 sGisEvent.preventDefault();
             } else if (event.which === 89 && event.ctrlKey) { //ctrl + y
-                this.redo()
+                this.redo();
                 sGisEvent.stopPropagation();
                 sGisEvent.preventDefault();
             }
