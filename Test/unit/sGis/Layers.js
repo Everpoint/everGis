@@ -30,15 +30,30 @@ $(document).ready(function() {
                 }
             };
 
+        var map;
+        var triggerAnimationFrame;
         var tileLayer;
+
         beforeEach(function() {
-            $('#map').width(500).height(500);
+            $('#map').width(500).height(500).show();
             map = new sGis.Map({wrapper: 'map'});
             tileLayer = new sGis.TileLayer('url/{z}/{y}/{x}');
+
+            var callsList = [];
+
+            spyOn(utils, 'requestAnimationFrame').and.callFake(function (f) {
+                callsList.push(f);
+                triggerAnimationFrame = function () {
+                    callsList.forEach(function(handler) { handler(); });
+                };
+            });
+            map = new sGis.Map({wrapper: 'map'});
+
+            triggerAnimationFrame();
         });
 
         afterEach(function() {
-            $('#map').html('').width(0).height(0);;
+            $('#map').html('').width(0).height(0).hide();
         });
 
         describe('creation', function() {
@@ -272,14 +287,6 @@ $(document).ready(function() {
                 expect(layerGroup.contains(layer2)).toBe(false);
             });
 
-            it('.indexOf() should throw in case of incorrect parameters', function() {
-                expect(function() { layerGroup.indexOf(); }).toThrow();
-                expect(function() { layerGroup.indexOf(1); }).toThrow();
-                expect(function() { layerGroup.indexOf('a'); }).toThrow();
-                expect(function() { layerGroup.indexOf([]); }).toThrow();
-                expect(function() { layerGroup.indexOf({}); }).toThrow();
-            });
-
             it('.indexOf() should return the index of the layer in the group', function() {
                 expect(layerGroup.indexOf(layer2)).toBe(1);
                 expect(layerGroup.indexOf(layer1)).toBe(0);
@@ -323,10 +330,10 @@ $(document).ready(function() {
 
             it('.inserLayer() should understand the negative indexes, and add to the beginning of the list if index is less then -length', function() {
                 layerGroup.insertLayer(layer4, -2);
-                expect(layerGroup.layers).toEqual([layer1, layer4, layer2, layer3]);
+                expect(layerGroup.layers).toEqual([layer1, layer2, layer4, layer3]);
 
                 layerGroup.insertLayer(layer5, -10);
-                expect(layerGroup.layers).toEqual([layer5, layer1, layer4, layer2, layer3]);
+                expect(layerGroup.layers).toEqual([layer5, layer1, layer2, layer4, layer3]);
             });
 
             it('.inserLayer() should move the layer if it is already in the group', function() {
