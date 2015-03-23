@@ -525,13 +525,27 @@
             }
         },
 
+        /**
+         * The position of the center of the map. Returns a copy of position object (sGis.Point). Triggers "bboxChange" event if assigned.<br>
+         * Accepted values are sGis.Point and sGis.feature.Point instances. Throws an exception if new position cannot be projected into map crs.
+         */
         position: {
             get: function() {
                 return this._position.projectTo(this.crs);
             },
 
             set: function(position) {
-                this._position = position.projectTo(this.crs);
+                var point;
+                if (position instanceof sGis.feature.Point) {
+                    var coordinates = position.coordinates;
+                    point = new sGis.Point(coordinates[0], coordinates[1], position.crs);
+                } else if (position instanceof sGis.Point) {
+                    point = position;
+                } else {
+                    utils.error('sGis.Point or sGis.feature.Point instance is expected but got ' + position + ' instead');
+                }
+
+                this._position = point.projectTo(this.crs);
                 this.fire('bboxChange');
             }
         },

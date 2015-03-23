@@ -223,55 +223,87 @@ $(document).ready(function() {
                 
                 expect(map.position).toEqual(new sGis.Point(0, 0, sGis.CRS.plain));
             });
-            
-            it('.position should return the central point of the map in map crs', function() {
-                var map = new sGis.Map();
-                expect(map.position.crs).toBe(sGis.Map.prototype._crs);
-                
-                map.crs = sGis.CRS.ellipticalMercator;
-                expect(map.position.crs).toBe(sGis.CRS.ellipticalMercator);
-                
-                var map2 = new sGis.Map({wrapper: 'map'});
-                expect(map2.position).toEqual(sGis.Map.prototype._position);
-            });
-            
-            it('.position should set set the central point of the map, and reproject it if necessary', function() {
-                var map = new sGis.Map(),
-                    point = new sGis.Point(10000, 10000, sGis.CRS.webMercator);
-                    
-                map.position = point;
-                expect(map.position).not.toBe(point);
-                expect(map.position.x).toBe(10000);
-                expect(map.position.y).toBe(10000);
-                
-                var point2 = new sGis.Point(10, 10, sGis.CRS.geo),
-                    point2Projected = point2.projectTo(sGis.CRS.webMercator);
-                map.position = point2;
-                
-                expect(map.position.x).toBe(point2Projected.x);
-                expect(map.position.y).toBe(point2Projected.y);
-                expect(map.position.crs).toBe(sGis.CRS.webMercator);
-                
-                var map2 = new sGis.Map({wrapper: 'map', crs: sGis.CRS.ellipticalMercator}),
-                    pointProjected = point.projectTo(sGis.CRS.ellipticalMercator);
-                map2.position = point;
-                
-                expect(map2.position.x).toBe(pointProjected.x);
-                expect(Math.abs(map2.position.y - pointProjected.y)).toBeLessThan(0.000001);
-            });
-            
-            it('.position should throw error if the specified position cannot be reprojected into the map crs', function() {
-                var map = new sGis.Map(),
-                    point = new sGis.Point(10, 10, sGis.CRS.plain);
-                    
-                expect(function() {map.position = point;}).toThrow();
-                expect(map.position).toEqual(sGis.Map.prototype._position);
-                
-                var map = new sGis.Map({crs: sGis.CRS.plain}),
-                    point2 = new sGis.Point(10, 10);
-                map.position = point;
-                expect(map.position).toEqual(point);
-                expect(function() {map.position = point2;}).toThrow();
+
+            describe('.position', function() {
+                it('should set and return the position of the map', function() {
+                    var point = new sGis.Point(100, 100, map.crs);
+                    map.position = point;
+                    expect(map.position).toEqual(point);
+                    expect(map.position).not.toBe(point);
+                    expect(map.position).not.toBe(map.position);
+                });
+
+                it('should get sGis.feature.Point as a valid value, but to convert it to sGis.Point', function() {
+                    var point = new sGis.feature.Point([100, 100], {crs: map.crs});
+                    map.position = point;
+
+                    expect(map.position.x).toBe(point.x);
+                    expect(map.position.y).toBe(point.y);
+                    expect(map.position instanceof sGis.Point).toBe(true);
+                });
+
+                it('should be set by default', function() {
+                    expect(map.position instanceof sGis.Point).toBe(true);
+                });
+
+                it('should be set in constructor', function() {
+                    var point = new sGis.Point(10, 20);
+                    var map1 = new sGis.Map({position: point});
+                    expect(map1.position).toEqual(point.projectTo(map1.crs));
+
+                    var point2 = new sGis.feature.Point([200, 300], {crs: sGis.CRS.ellipticalMercator});
+                    var map2 = new sGis.Map({position: point2});
+                    expect(map2.position.x).toBe(point2.projectTo(map.crs).x);
+                    expect(map2.position.y).toBe(point2.projectTo(map.crs).y);
+                });
+
+                it('should reproject the coordinates, if they are not in the map CRS', function() {
+                    var point = new sGis.Point(10, 20);
+                    map.position = point;
+                    expect(map.position.crs).toBe(map.crs);
+
+                    expect(map.position).toEqual(point.projectTo(map.crs));
+
+                    var point1 = new sGis.feature.Point([20, 30]);
+                    map.position = point1;
+                    expect(map.position.crs).toBe(map.crs);
+                    expect(map.position.x).toBe(point1.projectTo(map.crs).x);
+                    expect(map.position.y).toBe(point1.projectTo(map.crs).y);
+                });
+
+                it('should always return the position in map crs', function() {
+                    var position = map.position;
+                    expect(position.crs).toBe(map.crs);
+
+                    map.crs = sGis.CRS.ellipticalMercator;
+                    expect(position.crs).not.toBe(map.crs);
+
+                    expect(map.position.crs).toBe(sGis.CRS.ellipticalMercator);
+                    expect(map.position).toEqual(position.projectTo(sGis.CRS.ellipticalMercator));
+                });
+
+                it('should trigger the "bboxChange" event', function() {
+                    var fired = false;
+                    var handler = function() { fired = true; };
+                    map.on('bboxChange', handler);
+
+                    map.position = new sGis.Point(10,10);
+                    expect(fired).toBe(true);
+                });
+
+                it('should throw an exception in case of invalid assignment value', function() {
+                    expect(function() { map.position = undefined; }).toThrow();
+                    expect(function() { map.position = null; }).toThrow();
+                    expect(function() { map.position = NaN; }).toThrow();
+                    expect(function() { map.position = {}; }).toThrow();
+                    expect(function() { map.position = []; }).toThrow();
+                    expect(function() { map.position = sGis.feature.Polyline([[10, 10]]); }).toThrow();
+                    expect(function() { map.position = [10, 10]; }).toThrow();
+                });
+
+                it('should throw an exception if the new position cannot be reprojected into map crs', function() {
+                    expect(function() { map.position = new sGis.Point(10, 10, sGis.CRS.plain); }).toThrow();
+                });
             });
 
             describe('.resolution', function() {
@@ -366,7 +398,7 @@ $(document).ready(function() {
             it('.bbox should change if the resolution is changed', function() {
                 var map = new sGis.Map({wrapper: 'map'}),
                     bbox = map.bbox;
-                    
+
                 map.resolution *= 2;
 
                 expect(map.bbox).not.toEqual(bbox);
