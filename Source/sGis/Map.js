@@ -16,6 +16,7 @@
 
     sGis.Map = function(options) {
         this._initLayerGroup();
+        if (options && options.crs) this.crs = options.crs;
         utils.init(this, options);
     };
 
@@ -438,6 +439,9 @@
             }
         },
 
+        /**
+         * Sets or returns the CRS of the map. If the old crs cannot be projected to the new one, the position and resolution of the map are discharged.
+         */
         crs: {
             get: function() {
                 return this._crs;
@@ -449,7 +453,7 @@
                 this._crs = crs;
 
                 if (currentCrs !== crs && (!currentCrs.to || !crs.to)) {
-                    this.position = new sGis.Point(0, 0, crs);
+                    this.setPosition(new sGis.Point(0, 0, crs), 1);
                 } else {
                     this.position = this.position.projectTo(crs);
                 }
@@ -503,14 +507,6 @@
                 if (wrapperId !== null) {
                     setDOMstructure(wrapperId, this);
                     this._autoupdateSize();
-
-                    if (this._position) {
-                        this.prohibitEvent('bboxChange');
-                        this.position = this._position;
-                        this.allowEvent('bboxChange');
-                        delete this._position;
-                        delete this._resolution;
-                    }
 
                     this._painter = new utils.Painter(this);
                     setEventHandlers(this);

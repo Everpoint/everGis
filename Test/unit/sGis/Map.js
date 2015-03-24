@@ -203,25 +203,67 @@ $(document).ready(function() {
                 
                 expect(document.getElementById('map').innerHTML).toBe(html);
             });
-            
-            it('.crs should set the crs of the map or throw exception', function() {
-                var map = new sGis.Map(),
-                    tileLayer = new sGis.TileLayer('url', {crs: sGis.CRS.ellipticalMercator});
-                    
-                expect(function() {map.crs = {};}).toThrow();
-                
-                map.addLayer(tileLayer);
-                expect(map.crs).toBe(sGis.Map.prototype._crs);
-                
-                map.crs = sGis.CRS.ellipticalMercator;
-                expect(map.crs).toBe(sGis.CRS.ellipticalMercator);
-            });
-            
-            it('.crs should set the position of map to (0, 0) if current position cannot be projected to the new crs', function() {
-                var map = new sGis.Map();
-                map.crs = sGis.CRS.plain;
-                
-                expect(map.position).toEqual(new sGis.Point(0, 0, sGis.CRS.plain));
+
+            describe('.crs', function() {
+                it('should set and return the crs of the map', function() {
+                    map.crs = sGis.CRS.ellipticalMercator;
+                    expect(map.crs).toBe(sGis.CRS.ellipticalMercator);
+                });
+
+                it('should be set by default', function() {
+                    expect(map.crs instanceof sGis.Crs).toBe(true);
+                });
+
+                it('should be set in constructor', function() {
+                    var map1 = new sGis.Map({crs: sGis.CRS.plain});
+                    expect(map1.crs).toBe(sGis.CRS.plain);
+                });
+
+                it('should project the old position to the new crs if assigned', function() {
+                    var position = map.position;
+                    map.crs = sGis.CRS.ellipticalMercator;
+                    expect(map.position).toEqual(position.projectTo(sGis.CRS.ellipticalMercator));
+                });
+
+                it('should project the default position to the new crs if assigned in constructor', function() {
+                    var defaultPosition = map.position;
+                    var map1 = new sGis.Map({crs: sGis.CRS.ellipticalMercator});
+                    expect(map1.position).toEqual(defaultPosition.projectTo(sGis.CRS.ellipticalMercator));
+                });
+
+                it('should set position to 0,0 if it cannot be projected into the new crs', function() {
+                    map.crs = sGis.CRS.plain;
+                    expect(map.position).toEqual(new sGis.Point(0, 0, map.crs));
+                });
+
+                it('should set position to 0,0 if it is set in constructor and the default position cannot be projected to the new crs', function() {
+                    var map1 = new sGis.Map({crs: sGis.CRS.plain});
+                    expect(map1.position).toEqual(new sGis.Point(0, 0, map1.crs));
+                });
+
+                it('should should set position after the crs is set in constructor', function() {
+                    var point = new sGis.Point(10, 20, sGis.CRS.plain);
+                    var map1 = new sGis.Map({position: point, crs: sGis.CRS.plain});
+
+                    expect(map1.crs).toBe(sGis.CRS.plain);
+                    expect(map1.position).toEqual(point);
+                });
+
+                it('should not change resolution if the old crs can be projected into the new one', function() {
+                    var resolution = map.resolution;
+                    map.crs = sGis.CRS.ellipticalMercator;
+                    expect(map.resolution).toBe(resolution);
+                });
+
+                it('should set resolution to 1 if the old crs cannot be projected into the new one', function() {
+                    map.crs = sGis.CRS.plain;
+                    expect(map.resolution).toBe(1);
+                });
+
+                it('should set resolution to 1 if assigned in constructor unprojectable crs', function() {
+                    var map1 = new sGis.Map({crs: sGis.CRS.plain});
+                    expect(map1.resolution).toBe(1);
+                });
             });
 
             describe('.position', function() {
