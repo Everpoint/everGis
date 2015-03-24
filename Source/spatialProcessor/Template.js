@@ -40,34 +40,34 @@
                 if (symbolDefinition.symbol === 'SimplePointSymbol') {
                     if (symbolDefinition.shape === 'Circle') {
                         symbol = new sGis.symbol.point.Point({
-                            size: symbolDefinition.size,
+                            size: parseFloat(symbolDefinition.size),
                             color: parseColor(symbolDefinition.fill),
                             strokeColor: parseColor(symbolDefinition.stroke),
-                            strokeWidth: symbolDefinition.strokeThickness
+                            strokeWidth: parseFloat(symbolDefinition.strokeThickness)
                         });
                     } else {
                         symbol = new sGis.symbol.point.Square({
-                            size: symbolDefinition.size,
+                            size: parseFloat(symbolDefinition.size),
                             fillColor: parseColor(symbolDefinition.fill),
                             strokeColor: parseColor(symbolDefinition.stroke),
-                            strokeWidth: symbolDefinition.strokeThickness
+                            strokeWidth: parseFloat(symbolDefinition.strokeThickness)
                         }); //todo: what about offset?!!
                     }
                 } else if (symbolDefinition.symbol === 'ImagePointSymbol') {
                     symbol = new sGis.symbol.point.Image({
                         source: symbolDefinition.imageSrc,
-                        size: symbolDefinition.size,
+                        size: parseFloat(symbolDefinition.size),
                         anchorPoint: symbolDefinition.anchorPoint
                     });
                 } else if (symbolDefinition.symbol === 'SimplePolylineSymbol') {
                     symbol = new sGis.symbol.polyline.Simple({
-                        strokeWidth: symbolDefinition.strokeThickness,
+                        strokeWidth: parseFloat(symbolDefinition.strokeThickness),
                         strokeColor: parseColor(symbolDefinition.stroke)
                     });
                 } else if (symbolDefinition.symbol === 'SimplePolygonSymbol') {
                     if (symbolDefinition.fill && symbolDefinition.fill.brush) {
                         symbol = new sGis.symbol.polygon.BrushFill({
-                            strokeWidth: symbolDefinition.strokeThickness,
+                            strokeWidth: parseFloat(symbolDefinition.strokeThickness),
                             strokeColor: parseColor(symbolDefinition.stroke),
                             fillBrush: symbolDefinition.fill.brush,
                             fillForeground: parseColor(symbolDefinition.fill.foreground),
@@ -75,7 +75,7 @@
                         });
                     } else {
                         symbol = new sGis.symbol.polygon.Simple({
-                            strokeWidth: symbolDefinition.strokeThickness,
+                            strokeWidth: parseFloat(symbolDefinition.strokeThickness),
                             strokeColor: parseColor(symbolDefinition.stroke),
                             fillColor: parseColor(symbolDefinition.fill)
                         });
