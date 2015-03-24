@@ -414,74 +414,9 @@ $(document).ready(function() {
                     triggerAnimationFrame();
                     expect(map.bbox instanceof sGis.Bbox).toBe(true);
                 });
-
-                xit('should be changed with position change', function() {
-                    map.crs = sGis.CRS.plain;
-                })
             });
 
-            it('.bbox should return undefined if no wrapper is set for the map', function() {
-                var map = new sGis.Map();
-                
-                expect(map.bbox).toBe(undefined);
-                
-                var map = new sGis.Map({wrapper: 'map'});
-                expect(map.bbox).toBeDefined();
-                
-                map.wrapper = null;
-                triggerAnimationFrame();
 
-                expect(map.bbox).toBe(undefined);
-            });
-            
-            it('.bbox should be returned in the crs of the map', function() {
-                var map = new sGis.Map({wrapper: 'map'}),
-                    bbox = map.bbox;
-                
-                expect(bbox instanceof sGis.Bbox).toBeTruthy();
-                expect(bbox.p[0].crs).toBe(sGis.Map.prototype._crs);
-                expect(bbox).not.toBe(map.bbox);
-                expect(bbox).toEqual(map.bbox);
-                
-                map.crs = sGis.CRS.ellipticalMercator;
-                expect(map.bbox).not.toEqual(bbox);
-                expect(map.bbox.p[0].crs).toBe(sGis.CRS.ellipticalMercator);
-                
-                var map1 = new sGis.Map({wrapper: 'map', crs: sGis.CRS.plain});
-
-                expect(map1.bbox.p[0].crs).toBe(sGis.CRS.plain);
-            });
-            
-            it('.bbox should change if the position is changed', function() {
-                var map = new sGis.Map({wrapper: 'map'}),
-                    bbox = map.bbox;
-                    
-                map.position = new sGis.Point(10000, 10000, sGis.CRS.webMercator);
-                expect(map.bbox).not.toEqual(bbox);
-                expect(map.bbox.p[0].x).toBeLessThan(10000);
-                expect(map.bbox.p[1].x).toBeGreaterThan(10000);
-                expect(map.bbox.p[0].y).toBeLessThan(10000);
-                expect(map.bbox.p[1].y).toBeGreaterThan(10000);
-                
-                var bbox2 = map.bbox;
-                
-                map.crs = sGis.CRS.plain;
-                expect(map.bbox.p[0].crs).toBe(sGis.CRS.plain);
-                expect(map.bbox.p[0]).not.toEqual(bbox2.p[0]);
-                expect(map.bbox.p[0].x).toBeLessThan(0);
-                expect(map.bbox.p[1].x).toBeGreaterThan(0);
-                expect(map.bbox.p[0].y).toBeLessThan(0);
-                expect(map.bbox.p[1].y).toBeGreaterThan(0);
-            });
-            
-            it('.bbox should change if the resolution is changed', function() {
-                var map = new sGis.Map({wrapper: 'map'}),
-                    bbox = map.bbox;
-
-                map.resolution *= 2;
-
-                expect(map.bbox).not.toEqual(bbox);
-            });
 
             describe('.layers', function() {
                 it('should set and return the list of the layers on the map', function() {
