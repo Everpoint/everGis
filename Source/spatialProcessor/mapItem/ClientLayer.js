@@ -59,6 +59,12 @@
             get: function() {
                 return [{ FullName: this.controller.mapServer.fullName, Identity: 0, Operation: 'sm' }];
             }
+        },
+
+        isEditable: {
+            get: function() {
+                return true;
+            }
         }
     });
 
