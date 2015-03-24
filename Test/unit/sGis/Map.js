@@ -264,6 +264,11 @@ $(document).ready(function() {
                     expect(map.position instanceof sGis.Point).toBe(true);
                 });
 
+                it('should get an array as a valid value and convert it to sGis.Point', function() {
+                    map.position = [100, 200];
+                    expect(map.position).toEqual(new sGis.Point(100, 200, map.crs));
+                });
+
                 it('should be set by default', function() {
                     expect(map.position instanceof sGis.Point).toBe(true);
                 });
@@ -320,7 +325,6 @@ $(document).ready(function() {
                     expect(function() { map.position = {}; }).toThrow();
                     expect(function() { map.position = []; }).toThrow();
                     expect(function() { map.position = sGis.feature.Polyline([[10, 10]]); }).toThrow();
-                    expect(function() { map.position = [10, 10]; }).toThrow();
                 });
 
                 it('should throw an exception if the new position cannot be reprojected into map crs', function() {

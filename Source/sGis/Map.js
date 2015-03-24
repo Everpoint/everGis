@@ -523,7 +523,8 @@
 
         /**
          * The position of the center of the map. Returns a copy of position object (sGis.Point). Triggers "bboxChange" event if assigned.<br>
-         * Accepted values are sGis.Point and sGis.feature.Point instances. Throws an exception if new position cannot be projected into map crs.
+         * Accepted values are sGis.Point and sGis.feature.Point instances or [x,y] array. Throws an exception if new position cannot be projected into map crs.
+         * If the assigned value, the coordinates are considered to be in map crs.
          */
         position: {
             get: function() {
@@ -532,9 +533,9 @@
 
             set: function(position) {
                 var point;
-                if (position instanceof sGis.feature.Point) {
-                    var coordinates = position.coordinates;
-                    point = new sGis.Point(coordinates[0], coordinates[1], position.crs);
+                if (position instanceof sGis.feature.Point || (utils.isArray(position) && position.length === 2 && utils.isNumber(position[0]) && utils.isNumber(position[1]))) {
+                    var coordinates = position.coordinates || position;
+                    point = new sGis.Point(coordinates[0], coordinates[1], position.crs || this.crs);
                 } else if (position instanceof sGis.Point) {
                     point = position;
                 } else {
