@@ -140,6 +140,7 @@
         },
 
         requestNotifications: function() {
+            this._aborted = false;
             var self = this,
                 xhr = utils.ajax({
                     url: self._url + 'ClientNotification/?f=json&_sb=' + self._sessionId + '&ts=' + new Date().getTime(),
@@ -170,6 +171,7 @@
                         }
                     },
                     error: function(stringData, textStatus) {
+                        if (self._aborted) return;
                         self._failedNotificationRequests += 1;
                         if (self._failedNotificationRequests > 5) {
                             sGis.utils.error('The connection to the server is lost');
@@ -182,6 +184,7 @@
         },
 
         cancelNotificationRequest: function() {
+            this._aborted = true;
             this._notificationRequestObject.abort();
         },
 
