@@ -126,35 +126,6 @@ $(document).ready(function() {
                 });
             });
 
-            it ('getter only properties should throw exceptions', function() {
-                var map = new sGis.Map(),
-                    layerWrapper = map.layerWrapper,
-                    height = map.height,
-                    width = map.width,
-                    bbox = map.bbox;
-                    
-                    expect(function() {map.layerWrapper = 'wrapper';}).toThrow();
-                    expect(function() {map.height = 100;}).toThrow();
-                    expect(function() {map.width = 200;}).toThrow();
-                    expect(function() {map.bbox = new sGis.Bbox([33, 57], [44, 58]);}).toThrow();
-                    expect(map.layerWrapper).toBe(layerWrapper);
-                    expect(map.height).toBe(height);
-                    expect(map.width).toBe(width);
-                    expect(map.bbox).toBe(bbox);
-            });
-            
-            it('getter only properties should return correct values', function() {
-                var map = new sGis.Map({wrapper: 'map'});
-                
-                expect(map.eventWrapper).not.toBe(null);
-                expect(map.layerWrapper).not.toBe(null);
-                
-                expect(map.height).toBe(500);
-                expect(map.width).toBe(500);
-                
-                expect(map.bbox).not.toBe(null);
-            });
-            
             it('.wrapper should set the wrapper of the map', function() {
                 var map = new sGis.Map();
                 
@@ -264,6 +235,15 @@ $(document).ready(function() {
                     var map1 = new sGis.Map({crs: sGis.CRS.plain});
                     expect(map1.resolution).toBe(1);
                 });
+
+                it('should throw an exception in case of invalid assignment', function() {
+                    expect(function() { map.crs = undefined; }).toThrow();
+                    expect(function() { map.crs = null; }).toThrow();
+                    expect(function() { map.crs = NaN; }).toThrow();
+                    expect(function() { map.crs = sGis.Crs; }).toThrow();
+                    expect(function() { map.crs = {}; }).toThrow();
+                    expect(function() { map.crs = []; }).toThrow();
+                });
             });
 
             describe('.position', function() {
@@ -299,7 +279,7 @@ $(document).ready(function() {
                     expect(map2.position.y).toBe(point2.projectTo(map.crs).y);
                 });
 
-                it('should reproject the coordinates, if they are not in the map CRS', function() {
+                it('should project the coordinates, if they are not in the map CRS', function() {
                     var point = new sGis.Point(10, 20);
                     map.position = point;
                     expect(map.position.crs).toBe(map.crs);
@@ -381,6 +361,52 @@ $(document).ready(function() {
                     expect(function() { map.resolution = '10'; }).toThrow();
                     expect(function() { map.resolution = [10]; }).toThrow();
                 });
+            });
+
+            describe('.bbox', function() {
+                it('should return the bbox of the map', function() {
+                    map.crs = sGis.CRS.plain;
+                    expect(map.bbox).toEqual(new sGis.Bbox([-map.width / 2, -map.height / 2], [map.width / 2, map.height / 2], sGis.CRS.plain));
+                });
+
+                it('should always be in the crs of the map', function() {
+                    expect(map.bbox.crs).toBe(map.crs);
+                    map.crs = sGis.CRS.ellipticalMercator;
+                    expect(map.bbox.crs).toBe(sGis.CRS.ellipticalMercator);
+
+                    map.crs = sGis.CRS.plain;
+                    expect(map.bbox.crs).toBe(sGis.CRS.plain);
+                });
+
+                it('should be undefined if the map is not displayed', function() {
+                    map.wrapper = null;
+                    triggerAnimationFrame();
+                    expect(map.bbox).toBe(undefined);
+
+                    map.wrapper = 'map';
+                    triggerAnimationFrame();
+                    expect(map.bbox instanceof sGis.Bbox).toBe(true);
+
+                    $wrapper.hide();
+                    triggerAnimationFrame();
+                    expect(map.bbox).toBe(undefined);
+
+                    $wrapper.show();
+                    triggerAnimationFrame();
+                    expect(map.bbox instanceof sGis.Bbox).toBe(true);
+
+                    $wrapper.width(0);
+                    triggerAnimationFrame();
+                    expect(map.bbox).toBe(undefined);
+
+                    $wrapper.width(200);
+                    triggerAnimationFrame();
+                    expect(map.bbox instanceof sGis.Bbox).toBe(true);
+                });
+
+                xit('should be changed with position change', function() {
+                    map.crs = sGis.CRS.plain;
+                })
             });
 
             it('.bbox should return undefined if no wrapper is set for the map', function() {

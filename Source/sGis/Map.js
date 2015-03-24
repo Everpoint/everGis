@@ -5,11 +5,11 @@
     /**
      *
      * @mixes sGis.IEventHandler.prototype
-     * @param {Object} options
+     * @param {Object} [options]
      * @param {sGis.Crs} [options.crs=sGis.CRS.webMercator] - setting a crs that cannot be converted into WGS resets default values of position to [0, 0].
      * @param {sGis.Point|sGis.feature.Point|Array} [options.position] - the start position of the map. If the array is specified as [x, y], it should be in map crs. By default center it is of Moscow.
      * @param {Number} [options.resolution=305.74811] - initial resolution of the map
-     * @param {HTMLElement} [options.wrapper] - DOM container that will contain the map. It should be block element. If not specified, the map will not be displayed.
+     * @param {String} [options.wrapper] - Id of the DOM container that will contain the map. It should be block element. If not specified, the map will not be displayed.
      * @param {sGis.Layer} [options.layers[]] - the list of layers that will be initially on the map. The first in the list will be displayed at the bottom.
      * @constructor
      */
