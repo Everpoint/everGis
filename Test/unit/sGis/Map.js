@@ -126,6 +126,13 @@ $(document).ready(function() {
                 });
             });
 
+            describe('.wrapper', function() {
+                it('should return the DOM-element -container of the map', function() {
+                    expect(map.wrapper instanceof HTMLElement).toBe(true);
+                    expect(map.wrapper.id).toBe('map');
+                });
+            });
+
             it('.wrapper should set the wrapper of the map', function() {
                 var map = new sGis.Map();
                 

@@ -502,7 +502,7 @@
             set: function(wrapperId) {
                 if (!utils.isString(wrapperId) && wrapperId !== null) utils.error('String or null value expected but got ' + wrapperId + ' instead');
                 if (this._wrapper) {
-                    this._parent.removeChild(this._wrapper);
+                    this._wrapper.removeChild(this._innerWrapper);
                 }
                 if (wrapperId !== null) {
                     setDOMstructure(wrapperId, this);
@@ -515,9 +515,15 @@
                 } else {
                     this._wrapper = null;
                     delete this._layerWrapper;
-                    delete this._parent;
+                    delete this._innerWrapper;
                     delete this._painter;
                 }
+            }
+        },
+
+        innerWrapper: {
+            get: function() {
+                return this._innerWrapper;
             }
         },
 
@@ -622,9 +628,9 @@
         layerWrapper.style.height = '100%';
         wrapper.appendChild(layerWrapper);
 
-        map._parent = parent;
-        map._wrapper = wrapper;
-        map._eventWrapper = parent; //todo: why have two names for one thing?
+        map._wrapper = parent;
+        map._innerWrapper = wrapper;
+        map._eventWrapper = wrapper; //todo: why have two names for one thing?
         map._layerWrapper = layerWrapper;
     }
 
