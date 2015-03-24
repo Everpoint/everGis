@@ -414,9 +414,23 @@ $(document).ready(function() {
                     triggerAnimationFrame();
                     expect(map.bbox instanceof sGis.Bbox).toBe(true);
                 });
+
+                it('should change if position is changed', function() {
+                    map.crs = sGis.CRS.plain;
+                    map.position = [100, 200];
+                    expect(map.bbox).toEqual(new sGis.Bbox([100 - map.width / 2, 200 - map.height / 2], [100 + map.width / 2, 200 + map.width / 2], sGis.CRS.plain));
+                });
+
+                it('should change if the resolution is changed', function() {
+                    map.crs = sGis.CRS.plain;
+                    map.resolution = 4;
+                    expect(map.bbox).toEqual(new sGis.Bbox([-map.width * 2, -map.height * 2], [map.width * 2, map.height * 2], sGis.CRS.plain));
+                });
+
+                it('should throw an exception if assigned', function() {
+                    expect(function() { map.bbox = map.bbox; }).toThrow();
+                });
             });
-
-
 
             describe('.layers', function() {
                 it('should set and return the list of the layers on the map', function() {

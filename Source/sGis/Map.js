@@ -412,6 +412,9 @@
     };
 
     Object.defineProperties(sGis.Map.prototype, {
+        /**
+         * Returns the bounding box of the map in map coordinates (sGis.Bbox). Read only.
+         */
         bbox: {
             get: function() {
                 var resolution = this.resolution;
