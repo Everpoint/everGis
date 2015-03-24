@@ -5,6 +5,7 @@
         this.path = path;
         this.geometryType = asset.GeometryType;
         this.symbol = this._getSymbol(asset.JsonVisualDefinition);
+        this.layerReference = asset.Meta;
     };
 
     sGis.spatialProcessor.Template.prototype = {
@@ -100,7 +101,8 @@
         symbol: null,
         id: null,
         path: null,
-        geometryType: null
+        geometryType: null,
+        layerReference: null
     });
 
     var defaultSymbols = [new sGis.symbol.point.Point(), new sGis.symbol.polyline.Simple(), new sGis.symbol.polygon.Simple()];

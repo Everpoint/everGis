@@ -298,7 +298,7 @@ function createFeatures(response, crs) {
                     var feature = new sGis.feature.Polygon(points, {id: i, attributes: attributes, crs: crs, color: color, width: object.visualDefinition.strokeThickness});
                     if (fillColor && fillColor.brush) {
                         feature.symbol = new sGis.symbol.polygon.BrushFill({
-                            strokeWidth: object.visualDefinition.strokeThickness,
+                            strokeWidth: parseFloat(object.visualDefinition.strokeThickness),
                             strokeColor: color,
                             fillBrush: fillColor.brush,
                             fillForeground: parseColor(fillColor.foreground),
@@ -306,7 +306,7 @@ function createFeatures(response, crs) {
                         });
                     } else {
                         feature.style = {
-                            strokeWidth: object.visualDefinition.strokeThickness,
+                            strokeWidth: parseFloat(object.visualDefinition.strokeThickness),
                             strokeColor: color,
                             fillColor: fillColor ? parseColor(fillColor) : 'transparent'
                         };
@@ -318,20 +318,20 @@ function createFeatures(response, crs) {
                     if (object.visualDefinition.imageSrc) {
                         feature.symbol = new sGis.symbol.point.Image({
                             source: object.visualDefinition.imageSrc,
-                            size: object.visualDefinition.size,
+                            size: parseFloat(object.visualDefinition.size),
                             anchorPoint: object.visualDefinition.anchorPoint
                         });
                     } else if (object.visualDefinition.shape === 'Circle') {
                         feature.style = {
-                            size: object.visualDefinition.size,
+                            size: parseFloat(object.visualDefinition.size),
                             color: fillColor ? parseColor(fillColor) : 'transparent',
                             strokeColor: color,
-                            strokeWidth: object.visualDefinition.strokeThickness
+                            strokeWidth: parseFloat(object.visualDefinition.strokeThickness)
                         };
                     } else {
                         feature.symbol = new sGis.symbol.point.Square({
-                            size: object.visualDefinition.size,
-                            strokeWidth: object.visualDefinition.strokeThickness,
+                            size: parseFloat(object.visualDefinition.size),
+                            strokeWidth: parseFloat(object.visualDefinition.strokeThickness),
                             strokeColor: color,
                             fillColor: fillColor ? parseColor(fillColor) : 'transparent'
                         });
