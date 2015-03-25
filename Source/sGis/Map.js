@@ -25,6 +25,7 @@
         _position: new sGis.Point(55.755831, 37.617673).projectTo(sGis.CRS.webMercator),
         _resolution: 611.4962262812505 / 2,
         _wrapper: null,
+        _tileScheme: null,
 
         _initLayerGroup: function() {
             this._layerGroup = new sGis.LayerGroup();
@@ -296,6 +297,7 @@
         },
 
         /**
+         * @deprecated
          * TODO: remove
          */
         update: function() {
@@ -561,17 +563,27 @@
             }
         },
 
+        /**
+         * Sets and returns the tile scheme of the map. If set to null (by default), the tile scheme of the first tile layer in the layer list is used.
+         */
         tileScheme: {
             get: function() {
-                var layers = this.layers;
-                var tileScheme = null;
-                for (var i = 0, len = layers.length; i < len; i++) {
-                    if (layers[i] instanceof sGis.TileLayer) {
-                        tileScheme = layers[i].tileScheme;
-                        break;
+                if (this._tileScheme !== null) {
+                    return this._tileScheme;
+                } else {
+                    var layers = this.layers;
+                    var tileScheme = null;
+                    for (var i = 0, len = layers.length; i < len; i++) {
+                        if (layers[i] instanceof sGis.TileLayer) {
+                            tileScheme = layers[i].tileScheme;
+                            break;
+                        }
                     }
+                    return tileScheme;
                 }
-                return tileScheme;
+            },
+            set: function(scheme) {
+                this._tileScheme = scheme;
             }
         },
 

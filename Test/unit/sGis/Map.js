@@ -565,6 +565,41 @@ $(document).ready(function() {
                     expect(function() { map.layers = [layer1, 'not a layer']; });
                 });
             });
+
+            describe('.tileScheme', function() {
+                var tileLayer, tileLayer1;
+                beforeEach(function() {
+                    tileLayer = new sGis.TileLayer('url');
+                    tileLayer1 = new sGis.TileLayer('url', {tileScheme: {}});
+                });
+
+                it('should return the tile scheme currently used by the map', function() {
+                    map.addLayer(tileLayer);
+                    expect(map.tileScheme).toBe(sGis.TileLayer.prototype.tileScheme);
+                });
+
+                it('should return null if there are no tile layers', function() {
+                    expect(map.tileScheme).toBe(null);
+                });
+
+                it('should return the tileScheme of the first tile layer in the layer list', function() {
+                    map.layers = [layer2, layer3, tileLayer1, tileLayer];
+                    expect(map.tileScheme).toBe(tileLayer1.tileScheme);
+                });
+
+                it('should always return the given tile scheme if assigned', function() {
+                    map.tileScheme = tileLayer.tileScheme;
+                    map.addLayer(tileLayer1);
+                    expect(map.tileScheme).toBe(tileLayer.tileScheme);
+                });
+
+                it('should return the tile scheme of a layer if null is assigned', function() {
+                    map.tileScheme = tileLayer.tileScheme;
+                    map.addLayer(tileLayer1);
+                    map.tileScheme = null;
+                    expect(map.tileScheme).toBe(tileLayer1.tileScheme);
+                });
+            });
         });
         
         describe('methods', function() {
