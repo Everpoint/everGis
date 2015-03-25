@@ -497,30 +497,35 @@
             }
         },
 
+        /**
+         * Sets and returns the DOM wrapper of the map. Returns DOM Element.
+         * Accepted values: {String}, {HTMLElement} or null. If null is assigned, the map is removed from the DOM.
+         */
         wrapper: {
             get: function() {
                 return this._wrapper;
             },
 
-            set: function(wrapperId) {
-                if (!utils.isString(wrapperId) && wrapperId !== null) utils.error('String or null value expected but got ' + wrapperId + ' instead');
+            set: function(wrapper) {
+                if (!utils.isString(wrapper) && wrapper !== null && !(wrapper instanceof HTMLElement)) utils.error('String or null value expected but got ' + wrapper + ' instead');
                 if (this._wrapper) {
                     this._wrapper.removeChild(this._innerWrapper);
                 }
-                if (wrapperId !== null) {
-                    setDOMstructure(wrapperId, this);
+                if (wrapper !== null) {
+                    setDOMstructure(wrapper, this);
                     this._autoupdateSize();
 
                     this._painter = new utils.Painter(this);
                     setEventHandlers(this);
 
-                    this.fire('wrapperSet');
                 } else {
                     this._wrapper = null;
                     delete this._layerWrapper;
                     delete this._innerWrapper;
                     delete this._painter;
                 }
+
+                this.fire('wrapperSet');
             }
         },
 
@@ -609,9 +614,9 @@
 
     sGis.utils.proto.setMethods(sGis.Map.prototype, sGis.IEventHandler);
 
-    function setDOMstructure(parentId, map) {
-        var parent = document.getElementById(parentId);
-        if (!parent) utils.error('The element with ID "' + parentId + '" could not be found. Cannot create a Map object');
+    function setDOMstructure(parent, map) {
+        var parent = parent instanceof HTMLElement ? parent :document.getElementById(parent);
+        if (!parent) utils.error('The element with ID "' + parent + '" could not be found. Cannot create a Map object');
 
         var wrapper = document.createElement('div');
         wrapper.map = map;
@@ -620,7 +625,6 @@
         wrapper.style.width = '100%';
         wrapper.style.height = '100%';
         parent.appendChild(wrapper);
-        parent.map = map; //todo: this should be deleted
 
         var layerWrapper = document.createElement('div');
         layerWrapper.style.position = 'absolute';

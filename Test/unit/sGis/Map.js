@@ -127,58 +127,124 @@ $(document).ready(function() {
             });
 
             describe('.wrapper', function() {
+                var $wrapper1;
+                beforeEach(function() {
+                    $wrapper1 = $('<div id="map1" style="width: 300px; height: 300px;" />');
+                    $(document.body).append($wrapper1);
+                });
+
+                afterEach(function() {
+                    $wrapper1.remove();
+                });
+
                 it('should return the DOM-element -container of the map', function() {
                     expect(map.wrapper instanceof HTMLElement).toBe(true);
                     expect(map.wrapper.id).toBe('map');
                 });
-            });
 
-            it('.wrapper should set the wrapper of the map', function() {
-                var map = new sGis.Map();
-                
-                map.wrapper = 'map';
-                expect(map.wrapper).not.toBe(null);
-                expect(map.layerWrapper).not.toBe(null);
-                expect(map.bbox).not.toBe(null);
-                expect(map.width).toBe(500);
-                expect(map.height).toBe(500);
-                expect(map._painter instanceof utils.Painter).toBeTruthy();
-            });
-            //todo: what if two maps are assigned the same wrapper?
-            it('.wrapper should remove the map from the old wrapper and add to the new one', function() {
-                map.wrapper = null;
-                var $wrapper = $('<div id="map1" style="height: 400px; width: 400px;"></div>');
-                $(document.body).append($wrapper);
-                
-                var map1 = new sGis.Map({wrapper: 'map'}),
-                    layerWrapper = map1.layerWrapper,
-                    painter = map1._painter;
-                    
-                map1.wrapper = 'map1';
-                
-                expect(map1.height).toBe(400);
-                expect(map1.width).toBe(400);
-                expect(map1.layerWrapper).not.toBe(layerWrapper);
-                expect(map1._painter).not.toBe(painter);
-                expect($('#map').html()).toBe('');
-                
-                $wrapper.remove();
-            });
-            
-            it('.wrapper should remove the map from the DOM if the value set to null', function() {
-                var html = document.getElementById('map').innerHTML,
-                    map = new sGis.Map({wrapper: 'map'});
-                    
-                map.wrapper = null;
+                it('should not be set by default', function() {
+                    var map1 = new sGis.Map();
+                    expect(map1.wrapper).toBe(null);
+                });
 
-                triggerAnimationFrame();
-                expect(map.wrapper).toBe(null);
-                expect(map.layerWrapper).toBe(undefined);
-                expect(map.width).toBe(undefined);
-                expect(map.height).toBe(undefined);
-                expect(map._painter).toBe(undefined);
-                
-                expect(document.getElementById('map').innerHTML).toBe(html);
+                it('should be set in constructor', function() {
+                    var map1 = new sGis.Map({wrapper: 'map'});
+                    expect(map1.wrapper).toBe(document.getElementById('map'));
+                });
+
+                it('should get DOM element as a value', function() {
+                    var node = document.getElementById('map1');
+                    map.wrapper = node;
+                    expect(map.wrapper).toBe(node);
+                });
+
+                it('should set the .innerWrapper, .layerWrapper and .painter properties', function() {
+                    expect(map.innerWrapper).toBeDefined();
+                    expect(map.layerWrapper).toBeDefined();
+                    expect(map.painter instanceof utils.Painter).toBe(true);
+                });
+
+                it('should add the map DOM elements into the wrapper', function() {
+                    expect($wrapper.children().length > 0).toBe(true);
+                });
+
+                it('should remove all map DOM elements from the old container and add to the new one', function() {
+                    map.wrapper = 'map1';
+                    expect($wrapper.children().length).toBe(0);
+                    expect($wrapper1.children().length > 0).toBe(true);
+                });
+
+                it('should remove the map from the container if null is assigned', function() {
+                    map.wrapper = null;
+                    expect($wrapper.children().length).toBe(0);
+                });
+
+                it('should remove .innerWrapper, .layerWrapper and .painter if null is assigned', function() {
+                    map.wrapper = null;
+                    expect(map.innerWrapper).toBe(undefined);
+                    expect(map.layerWrapper).toBe(undefined);
+                    expect(map.painter).toBe(undefined);
+                });
+
+                it('should not change the wrapper and its content', function() {
+                    $wrapper1.append('<div>Inner div</div>');
+                    var html = $wrapper1.html();
+                    var node = document.getElementById('map1');
+                    var keys = Object.keys(node);
+
+                    map.wrapper = 'map';
+                    map.wrapper = null;
+
+                    expect($wrapper1.html()).toBe(html);
+                    expect(Object.keys(node)).toEqual(keys);
+                });
+
+                it('should trigger the "bboxChange" event', function() {
+                    var fired = false;
+                    var handler = function() { fired = true; };
+                    map.on('bboxChange', handler);
+
+                    map.wrapper = 'map1';
+                    expect(fired).toBe(true);
+                });
+
+                it('should trigger the "wrapperSet" event', function() {
+                    var fired = false;
+                    var handler = function() { fired = true; };
+                    map.on('wrapperSet', handler);
+
+                    map.wrapper = 'map1';
+                    expect(fired).toBe(true);
+
+                    fired = false;
+                    map.wrapper = null;
+                    expect(fired).toBe(true);
+                });
+
+                it('should throw an exception in case of incorrect assignment', function() {
+                    expect(function() { map.wrapper = undefined; }).toThrow();
+                    expect(function() { map.wrapper = NaN; }).toThrow();
+                    expect(function() { map.wrapper = 0; }).toThrow();
+                    expect(function() { map.wrapper = 1; }).toThrow();
+                    expect(function() { map.wrapper = {}; }).toThrow();
+                    expect(function() { map.wrapper = []; }).toThrow();
+                });
+
+                it('should throw an exception if there is no specified wrapper', function() {
+                    expect(function() { map.wrapper = 'nowrapper'; }).toThrow();
+                });
+
+                it('should delete only self from the wrapper in case two maps are contained in the same wrapper', function() {
+                    var node = map.wrapper;
+                    var map1 = new sGis.Map({wrapper: 'map'});
+                    expect(map.wrapper).toBe(map1.wrapper);
+                    expect(map.innerWrapper).not.toBe(map1.innerWrapper);
+
+                    map.wrapper = null;
+                    expect(map.wrapper).toBe(null);
+                    expect(map1.wrapper).toBe(node);
+                    expect($wrapper.children().length).toBe(1);
+                });
             });
 
             describe('.crs', function() {
