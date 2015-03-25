@@ -32,7 +32,7 @@
             var self = this;
             if (password) {
                 var spUrl = this._url.substr(-4, 4) === 'IIS/' ? this._url.substr(0, this._url.length - 4) : this._url,
-                    url = this.apiLoginUrl.replace(/%sp%/, spUrl) + '?authId=505741D8-C667-440D-9CA0-32FD1FF6AF88&userName=' + login + '&password=' + password + '&ts=' + new Date().getTime();
+                    url = this.apiLoginUrl.replace(/%sp%/, spUrl) + '?authId=855102B4-0CF7-4F59-A4AF-29C4AEE1A537&userName=' + login + '&password=' + password + '&ts=' + new Date().getTime();
                 utils.ajax({
                     url: url,
                     success: function(data, textStatus) {
