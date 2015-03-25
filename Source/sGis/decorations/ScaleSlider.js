@@ -23,7 +23,7 @@
         _eventNamespace: '.sGis-decorations-scaleSlider',
 
         updateDisplay: function() {
-            var wrapper = this._map.wrapper;
+            var wrapper = this._map.innerWrapper;
             if (wrapper) {
                 wrapper.appendChild(this._grid);
                 wrapper.appendChild(this._slider);

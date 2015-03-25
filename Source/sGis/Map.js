@@ -5,11 +5,11 @@
     /**
      *
      * @mixes sGis.IEventHandler.prototype
-     * @param {Object} options
+     * @param {Object} [options]
      * @param {sGis.Crs} [options.crs=sGis.CRS.webMercator] - setting a crs that cannot be converted into WGS resets default values of position to [0, 0].
      * @param {sGis.Point|sGis.feature.Point|Array} [options.position] - the start position of the map. If the array is specified as [x, y], it should be in map crs. By default center it is of Moscow.
      * @param {Number} [options.resolution=305.74811] - initial resolution of the map
-     * @param {HTMLElement} [options.wrapper] - DOM container that will contain the map. It should be block element. If not specified, the map will not be displayed.
+     * @param {String} [options.wrapper] - Id of the DOM container that will contain the map. It should be block element. If not specified, the map will not be displayed.
      * @param {sGis.Layer} [options.layers[]] - the list of layers that will be initially on the map. The first in the list will be displayed at the bottom.
      * @constructor
      */
@@ -412,6 +412,9 @@
     };
 
     Object.defineProperties(sGis.Map.prototype, {
+        /**
+         * Returns the bounding box of the map in map coordinates (sGis.Bbox). Read only.
+         */
         bbox: {
             get: function() {
                 var resolution = this.resolution;
@@ -502,7 +505,7 @@
             set: function(wrapperId) {
                 if (!utils.isString(wrapperId) && wrapperId !== null) utils.error('String or null value expected but got ' + wrapperId + ' instead');
                 if (this._wrapper) {
-                    this._parent.removeChild(this._wrapper);
+                    this._wrapper.removeChild(this._innerWrapper);
                 }
                 if (wrapperId !== null) {
                     setDOMstructure(wrapperId, this);
@@ -515,15 +518,22 @@
                 } else {
                     this._wrapper = null;
                     delete this._layerWrapper;
-                    delete this._parent;
+                    delete this._innerWrapper;
                     delete this._painter;
                 }
             }
         },
 
+        innerWrapper: {
+            get: function() {
+                return this._innerWrapper;
+            }
+        },
+
         /**
          * The position of the center of the map. Returns a copy of position object (sGis.Point). Triggers "bboxChange" event if assigned.<br>
-         * Accepted values are sGis.Point and sGis.feature.Point instances. Throws an exception if new position cannot be projected into map crs.
+         * Accepted values are sGis.Point and sGis.feature.Point instances or [x,y] array. Throws an exception if new position cannot be projected into map crs.
+         * If the assigned value, the coordinates are considered to be in map crs.
          */
         position: {
             get: function() {
@@ -532,9 +542,9 @@
 
             set: function(position) {
                 var point;
-                if (position instanceof sGis.feature.Point) {
-                    var coordinates = position.coordinates;
-                    point = new sGis.Point(coordinates[0], coordinates[1], position.crs);
+                if (position instanceof sGis.feature.Point || (utils.isArray(position) && position.length === 2 && utils.isNumber(position[0]) && utils.isNumber(position[1]))) {
+                    var coordinates = position.coordinates || position;
+                    point = new sGis.Point(coordinates[0], coordinates[1], position.crs || this.crs);
                 } else if (position instanceof sGis.Point) {
                     point = position;
                 } else {
@@ -621,9 +631,9 @@
         layerWrapper.style.height = '100%';
         wrapper.appendChild(layerWrapper);
 
-        map._parent = parent;
-        map._wrapper = wrapper;
-        map._eventWrapper = parent; //todo: why have two names for one thing?
+        map._wrapper = parent;
+        map._innerWrapper = wrapper;
+        map._eventWrapper = wrapper; //todo: why have two names for one thing?
         map._layerWrapper = layerWrapper;
     }
 

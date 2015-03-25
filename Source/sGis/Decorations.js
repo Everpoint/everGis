@@ -26,8 +26,8 @@
 
         updateDisplay: function() {
             if (this._buttons) {
-                this._map.wrapper.removeChild(this._buttons.plus);
-                this._map.wrapper.removeChild(this._buttons.minus);
+                this._map.innerWrapper.removeChild(this._buttons.plus);
+                this._map.innerWrapper.removeChild(this._buttons.minus);
             }
 
             var buttons = {
@@ -60,13 +60,13 @@
                 e.stopPropagation();
             };
 
-            if (map.wrapper) {
-                map.wrapper.appendChild(buttons.plus);
-                map.wrapper.appendChild(buttons.minus);
+            if (map.innerWrapper) {
+                map.innerWrapper.appendChild(buttons.plus);
+                map.innerWrapper.appendChild(buttons.minus);
             } else {
                 map.addListener('wrapperSet', function() {
-                    map.wrapper.appendChild(buttons.plus);
-                    map.wrapper.appendChild(buttons.minus);
+                    map.innerWrapper.appendChild(buttons.plus);
+                    map.innerWrapper.appendChild(buttons.minus);
                 });
             }
         }
