@@ -128,6 +128,12 @@
         }
     };
 
+    utils.mix = function(target, source) {   //todo: unite with merge
+        var obj = utils.copyObject(target);
+        utils.mixin(obj, source);
+        return obj;
+    };
+
     utils.softEquals = function(a, b) {
         return (Math.abs(a - b) < 0.000001 * a);
     };

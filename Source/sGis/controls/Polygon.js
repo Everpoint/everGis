@@ -1,4 +1,4 @@
-+'use strict';
+'use strict';
 
 (function() {
 
@@ -40,9 +40,9 @@ sGis.controls.Polygon = function(map, options) {
             }
 
             self._map.redrawLayer(self.activeLayer);
-            sGisEvent.stopPropagation();
-            sGisEvent.preventDefault();
         }, 10);
+        sGisEvent.stopPropagation();
+        sGisEvent.preventDefault();
     };
     
     this._mousemoveHandler = function(sGisEvent) {
@@ -93,10 +93,50 @@ sGis.controls.Polygon.prototype = new sGis.Control({
         var ringIndex = coordinates.length;
         var point = coordinates.pop().pop();
         this._activeFeature.setRing(ringIndex, [point]);
+    },
+
+    activate: function() {
+        if (!this.isActive) {
+            if (!this.activeLayer) {
+                if (!this._tempLayer) this._tempLayer = new sGis.FeatureLayer();
+                this._map.addLayer(this._tempLayer);
+                this.activeLayer = this._tempLayer;
+            }
+
+            this._map.addListener('click.sGis-polygon', this._clickHandler);
+            this._isActive = true;
+        }
+    },
+
+    deactivate: function() {
+        if (this.isActive) {
+            if (this.activeFeature) {
+                this.cancelDrawing();
+            }
+
+            if (this.activeLayer === this._tempLayer) {
+                this._map.removeLayer(this._tempLayer);
+                this._tempLayer.features = [];
+                this.activeLayer = null;
+            }
+
+            this._map.off('click.sGis-polygon');
+            this._isActive = false;
+        }
     }
 });
 
 Object.defineProperties(sGis.controls.Polygon.prototype, {
+    activeLayer: {
+        get: function() {
+            return this._activeLayer;
+        },
+        set: function(layer) {
+            if (!(layer instanceof sGis.FeatureLayer) && layer !== null) utils.error('sGis.FeatureLayer instance is expected but got ' + layer + ' instead');
+            this._activeLayer = layer;
+        }
+    },
+
     style: {
         get: function() {
             return this._prototype.style;
@@ -134,6 +174,19 @@ Object.defineProperties(sGis.controls.Polygon.prototype, {
             this._activeFeature.prohibitEvent('click');
 
             this.activate();
+        }
+    },
+
+    isActive: {
+        get: function() {
+            return this._isActive;
+        },
+        set: function(bool) {
+            if (bool) {
+                this.activate();
+            } else {
+                this.deactivate();
+            }
         }
     }
 });

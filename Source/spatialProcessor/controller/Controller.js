@@ -1,4 +1,4 @@
- 'use strict';
+'use strict';
 
 (function() {
     
@@ -312,9 +312,9 @@ function createFeatures(response, crs) {
                         };
                     }
                 } else if (geometry.type === 'polyline') {
-                    feature = new sGis.feature.Polyline(points, {id: i, attributes: attributes, crs: crs, color: color, width: object.visualDefinition.strokeThickness});
+                    feature = new sGis.feature.Polyline(points, {id: i, attributes: attributes, crs: crs, color: color, width: parseFloat(object.visualDefinition.strokeThickness)});
                 } else if (geometry.type === 'point') {
-                    feature = new sGis.feature.Point(points, {id: i, attributes: attributes, crs: crs, color: color, size: object.visualDefinition.size});
+                    feature = new sGis.feature.Point(points, {id: i, attributes: attributes, crs: crs, color: color, size: parseFloat(object.visualDefinition.size)});
                     if (object.visualDefinition.imageSrc) {
                         feature.symbol = new sGis.symbol.point.Image({
                             source: object.visualDefinition.imageSrc,
