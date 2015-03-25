@@ -138,7 +138,6 @@ $(document).ready(function() {
                 
                 map.wrapper = 'map';
                 expect(map.wrapper).not.toBe(null);
-                expect(map.eventWrapper).not.toBe(null);
                 expect(map.layerWrapper).not.toBe(null);
                 expect(map.bbox).not.toBe(null);
                 expect(map.width).toBe(500);

@@ -614,8 +614,6 @@
         if (!parent) utils.error('The element with ID "' + parentId + '" could not be found. Cannot create a Map object');
 
         var wrapper = document.createElement('div');
-        wrapper.className = 'sGis-mapWrapper';
-        wrapper.id = 'mapWrapper';
         wrapper.map = map;
         wrapper.style.position = 'relative';
         wrapper.style.overflow = 'hidden';
@@ -625,7 +623,6 @@
         parent.map = map; //todo: this should be deleted
 
         var layerWrapper = document.createElement('div');
-        layerWrapper.className = 'sGis-layerWrapper';
         layerWrapper.style.position = 'absolute';
         layerWrapper.style.width = '100%';
         layerWrapper.style.height = '100%';
@@ -633,21 +630,20 @@
 
         map._wrapper = parent;
         map._innerWrapper = wrapper;
-        map._eventWrapper = wrapper; //todo: why have two names for one thing?
         map._layerWrapper = layerWrapper;
     }
 
     function setEventHandlers(map) {
-        Event.add(map._eventWrapper, 'mousedown', onmousedown);
-        Event.add(map._eventWrapper, 'wheel', onwheel);
-        Event.add(map._eventWrapper, 'touchstart', ontouchstart);
-        Event.add(map._eventWrapper, 'touchmove', ontouchmove);
-        Event.add(map._eventWrapper, 'touchend', ontouchend);
-        Event.add(map._eventWrapper, 'click', onclick);
-        Event.add(map._eventWrapper, 'dblclick', ondblclick);
-        Event.add(map._eventWrapper, 'mousemove', onmousemove);
-        Event.add(map._eventWrapper, 'mouseout', onmouseout);
-        Event.add(map._eventWrapper, 'contextmenu', oncontextmenu);
+        Event.add(map._innerWrapper, 'mousedown', onmousedown);
+        Event.add(map._innerWrapper, 'wheel', onwheel);
+        Event.add(map._innerWrapper, 'touchstart', ontouchstart);
+        Event.add(map._innerWrapper, 'touchmove', ontouchmove);
+        Event.add(map._innerWrapper, 'touchend', ontouchend);
+        Event.add(map._innerWrapper, 'click', onclick);
+        Event.add(map._innerWrapper, 'dblclick', ondblclick);
+        Event.add(map._innerWrapper, 'mousemove', onmousemove);
+        Event.add(map._innerWrapper, 'mouseout', onmouseout);
+        Event.add(map._innerWrapper, 'contextmenu', oncontextmenu);
         Event.add(document, 'keydown', function(event) { map.fire('keydown', { browserEvent: event }); });
         Event.add(document, 'keypress', function(event) {
             map.fire('keypress', {browserEvent: event});
