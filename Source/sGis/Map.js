@@ -587,12 +587,33 @@
             }
         },
 
+        /**
+         * Sets and returns the maxim resolution allowed for the map. If set to null, the tileScheme settings will be used. If no tileScheme is set, no limit will be used.
+         */
         maxResolution: {
             get: function() {
-                var tileScheme = this.tileScheme;
-                if (tileScheme) {
-                    return tileScheme.matrix[0].resolution;
+                if (this._maxResolution) {
+                    return this._maxResolution;
+                } else {
+                    var tileScheme = this.tileScheme;
+                    if (tileScheme && tileScheme.matrix) {
+                        var maxResolution = 0;
+                        var levels = Object.keys(tileScheme.matrix);
+                        for (var i = 0; i < levels.length; i++) {
+                            maxResolution = Math.max(maxResolution, tileScheme.matrix[levels[i]].resolution);
+                        }
+                        return maxResolution;
+                    }
                 }
+            },
+            set: function(resolution) {
+                if (resolution !== null) {
+                    if ((!utils.isNumber(resolution) || resolution <= 0)) utils.error('Positive number is expected but got ' + resolution + ' instead');
+                    var minResolution = this.minResolution;
+                    if (resolution < minResolution) utils.error('maxResolution cannot be less then minResolution');
+                }
+                this._maxResolution = resolution;
+                if (this.resolution > this.maxResolution) this.resolution = resolution;
             }
         },
 

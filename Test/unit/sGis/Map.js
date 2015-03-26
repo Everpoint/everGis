@@ -15,8 +15,6 @@ $(document).ready(function() {
             $wrapper.html('').hide();
         });
 
-
-        
         describe('creation', function() {
             it('should be created with default parameters', function() {
                 var map = new sGis.Map();
@@ -598,6 +596,56 @@ $(document).ready(function() {
                     map.addLayer(tileLayer1);
                     map.tileScheme = null;
                     expect(map.tileScheme).toBe(tileLayer1.tileScheme);
+                });
+            });
+
+            describe('.maxResolution', function() {
+                it('should set and return the maximum allowed resolution of the map', function() {
+                    map.addLayer(layer1);
+                    map.maxResolution = 10000;
+                    expect(map.maxResolution).toBe(10000);
+                });
+
+                it('should return the highest resolution in tileScheme if not assigned', function() {
+                    map.addLayer(layer1);
+                    expect(map.maxResolution).toBe(layer1.tileScheme.matrix[0].resolution);
+                });
+
+                it('should understand well arbitrary tileScheme', function() {
+                    map.tileScheme = {
+                        matrix: [
+                            {resolution: 5},
+                            {resolution: 10},
+                            {resolution: 3},
+                            {resolution: 8}
+                        ]
+                    };
+
+                    expect(map.maxResolution).toBe(10);
+                });
+
+                it('should return the resolution according to the tileScheme if null is assigned', function() {
+                    map.addLayer(layer1);
+                    map.maxResolution = 10000;
+                    map.maxResolution = null;
+                    expect(map.maxResolution).toBe(layer1.tileScheme.matrix[0].resolution);
+                });
+
+                it('should adjust the resolution if the current map resolution is higher then the new max', function() {
+                    map.resolution = 1000;
+                    map.maxResolution = 500;
+                    expect(map.resolution).toBe(500);
+                });
+
+                it('should throw an exception if the assigned value is invalid', function() {
+                    expect(function() { map.maxResolution = undefined; }).toThrow();
+                    expect(function() { map.maxResolution = -1; }).toThrow();
+                    expect(function() { map.maxResolution = 0; }).toThrow();
+                    expect(function() { map.maxResolution = '10'; }).toThrow();
+                    expect(function() { map.maxResolution = [10]; }).toThrow();
+                    expect(function() { map.maxResolution = {}; }).toThrow();
+                    expect(function() { map.maxResolution = NaN; }).toThrow();
+                    expect(function() { map.maxResolution = Infinity; }).toThrow();
                 });
             });
         });
