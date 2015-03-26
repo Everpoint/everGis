@@ -10,19 +10,26 @@
     };
 
     sGis.controls.Rectangle.prototype = new sGis.Control({
-        _setActiveStatus: function(active) {
-            var self = this;
-            if (active) {
-                this._map.addListener('dragStart.sGis-RectangleControl', function(sGisEvent) {
+        activate: function() {
+            if (!this._isActive) {
+                var self = this;
+
+                if (!this._activeLayer) {
+                    if (!this._tempLayer) this._tempLayer = new sGis.FeatureLayer();
+                    this._map.addLayer(this._tempLayer);
+                    this._activeLayer = this._tempLayer;
+                }
+
+                this._map.on('dragStart.sGis-RectangleControl', function(sGisEvent) {
                     self._startDrawing(sGisEvent.point);
 
-                    this.addListener('drag.sGis-RectangleControl', function(sGisEvent) {
+                    this.on('drag.sGis-RectangleControl', function(sGisEvent) {
                         self._updateRectangle(sGisEvent.point);
                         sGisEvent.stopPropagation();
                         sGisEvent.preventDefault();
                     });
 
-                    this.addListener('dragEnd.sGis-RectangleControl', function() {
+                    this.on('dragEnd.sGis-RectangleControl', function() {
                         var feature = self._activeFeature;
                         this.removeListener('drag dragEnd.sGis-RectangleControl');
                         this._activeFeature = null;
@@ -32,10 +39,21 @@
                     self.fire('drawingStart', { geom: self._activeFeature });
                 });
 
-                this._active = true;
-            } else {
-                this._map.removeListener('.sGis-RectangleControl');
-                this._active = false;
+                this._isActive = true;
+            }
+        },
+
+        deactivate: function() {
+            if (this._isActive) {
+                this._map.off('.sGis-RectangleControl');
+
+                if (this._activeLayer === this._tempLayer) {
+                    this._map.removeLayer(this._tempLayer);
+                    this._tempLayer.features = [];
+                    this._activeLayer = null;
+                }
+
+                this._isActive = false;
             }
         },
 
@@ -60,6 +78,27 @@
         }
     });
 
-
+    sGis.utils.proto.setProperties(sGis.controls.Rectangle.prototype, {
+        isActive: {
+            default: false,
+            set: function(bool) {
+                if (bool) {
+                    this.activate();
+                } else {
+                    this.deactivate();
+                }
+            }
+        },
+        activeLayer: {
+            default: null,
+            set: function(layer) {
+                if (!(layer instanceof sGis.FeatureLayer) && layer !== null) utils.error('sGis.FeatureLayer instance is expected but got ' + layer + ' instead');
+                this._activeLayer = layer;
+            }
+        },
+        tempLayer: {
+            set: null
+        }
+    });
 
 })();
