@@ -42,6 +42,7 @@
             }
         },
 
+
         deactivate: function() {
             if (this._isActive) {
                 this._map.removeListener('click.sGis-point', this._addPoint);
