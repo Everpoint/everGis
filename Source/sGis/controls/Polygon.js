@@ -81,7 +81,14 @@ sGis.controls.Polygon.prototype = new sGis.Control({
 
     cancelDrawing: function() {
         if (this._activeFeature) {
-            this._activeFeature.coordinates = [[[0, 0]]];
+            var coordinates = this._activeFeature.coordinates;
+            if (coordinates.length > 1) {
+                coordinates.pop();
+            } else {
+                coordinates = [[[0, 0]]];
+            }
+
+            this._activeFeature.coordinates = coordinates;
             this.prohibitEvent('drawingFinish');
             finishDrawing(this);
             this.allowEvent('drawingFinish');
