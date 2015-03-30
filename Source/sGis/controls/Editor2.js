@@ -69,7 +69,7 @@
         },
 
         _keydownHandler: function(sGisEvent) {
-            if (this._ignoreEvents) return;
+            if (this.ignoreEvents) return;
             var event = sGisEvent.browserEvent;
             if (event.which === 27) {
                 if (!this._deselectProhibited) this.deselect();
@@ -112,6 +112,7 @@
         },
 
         _featureClickHandler: function(sGisEvent, feature) {
+            if (this.ignoreEvents) return;
             this.select(feature);
             sGisEvent.stopPropagation();
             sGisEvent.preventDefault();
@@ -233,6 +234,7 @@
         },
 
         _transformControlDragStartHandler: function(sGisEvent) {
+            //if (this.ignoreEvents) return; todo: this does not work because of the context
             sGisEvent.draggingObject = this; // called in feature context
             sGisEvent.stopPropagation();
         },
@@ -299,6 +301,7 @@
         },
 
         _mapClickHandler: function(sGisEvent) {
+            if (this.ignoreEvents) return;
             this.deselect();
         },
 
@@ -334,6 +337,7 @@
         },
 
         _dragStartHandler: function(sGisEvent, feature) {
+            if (this.ignoreEvents) return;
             if (feature instanceof sGis.feature.Polyline) {
                 this._currentDragInfo = this._getAdjustedEventData(sGisEvent, feature);
             }
@@ -351,6 +355,7 @@
         },
 
         _polylineMousemoveHandler: function(sGisEvent, feature) {
+            if (this.ignoreEvents) return;
             var adjustedEvent = this._getAdjustedEventData(sGisEvent, feature);
             var symbol = adjustedEvent.type === 'line' ? this._snappingPointSymbol : adjustedEvent.type === 'vertex' ? this._snappingVertexSymbol : null;
 
@@ -366,6 +371,7 @@
         },
 
         _polylineDblclickHandler: function(sGisEvent, feature) {
+            if (this.ignoreEvents) return;
             var adjustedEvent = this._getAdjustedEventData(sGisEvent, feature);
             if (adjustedEvent.type === 'vertex') {
                 var coordinates = feature.coordinates;
@@ -663,7 +669,8 @@
         id: {
             default: null,
             set: null
-        }
+        },
+        ignoreEvents: false
     });
 
     /**
