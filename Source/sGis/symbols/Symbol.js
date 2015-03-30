@@ -40,7 +40,7 @@
         _css: '',
 
         renderFunction: function(feature, resolution, crs) {
-            if (!this._cache || !utils.softEquals(resolution, this._cache[0].resolution)) {
+            if (!feature._cache || !utils.softEquals(resolution, feature._cache[0].resolution)) {
                 var div = document.createElement('div');
                 div.className = this.css;
                 div.appendChild(feature.content);
@@ -54,10 +54,10 @@
                 div.style.cursor = 'inherit';
                 div.style.textAlign = this.align;
 
-                this._cache = [{node: div, position: div.position, resolution: resolution}];
+                feature._cache = [{node: div, position: div.position, resolution: resolution}];
             }
 
-            return this._cache;
+            return feature._cache;
         }
     });
 

@@ -125,10 +125,10 @@
 
         _setActiveStatus: function(active) {
             if (active) {
-                this._map.wrapper.appendChild(this._container);
+                this._map.innerWrapper.appendChild(this._container);
                 this._active = true;
             } else {
-                this._map.wrapper.removeChild(this._container);
+                this._map.innerWrapper.removeChild(this._container);
                 this._active = false;
             }
         },

@@ -60,14 +60,32 @@
     };
 
     sGis.controls.Polyline.prototype = new sGis.Control({
-        _setActiveStatus: function(isActive) {
-            if (isActive) {
+        activate: function() {
+            if (!this._isActive) {
+                if (!this._activeLayer) {
+                    if (!this._tempLayer) this._tempLayer = new sGis.FeatureLayer();
+                    this._map.addLayer(this._tempLayer);
+                    this._activeLayer = this._tempLayer;
+                }
+
                 this._map.addListener('click.sGis-polyline', this._clickHandler);
-            } else {
+                this._isActive = true;
+            }
+        },
+
+        deactivate: function() {
+            if (this._isActive) {
                 if (this._activeFeature) finishDrawing(this);
                 this._map.removeListener('click.sGis-polyline', this._clickHandler);
+
+                if (this._activeLayer === this._tempLayer) {
+                    this._map.removeLayer(this._tempLayer);
+                    this._tempLayer.features = [];
+                    this._activeLayer = null;
+                }
+
+                this._isActive = false;
             }
-            this._active = isActive;
         },
 
         cancelDrawing: function() {
@@ -79,6 +97,29 @@
     });
 
     Object.defineProperties(sGis.controls.Polyline.prototype, {
+        isActive: {
+            get: function() {
+                return this._isActive;
+            },
+            set: function(bool) {
+                if (bool) {
+                    this.activate();
+                } else {
+                    this.deactivate();
+                }
+            }
+        },
+
+        activeLayer: {
+            get: function() {
+                return this._activeLayer;
+            },
+            set: function(layer) {
+                if (!(layer instanceof sGis.FeatureLayer) && layer !== null) utils.error('sGis.FeatureLayer instance is expected but got ' + layer + ' instead');
+                this._activeLayer = layer;
+            }
+        },
+
         style: {
             get: function() {
                 return this._prototype.style;

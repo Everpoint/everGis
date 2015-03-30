@@ -178,7 +178,7 @@
                 size: attributes.Size === '0' ? 10 : attributes.Size,
                 strokeThickness: attributes.StrokeThickness,
                 fill: parsed.brush[attributes.Fill].color,
-                stroke: parsed.brush[attributes.Stroke].color,
+                stroke: parsed.brush[attributes.Stroke] ? parsed.brush[attributes.Stroke].color : 'transparent',
                 shape: attributes.Shape
             };
         },

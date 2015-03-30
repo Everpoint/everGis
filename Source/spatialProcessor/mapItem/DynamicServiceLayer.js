@@ -80,6 +80,14 @@
             }
         },
 
+        fullName: {
+            get: function() {
+                if (this.parentName && this.layerId !== undefined) {
+                    return this.parentName + '/' + this.layerId;
+                }
+            }
+        },
+
         legend: {
             get: function() {
                 return this._legend;

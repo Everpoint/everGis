@@ -197,6 +197,12 @@
                     return [];
                 }
             }
+        },
+
+        isEditable: {
+            get: function() {
+                return !!this.isEverGis;
+            }
         }
     });
 
