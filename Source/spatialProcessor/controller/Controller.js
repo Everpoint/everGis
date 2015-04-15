@@ -161,6 +161,18 @@ sGis.spatialProcessor.Controller.prototype = {
         });
     },
 
+    clear: function(properties) {
+        properties = properties || {};
+        this.__operation(function() {
+            return {
+                operation: 'clear',
+                requested: properties.requested,
+                error: properties.error,
+                success: properties.success
+            }
+        });
+    },
+
     save: function(properties) {
         if (!properties.added && !properties.updated && !properties.deleted) utils.error('Edit description must contain at least one feature');
 

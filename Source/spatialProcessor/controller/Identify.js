@@ -75,6 +75,12 @@
             get: function() {
                 return this._layer.map === null;
             }
+        },
+
+        mapServer: {
+            get: function() {
+                return this._layer;
+            }
         }
     });
 

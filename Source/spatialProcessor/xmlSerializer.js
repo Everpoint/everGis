@@ -231,11 +231,11 @@
             var attributeDefinition = parsed.attributesDefinitions[parentObject.attributesDefinition];
 
             parentObject.attributes[nodeAttributes.Name] = {
-                title: attributeDefinition[nodeAttributes.Name].alias,
+                title: attributeDefinition[nodeAttributes.Name] && attributeDefinition[nodeAttributes.Name].alias || nodeAttributes.Name,
                 value: nodeAttributes.Value,
-                type: attributeDefinition[nodeAttributes.Name].type,
-                size: attributeDefinition[nodeAttributes.Name].size,
-                domain: attributeDefinition[nodeAttributes.Name].domain
+                type: attributeDefinition[nodeAttributes.Name] && attributeDefinition[nodeAttributes.Name].type || nodeAttributes.Name,
+                size: attributeDefinition[nodeAttributes.Name] && attributeDefinition[nodeAttributes.Name].size || 0,
+                domain: attributeDefinition[nodeAttributes.Name] && attributeDefinition[nodeAttributes.Name].domain
             };
         },
 
