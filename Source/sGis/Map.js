@@ -260,7 +260,7 @@
          * @param {sGis.Point} [basePoint] - Base point of zooming
          */
         setResolution: function(resolution, basePoint) {
-            this.setPosition(this.getAdjustedResolution(resolution), this._getScaledPosition(this.resolution, basePoint));
+            this.setPosition(this._getScaledPosition(this.resolution, basePoint), this.getAdjustedResolution(resolution));
         },
 
         /**

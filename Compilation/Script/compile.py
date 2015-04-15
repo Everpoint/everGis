@@ -45,12 +45,12 @@ f = open('../Release/everGis.js', 'wb+')
 f.write(output)
 f.close()
 
-f = open('../Release/everGis.js', 'r')
+f = open('../Release/everGis.js', 'r', encoding='utf-8')
 decoded = f.read()
 f.close()
 
 minified = jsmin(decoded)
-f = open('../Release/everGis_min.js', 'w+')
+f = open('../Release/everGis_min.js', 'w+', encoding='utf-8')
 f.write(minified)
 f.close()
 
