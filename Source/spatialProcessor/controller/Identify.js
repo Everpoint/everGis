@@ -4,7 +4,7 @@
 
     sGis.spatialProcessor.controller.Identify = function(spatialProcessor, options) {
         this._map = options.map;
-        this.__initialize(spatialProcessor, {}, function() {
+        this.__initialize(spatialProcessor, {sync: true}, function() {
             this._layer = new sGis.spatialProcessor.MapServer('VisualObjectsRendering/' + this._mapServiceId, this._spatialProcessor, {map: options.map, display: this._display});
             this.initialized = true;
             this.fire('initialize');
