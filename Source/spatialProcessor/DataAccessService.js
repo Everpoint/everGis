@@ -34,7 +34,7 @@ sGis.spatialProcessor.DataAccessService.prototype = {
      * @param {String} [properties.filter] - filtering string for the query
      * @param {Function} [properties.requested], [properties.success], [properties.error]
      */
-    getServiceCatalog: function(properties) {
+    getServicesCatalog: function(properties) {
         var dataParameters = properties.filter ? 'filter=' + properties.filter : '';
 
         this.__operation(function() {
