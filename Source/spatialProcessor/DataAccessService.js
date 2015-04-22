@@ -1,3 +1,5 @@
+'use strict';
+
 (function() {
 
 /**
@@ -24,7 +26,27 @@ sGis.spatialProcessor.DataAccessService.prototype = {
     createObject: sGis.spatialProcessor.Controller.prototype.createObject,
     autoComplete: sGis.spatialProcessor.Controller.prototype.autoComplete,
     reshape: sGis.spatialProcessor.Controller.prototype.reshape,
-    cut: sGis.spatialProcessor.Controller.prototype.cut
+    cut: sGis.spatialProcessor.Controller.prototype.cut,
+
+    /**
+     * Requests the information about the available services from the server
+     * @param {Object} properties
+     * @param {String} [properties.filter] - filtering string for the query
+     * @param {Function} [properties.requested], [properties.success], [properties.error]
+     */
+    getServiceCatalog: function(properties) {
+        var dataParameters = properties.filter ? 'filter=' + properties.filter : '';
+
+        this.__operation(function() {
+            return {
+                operation: 'getServicesCatalog',
+                dataParameters: dataParameters,
+                requested: properties.requested,
+                error: properties.error,
+                success: properties.success
+            }
+        });
+    }
 };
 
 Object.defineProperties(sGis.spatialProcessor.DataAccessService.prototype, {
