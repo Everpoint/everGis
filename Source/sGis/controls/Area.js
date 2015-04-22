@@ -4,9 +4,8 @@
         if (!(map instanceof sGis.Map)) utils.error('sGis.Map instance is expected but got ' + map + ' instead');
         this._map = map;
 
-        utils.init(this, options);
-
         this._polygonControl = new sGis.controls.Polygon(map, { activeLayer: options && options.activeLayer, style: { strokeWidth: 2, strokeColor: 'red', fillColor: 'rgba(100, 100, 100, 0.5)' } });
+        utils.init(this, options);
 
         this._polygonControl.addListener('drawingBegin', function() {
             if (this.activeLayer.features.length > 1) this.activeLayer.features = [this.activeLayer.features[this.activeLayer.features.length - 1]];
@@ -31,10 +30,25 @@
         _setActiveStatus: function(bool) {
             this._polygonControl.isActive = bool;
             this._active = bool;
+        }
+    });
 
-            if (!bool) {
-                this._polygonControl.activeLayer.features = [];
-                this._map.redrawLayer(this._polygonControl.activeLayer);
+    sGis.utils.proto.setProperties(sGis.controls.Area.prototype, {
+        activeLayer: {
+            get: function() {
+                return this._polygonControl.activeLayer;
+            },
+            set: function(layer) {
+                this._polygonControl.activeLayer = layer;
+            }
+        },
+
+        isActive: {
+            get: function() {
+                return this._active;
+            },
+            set: function(bool) {
+                this._setActiveStatus(bool);
             }
         }
     });

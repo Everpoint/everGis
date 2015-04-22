@@ -25,6 +25,7 @@
         _position: new sGis.Point(55.755831, 37.617673).projectTo(sGis.CRS.webMercator),
         _resolution: 611.4962262812505 / 2,
         _wrapper: null,
+        _tileScheme: null,
 
         _initLayerGroup: function() {
             this._layerGroup = new sGis.LayerGroup();
@@ -296,6 +297,7 @@
         },
 
         /**
+         * @deprecated
          * TODO: remove
          */
         update: function() {
@@ -497,30 +499,35 @@
             }
         },
 
+        /**
+         * Sets and returns the DOM wrapper of the map. Returns DOM Element.
+         * Accepted values: {String}, {HTMLElement} or null. If null is assigned, the map is removed from the DOM.
+         */
         wrapper: {
             get: function() {
                 return this._wrapper;
             },
 
-            set: function(wrapperId) {
-                if (!utils.isString(wrapperId) && wrapperId !== null) utils.error('String or null value expected but got ' + wrapperId + ' instead');
+            set: function(wrapper) {
+                if (!utils.isString(wrapper) && wrapper !== null && !(wrapper instanceof HTMLElement)) utils.error('String or null value expected but got ' + wrapper + ' instead');
                 if (this._wrapper) {
                     this._wrapper.removeChild(this._innerWrapper);
                 }
-                if (wrapperId !== null) {
-                    setDOMstructure(wrapperId, this);
+                if (wrapper !== null) {
+                    setDOMstructure(wrapper, this);
                     this._autoupdateSize();
 
                     this._painter = new utils.Painter(this);
                     setEventHandlers(this);
 
-                    this.fire('wrapperSet');
                 } else {
                     this._wrapper = null;
                     delete this._layerWrapper;
                     delete this._innerWrapper;
                     delete this._painter;
                 }
+
+                this.fire('wrapperSet');
             }
         },
 
@@ -556,26 +563,57 @@
             }
         },
 
+        /**
+         * Sets and returns the tile scheme of the map. If set to null (by default), the tile scheme of the first tile layer in the layer list is used.
+         */
         tileScheme: {
             get: function() {
-                var layers = this.layers;
-                var tileScheme = null;
-                for (var i = 0, len = layers.length; i < len; i++) {
-                    if (layers[i] instanceof sGis.TileLayer) {
-                        tileScheme = layers[i].tileScheme;
-                        break;
+                if (this._tileScheme !== null) {
+                    return this._tileScheme;
+                } else {
+                    var layers = this.layers;
+                    var tileScheme = null;
+                    for (var i = 0, len = layers.length; i < len; i++) {
+                        if (layers[i] instanceof sGis.TileLayer) {
+                            tileScheme = layers[i].tileScheme;
+                            break;
+                        }
                     }
+                    return tileScheme;
                 }
-                return tileScheme;
+            },
+            set: function(scheme) {
+                this._tileScheme = scheme;
             }
         },
 
+        /**
+         * Sets and returns the maxim resolution allowed for the map. If set to null, the tileScheme settings will be used. If no tileScheme is set, no limit will be used.
+         */
         maxResolution: {
             get: function() {
-                var tileScheme = this.tileScheme;
-                if (tileScheme) {
-                    return tileScheme.matrix[0].resolution;
+                if (this._maxResolution) {
+                    return this._maxResolution;
+                } else {
+                    var tileScheme = this.tileScheme;
+                    if (tileScheme && tileScheme.matrix) {
+                        var maxResolution = 0;
+                        var levels = Object.keys(tileScheme.matrix);
+                        for (var i = 0; i < levels.length; i++) {
+                            maxResolution = Math.max(maxResolution, tileScheme.matrix[levels[i]].resolution);
+                        }
+                        return maxResolution;
+                    }
                 }
+            },
+            set: function(resolution) {
+                if (resolution !== null) {
+                    if ((!utils.isNumber(resolution) || resolution <= 0)) utils.error('Positive number is expected but got ' + resolution + ' instead');
+                    var minResolution = this.minResolution;
+                    if (resolution < minResolution) utils.error('maxResolution cannot be less then minResolution');
+                }
+                this._maxResolution = resolution;
+                if (this.resolution > this.maxResolution) this.resolution = resolution;
             }
         },
 
@@ -609,23 +647,19 @@
 
     sGis.utils.proto.setMethods(sGis.Map.prototype, sGis.IEventHandler);
 
-    function setDOMstructure(parentId, map) {
-        var parent = document.getElementById(parentId);
-        if (!parent) utils.error('The element with ID "' + parentId + '" could not be found. Cannot create a Map object');
+    function setDOMstructure(parent, map) {
+        var parent = parent instanceof HTMLElement ? parent :document.getElementById(parent);
+        if (!parent) utils.error('The element with ID "' + parent + '" could not be found. Cannot create a Map object');
 
         var wrapper = document.createElement('div');
-        wrapper.className = 'sGis-mapWrapper';
-        wrapper.id = 'mapWrapper';
         wrapper.map = map;
         wrapper.style.position = 'relative';
         wrapper.style.overflow = 'hidden';
         wrapper.style.width = '100%';
         wrapper.style.height = '100%';
         parent.appendChild(wrapper);
-        parent.map = map; //todo: this should be deleted
 
         var layerWrapper = document.createElement('div');
-        layerWrapper.className = 'sGis-layerWrapper';
         layerWrapper.style.position = 'absolute';
         layerWrapper.style.width = '100%';
         layerWrapper.style.height = '100%';
@@ -633,21 +667,20 @@
 
         map._wrapper = parent;
         map._innerWrapper = wrapper;
-        map._eventWrapper = wrapper; //todo: why have two names for one thing?
         map._layerWrapper = layerWrapper;
     }
 
     function setEventHandlers(map) {
-        Event.add(map._eventWrapper, 'mousedown', onmousedown);
-        Event.add(map._eventWrapper, 'wheel', onwheel);
-        Event.add(map._eventWrapper, 'touchstart', ontouchstart);
-        Event.add(map._eventWrapper, 'touchmove', ontouchmove);
-        Event.add(map._eventWrapper, 'touchend', ontouchend);
-        Event.add(map._eventWrapper, 'click', onclick);
-        Event.add(map._eventWrapper, 'dblclick', ondblclick);
-        Event.add(map._eventWrapper, 'mousemove', onmousemove);
-        Event.add(map._eventWrapper, 'mouseout', onmouseout);
-        Event.add(map._eventWrapper, 'contextmenu', oncontextmenu);
+        Event.add(map._innerWrapper, 'mousedown', onmousedown);
+        Event.add(map._innerWrapper, 'wheel', onwheel);
+        Event.add(map._innerWrapper, 'touchstart', ontouchstart);
+        Event.add(map._innerWrapper, 'touchmove', ontouchmove);
+        Event.add(map._innerWrapper, 'touchend', ontouchend);
+        Event.add(map._innerWrapper, 'click', onclick);
+        Event.add(map._innerWrapper, 'dblclick', ondblclick);
+        Event.add(map._innerWrapper, 'mousemove', onmousemove);
+        Event.add(map._innerWrapper, 'mouseout', onmouseout);
+        Event.add(map._innerWrapper, 'contextmenu', oncontextmenu);
         Event.add(document, 'keydown', function(event) { map.fire('keydown', { browserEvent: event }); });
         Event.add(document, 'keypress', function(event) {
             map.fire('keypress', {browserEvent: event});

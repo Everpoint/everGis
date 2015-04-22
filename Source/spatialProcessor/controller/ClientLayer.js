@@ -26,7 +26,7 @@ sGis.spatialProcessor.controller.ClientLayer.prototype = new sGis.spatialProcess
         this.__operation(function() {
             return {
                 operation: 'bulk',
-                dataParameters: 'uid=d7b47c78-9dbc-4dc9-b89b-124fdf23d237&fileName=' + encodeURIComponent(properties.fileName),
+                dataParameters: 'uid=6f9d3c5b-fcbb-41f4-ba74-0bf6b575234c&fileName=' + encodeURIComponent(properties.fileName),
                 requested: properties.requested,
                 error: properties.error,
                 success: properties.success
@@ -53,7 +53,7 @@ sGis.spatialProcessor.controller.ClientLayer.prototype = new sGis.spatialProcess
         this.__operation(function() {
             return {
                 operation: 'save',
-                dataParameters: 'uid=e42eac4f-ff1a-4d7e-a15f-21eb601baafd&fileName=' + encodeURIComponent(properties.fileName),
+                dataParameters: 'uid=6f9d3c5b-fcbb-41f4-ba74-0bf6b575234c&fileName=' + encodeURIComponent(properties.fileName),
                 requested: properties.requested,
                 error: properties.error,
                 success: properties.success
