@@ -43,7 +43,11 @@ sGis.spatialProcessor.DataAccessService.prototype = {
                 dataParameters: dataParameters,
                 requested: properties.requested,
                 error: properties.error,
-                success: properties.success
+                success: function(response) {
+                    if (properties.success) {
+                        properties.success(response.content);
+                    }
+                }
             }
         });
     }
