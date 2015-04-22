@@ -231,11 +231,11 @@
             var attributeDefinition = parsed.attributesDefinitions[parentObject.attributesDefinition];
 
             parentObject.attributes[nodeAttributes.Name] = {
-                title: attributeDefinition[nodeAttributes.Name].alias,
+                title: attributeDefinition[nodeAttributes.Name] && attributeDefinition[nodeAttributes.Name].alias || nodeAttributes.Name,
                 value: nodeAttributes.Value,
-                type: attributeDefinition[nodeAttributes.Name].type,
-                size: attributeDefinition[nodeAttributes.Name].size,
-                domain: attributeDefinition[nodeAttributes.Name].domain
+                type: attributeDefinition[nodeAttributes.Name] && attributeDefinition[nodeAttributes.Name].type || nodeAttributes.Name,
+                size: attributeDefinition[nodeAttributes.Name] && attributeDefinition[nodeAttributes.Name].size || 0,
+                domain: attributeDefinition[nodeAttributes.Name] && attributeDefinition[nodeAttributes.Name].domain
             };
         },
 
@@ -726,60 +726,61 @@
 
     function getSymbolIndex(feature, resources) {
         var newSymbol;
+        var symbol = feature.originalSymbol;
 
         if (feature.type === 'point') {
-            if ((feature.symbol instanceof sGis.symbol.point.Image)) {
+            if ((symbol instanceof sGis.symbol.point.Image)) {
                 newSymbol = {
-                    Pixels: getImageIndex(feature.style.source, resources),
-                    AnchorPointX: feature.style.anchorPoint.x,
-                    AnchorPointY: feature.style.anchorPoint.y,
-                    Size: feature.style.size,
+                    Pixels: getImageIndex(symbol.source, resources),
+                    AnchorPointX: symbol.anchorPoint.x,
+                    AnchorPointY: symbol.anchorPoint.y,
+                    Size: symbol.size,
                     Color: '#7f64c800',
                     MaskPixels: '-1',
                     type: 'ImagePointSymbol'
                 };
-            } else if (feature.symbol instanceof sGis.symbol.point.Point) {
+            } else if (symbol instanceof sGis.symbol.point.Point) {
                 newSymbol = {
                     Opacity: 1,
-                    Size: feature.style.size,
-                    Fill: getBrushIndex(feature.style.color, resources),
-                    Stroke: getBrushIndex(feature.style.strokeColor, resources),
-                    StrokeThickness: feature.style.strokeWidth,
+                    Size: symbol.size,
+                    Fill: getBrushIndex(symbol.color, resources),
+                    Stroke: getBrushIndex(symbol.strokeColor, resources),
+                    StrokeThickness: symbol.strokeWidth,
                     Shape: 'Circle',
                     type: symbolTypes[feature.type]
                 };
             } else {
                 newSymbol = {
                     Opacity: 1,
-                    Size: feature.style.size,
-                    Fill: getBrushIndex(feature.style.fillColor, resources),
-                    Stroke: getBrushIndex(feature.style.strokeColor, resources),
-                    StrokeThickness: feature.style.strokeWidth,
+                    Size: symbol.size,
+                    Fill: getBrushIndex(symbol.fillColor, resources),
+                    Stroke: getBrushIndex(symbol.strokeColor, resources),
+                    StrokeThickness: symbol.strokeWidth,
                     Shpae: 'Square',
                     type: symbolTypes[feature.type]
                 };
             }
-        } else if (feature.symbol instanceof sGis.symbol.polygon.BrushFill) {
+        } else if (symbol instanceof sGis.symbol.polygon.BrushFill) {
             newSymbol = {
-                StrokeThickness: feature.style.strokeWidth,
+                StrokeThickness: symbol.strokeWidth,
                 Opacity: 1,
-                Fill: getHatchBrushIndex(feature.style, resources),
-                Stroke: getBrushIndex(feature.style.strokeColor, resources),
+                Fill: getHatchBrushIndex(symbol, resources),
+                Stroke: getBrushIndex(symbol.strokeColor, resources),
                 type: symbolTypes[feature.type]
             };
-        } else if (feature.symbol instanceof sGis.symbol.polyline.Simple) {
+        } else if (symbol instanceof sGis.symbol.polyline.Simple) {
             newSymbol = {
-                StrokeThickness: feature.style.strokeWidth ? feature.style.strokeWidth : 1,
+                StrokeThickness: symbol.strokeWidth ? symbol.strokeWidth : 1,
                 Opacity: 1,
-                Stroke: getBrushIndex(feature.style.strokeColor, resources),
+                Stroke: getBrushIndex(symbol.strokeColor, resources),
                 type: symbolTypes[feature.type]
             };
         } else {
             newSymbol = {
-                StrokeThickness: feature.style.strokeWidth ? feature.style.strokeWidth : 1,
+                StrokeThickness: symbol.strokeWidth ? symbol.strokeWidth : 1,
                 Opacity: 1,
-                Fill: getBrushIndex(feature.style.fillColor ? feature.style.fillColor : feature.strokeColor, resources),
-                Stroke: getBrushIndex(feature.style.strokeColor, resources),
+                Fill: getBrushIndex(symbol.fillColor ? symbol.fillColor : feature.strokeColor, resources),
+                Stroke: getBrushIndex(symbol.strokeColor, resources),
                 type: symbolTypes[feature.type]
             };
         }
