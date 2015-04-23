@@ -26,6 +26,15 @@
             this.__operation('download', properties);
         },
 
+        /**
+         * Returns a direct link to a spatial processor resource
+         * @param {String} path - the full name of the resource in SP file system
+         * @returns {String}
+         */
+        getLink: function(path) {
+            return this._spatialProcessor.url + this._serviceName + '/?operation=download&path=' + encodeURIComponent(path) + '&_sb=' + this._spatialProcessor.sessionId;
+        },
+
         getTemplate: function(properties) {
             var successHandler = properties.success;
             properties.success = function(response) {
