@@ -21,6 +21,7 @@
         if (options.mapWrapper) this.mapWrapper = options.mapWrapper;
 
         this._initializeDataAccessService();
+        if (options.fsServiceName) this._sfs = new sGis.spatialProcessor.Sfs(this._connector, options.fsServiceName);
     };
 
     sGis.SpatialProcessor.prototype = {
@@ -273,6 +274,12 @@
         dataAccessService: {
             get: function() {
                 return this._dataAccessService;
+            }
+        },
+
+        sfs: {
+            get: function() {
+                return this._sfs;
             }
         }
     });
