@@ -231,7 +231,7 @@
 
         name: {
             get: function() {
-                return this._serviceInfo && this._serviceInfo.mapName || this._name;
+                return this._serviceInfo && this._serviceInfo.meta && this._serviceInfo.meta.Alias || this._name;
             }
         },
 
