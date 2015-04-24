@@ -10,7 +10,11 @@
 
     sGis.feature.Maptip.prototype = new sGis.Feature({
         _defaultSymbol: sGis.symbol.maptip.Simple,
-        _content: defaultContent
+        _content: defaultContent,
+
+        clearCache: function() {
+            this._cache = null;
+        }
     });
 
     Object.defineProperties(sGis.feature.Maptip.prototype, {
@@ -26,7 +30,8 @@
                 } else {
                     utils.error('Point is expected but got ' + position + ' instead');
                 }
-                this._cache = {};
+
+                this.clearCache();
             }
         },
 
@@ -36,7 +41,7 @@
             },
             set: function(content) {
                 this._content = content;
-                this._cache = {};
+                this.clearCache();
             }
         },
 
@@ -49,7 +54,7 @@
                 if (!(crs instanceof sGis.Crs)) utils.error('sGis.Crs instance is expected but got ' + crs + ' instead');
                 this._crs = crs;
                 this._point = this._point.projectTo(crs);
-                this._cache = {};
+                this.clearCache();
             }
         },
 
