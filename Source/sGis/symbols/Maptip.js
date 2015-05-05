@@ -18,7 +18,7 @@
             }
 
             var point = feature.position.projectTo(crs),
-                position = [point.x / resolution, - point.y / resolution];
+                position = [Math.round(point.x / resolution), - Math.round(point.y / resolution)];
 
             if (!feature._cache) {
                 var baloonCoordinates = getBaloonCoordinates(feature, position);
@@ -151,9 +151,9 @@
             width = feature.style.width,
             height = feature.style.height,
             square = [
-                [x - 1, y - 1],
-                [x + width + 1, y - 1],
-                [x + width + 1, y + height + 1],
+                [x - 1, y],
+                [x + width, y],
+                [x + width, y + height + 1],
                 [x - 1, y + height + 1]
             ];
         return square;
