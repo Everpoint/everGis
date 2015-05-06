@@ -292,7 +292,8 @@
         'ditIntegration': sGis.spatialProcessor.controller.DitIntegration,
         'clientLayer': sGis.spatialProcessor.controller.ClientLayer,
         'definitionQuery': sGis.spatialProcessor.controller.DefinitionQuery,
-        'tableView': sGis.spatialProcessor.controller.TableView
+        'tableView': sGis.spatialProcessor.controller.TableView,
+        'objectSelector': sGis.spatialProcessor.controller.ObjectSelector
     };
 
 })();
