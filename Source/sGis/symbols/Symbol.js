@@ -141,12 +141,11 @@
                     image.style.opacity = 0;
                     image.style.transition = 'opacity ' + feature.transitionTime / 1000 + 's linear';
 
-                    var self = feature;
                     this._cache[0].onAfterDisplay = function() {
-                        setTimeout(function() { image.style.opacity = self.opacity; }, 0);
+                        setTimeout(function() { image.style.opacity = feature.opacity; }, 0);
                     }
                 } else {
-                    image.style.opacity = this.opacity;
+                    image.style.opacity = feature.opacity;
                 }
             }
             return feature._cache;

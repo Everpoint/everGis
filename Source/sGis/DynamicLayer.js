@@ -32,7 +32,7 @@
         },
 
         _createFeature: function(bbox) {
-            var feature = new sGis.feature.Image(bbox, { style: { transitionTime: this._transitionTime, renderToCanvas: false }});
+            var feature = new sGis.feature.Image(bbox, { opacity: this.opacity, style: { transitionTime: this._transitionTime, renderToCanvas: false }});
             this._features = [feature];
         },
 
