@@ -12,41 +12,45 @@
         _offset: {x: -100, y: -220},
 
         renderFunction: function(feature, resolution, crs) {
-            if (this._changed) {
-                this._cache = {};
+            if (this._changed || this._cacheResolution !== resolution) {
+                feature.clearCache();
                 this._changed = false;
             }
 
             var point = feature.position.projectTo(crs),
-                position = [point.x / resolution, - point.y / resolution];
+                position = [Math.round(point.x / resolution), - Math.round(point.y / resolution)];
 
-            if (!this._cache[resolution]) {
+            if (!feature._cache) {
                 var baloonCoordinates = getBaloonCoordinates(feature, position);
 
-                this._cache[resolution] = new sGis.geom.Polygon(baloonCoordinates, {fillColor: 'white'});
+                feature._cache = [new sGis.geom.Polygon(baloonCoordinates, {fillColor: 'white'})];
+
+                var div = document.createElement('div'),
+                    divPosition = [position[0] + this.offset.x, position[1] + this.offset.y];
+
+                if (utils.isNode(feature.content)) {
+                    div.appendChild(feature.content);
+                } else {
+                    utils.html(div, feature.content);
+                }
+                div.style.position = 'absolute';
+                div.style.height = this.height + 'px';
+                div.style.width = this.width + 'px';
+                div.style.backgroundColor = 'white';
+                div.style.overflow = 'auto';
+                div.position = divPosition;
+
+                var divRender = {
+                    node: div,
+                    position: position
+                };
+
+                feature._cache.push(divRender);
+
+                this._cacheResolution = resolution;
             }
 
-            var div = document.createElement('div'),
-                divPosition = [position[0] + this.offset.x, position[1] + this.offset.y];
-
-            if (utils.isNode(feature.content)) {
-                div.appendChild(feature.content);
-            } else {
-                utils.html(div, feature.content);
-            }
-            div.style.position = 'absolute';
-            div.style.height = this.height + 'px';
-            div.style.width = this.width + 'px';
-            div.style.backgroundColor = 'white';
-            div.style.overflow = 'auto';
-            div.position = divPosition;
-
-            var divRender = {
-                node: div,
-                position: position
-            };
-
-            return [this._cache[resolution], divRender];
+            return feature._cache;
         }
     });
 
@@ -147,9 +151,9 @@
             width = feature.style.width,
             height = feature.style.height,
             square = [
-                [x - 1, y - 1],
-                [x + width + 1, y - 1],
-                [x + width + 1, y + height + 1],
+                [x - 1, y],
+                [x + width, y],
+                [x + width, y + height + 1],
                 [x - 1, y + height + 1]
             ];
         return square;
