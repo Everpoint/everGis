@@ -23,6 +23,14 @@
         _inactiveHeight: 56,
         _margin: 8,
 
+        activate: function() {
+            this.isActive = true;
+        },
+
+        deactivate: function() {
+            this.isActive = false;
+        },
+
         addLayer: function(layer, imageSrc) {
             if (!(layer instanceof sGis.Layer)) utils.error('sGis.Layer instance is expected but got ' + layer + ' instead');
             if (!layer.tileScheme) utils.error('A layer without tile cscheme cannot be interpreted as base layer');
@@ -34,6 +42,8 @@
             if (this._map.getLayerIndex(layer) !== -1) {
                 this.activeLayer = layer;
             }
+
+            this.isActive = this._isActive;
 
             this.fire('layerAdd', {layer: layer});
         },
@@ -91,7 +101,7 @@
                     self.activeLayer = layer;
                     event.stopPropagation();
                 }
-            }
+            };
 
             return image;
         },
@@ -114,16 +124,6 @@
                 if (this._layerDescriptions[i].layer === layer) return i;
             }
             return -1;
-        },
-
-        _setActiveStatus: function(active) {
-            if (active) {
-                this._map.innerWrapper.appendChild(this._container);
-                this._active = true;
-            } else {
-                this._map.innerWrapper.removeChild(this._container);
-                this._active = false;
-            }
         },
 
         _setActiveLayerImage: function() {
@@ -325,11 +325,64 @@
         },
 
         useToggle: true,
-        containerCss: 'sGis-control-baseLayerSwitch-container',
-        activeCss: 'sGis-control-baseLayerSwitch-active',
-        pickerCss: 'sGis-control-baseLayerSwitch-picker',
-        pickerActiveCss: 'sGis-control-baseLayerSwitch-pickerActive',
-        pickerContainerCss: 'sGis-control-baseLayerSwitch-pickerContainer'
+        isActive: {
+            default: true,
+            set: function(bool) {
+                if (bool) {
+                    if (this._map.innerWrapper) this._map.innerWrapper.appendChild(this._container);
+                    this._isActive = true;
+                    this.fire('activate');
+                } else {
+                    if (this._map.innerWrapper && this._container.parentNode) this._map.innerWrapper.removeChild(this._container);
+                    this._isActive = false;
+                    this.fire('deactivate');
+                }
+            }
+        },
+
+        containerCss: {
+            default: 'sGis-control-baseLayerSwitch-container',
+            set: function(css) {
+                if (this._container) this._container.className = css;
+                this._containerCss = css;
+            }
+        },
+        activeCss: {
+            default: 'sGis-control-baseLayerSwitch-active',
+            set: function(css) {
+                if (this._activeLayerImageContainer) this._activeLayerImageContainer.className = css;
+                this._activeCss = css;
+            }
+        },
+        pickerCss: {
+            default: 'sGis-control-baseLayerSwitch-picker',
+            set: function(css) {
+                if (this._inactiveLayerBox) {
+                    var images = this._inactiveLayerBox.childNodes;
+                    for (var i = 0; i < images.length; i++) {
+                        images.className = css;
+                    }
+                }
+
+                this._pickerCss = css;
+
+                this._updateInactiveLayersDecoration();
+            }
+        },
+        pickerActiveCss: {
+            default: 'sGis-control-baseLayerSwitch-pickerActive',
+            set: function(css) {
+                this._pickerActiveCss = css;
+                this.pickerCss = this._pickerCss;
+            }
+        },
+        pickerContainerCss: {
+            default: 'sGis-control-baseLayerSwitch-pickerContainer',
+            set: function(css) {
+                if (this._inactiveLayerBox) this._inactiveLayerBox.className = css;
+                this._pickerContainerCss = css;
+            }
+        }
     });
 
 
