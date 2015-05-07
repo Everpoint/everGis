@@ -100,6 +100,8 @@
             var box = document.createElement('div');
             box.className = this.pickerContainerCss;
 
+            if (this.useToggle) box.style.maxWidth = '0px';
+
             return box;
         },
 
@@ -148,12 +150,14 @@
 
             var self = this;
             Event.add(container, 'click', function(event) {
-                if (self._inactiveLayerBox.style.maxWidth === '0px') {
-                    self._showInactiveLayerBox();
-                } else {
-                    self._hideInactiveLayerBox();
+                if (self.useToggle) {
+                    if (self._inactiveLayerBox.style.maxWidth === '0px') {
+                        self._showInactiveLayerBox();
+                    } else {
+                        self._hideInactiveLayerBox();
+                    }
+                    event.stopPropagation();
                 }
-                event.stopPropagation();
             });
 
             return container;
@@ -320,6 +324,7 @@
             }
         },
 
+        useToggle: true,
         containerCss: 'sGis-control-baseLayerSwitch-container',
         activeCss: 'sGis-control-baseLayerSwitch-active',
         pickerCss: 'sGis-control-baseLayerSwitch-picker',
