@@ -25,6 +25,8 @@
     };
 
     sGis.SpatialProcessor.prototype = {
+        autoActivateBaseMapSwitcher: true,
+
         _initializeServices: function(list) {
             for (var i = 0, len = list.length; i < len; i++) {
                 if (!this._services[list[i]]) this.addService(list[i]);
@@ -148,7 +150,7 @@
                     this._services[list[i].name].addListener('initialize.spatialProcessor-baseMap', (function (i) {
                         return function() {
                             self._baseMapControl.addLayer(this.layer, list[i].imageUrl);
-                            if (!self._baseMapControl.isActive) self._baseMapControl.activate();
+                            if (self.autoActivateBaseMapSwitcher && !self._baseMapControl.isActive) self._baseMapControl.activate();
                         };
                     })(i));
                 }
@@ -280,6 +282,12 @@
         sfs: {
             get: function() {
                 return this._sfs;
+            }
+        },
+
+        baseMapControl: {
+            get: function() {
+                return this._baseMapControl;
             }
         }
     });

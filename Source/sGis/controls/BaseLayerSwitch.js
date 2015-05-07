@@ -11,6 +11,7 @@
         if (options && options.layerDescriptions) this.layerDescriptions = options.layerDescriptions;
     };
 
+
     sGis.controls.BaseLayerSwitch.prototype = new sGis.Control({
         _xAlign: 'right',
         _yAlign: 'bottom',
@@ -21,8 +22,14 @@
         _inactiveWidth: 56,
         _inactiveHeight: 56,
         _margin: 8,
-        _css: 'sGis-control-baseLayerSwitch',
-        _cssActive: 'sGis-control-baseLayerSwitch-active',
+
+        activate: function() {
+            this.isActive = true;
+        },
+
+        deactivate: function() {
+            this.isActive = false;
+        },
 
         addLayer: function(layer, imageSrc) {
             if (!(layer instanceof sGis.Layer)) utils.error('sGis.Layer instance is expected but got ' + layer + ' instead');
@@ -35,6 +42,10 @@
             if (this._map.getLayerIndex(layer) !== -1) {
                 this.activeLayer = layer;
             }
+
+            this.isActive = this._isActive;
+
+            this.fire('layerAdd', {layer: layer});
         },
 
         removeLayer: function(layer) {
@@ -81,12 +92,8 @@
 
         _getLayerImageObject: function(layer) {
             var image = new Image();
-            image.width = this._inactiveWidth;
-            image.height = this._inactiveHeight;
             image.src = this._layerDescriptions[this.getLayerIndex(layer)].imageSrc;
-            image.style.marginRight = this._margin + 'px';
-            image.className = this._css;
-            image.style.position = 'absolute';
+            image.className = this.pickerCss;
 
             var self = this;
             image.onclick = function(event) {
@@ -94,20 +101,16 @@
                     self.activeLayer = layer;
                     event.stopPropagation();
                 }
-            }
+            };
 
             return image;
         },
 
         _getNewInactiveLayerBox: function() {
             var box = document.createElement('div');
-            box.style.width = '0px';
-            box.style.height = this._height + 10 + 'px';
+            box.className = this.pickerContainerCss;
 
-            box.style[utils.css.transition.func] = 'width 0.5s';
-            box.style.overflow = 'hidden';
-            box.style.position = 'absolute';
-            box.style[this._xAlign] = this.width + 'px';
+            if (this.useToggle) box.style.maxWidth = '0px';
 
             return box;
         },
@@ -121,16 +124,6 @@
                 if (this._layerDescriptions[i].layer === layer) return i;
             }
             return -1;
-        },
-
-        _setActiveStatus: function(active) {
-            if (active) {
-                this._map.innerWrapper.appendChild(this._container);
-                this._active = true;
-            } else {
-                this._map.innerWrapper.removeChild(this._container);
-                this._active = false;
-            }
         },
 
         _setActiveLayerImage: function() {
@@ -153,21 +146,18 @@
 
         _getNewActiveLayerImageContainer: function() {
             var container = document.createElement('div');
-            container.style.position = 'absolute';
-            container.style.width = this._width + 'px';
-            container.style.height = this._height + 'px';
-            container.style.cursor = 'pointer';
-            container.style.border = '1px solid black';
-            container.style.backgroundSize = '100%';
+            container.className = this.activeCss;
 
             var self = this;
             Event.add(container, 'click', function(event) {
-                if (self._inactiveLayerBox.style.width === '0px') {
-                    self._showInactiveLayerBox();
-                } else {
-                    self._hideInactiveLayerBox();
+                if (self.useToggle) {
+                    if (self._inactiveLayerBox.style.maxWidth === '0px') {
+                        self._showInactiveLayerBox();
+                    } else {
+                        self._hideInactiveLayerBox();
+                    }
+                    event.stopPropagation();
                 }
-                event.stopPropagation();
             });
 
             return container;
@@ -175,13 +165,7 @@
 
         _getNewControlContainer: function() {
             var container = document.createElement('div');
-            container.style.position = 'absolute';
-
-            container.style[this._xAlign] = this._xOffset + 'px';
-            container.style[this._yAlign] = this._yOffset + 'px';
-
-            container.style.width = this._width + 'px';
-            container.style.height = this._height + 'px';
+            container.className = this.containerCss;
 
             Event.add(container, 'dblclick', function(event) {
                 event.stopPropagation();
@@ -192,72 +176,30 @@
 
         _showInactiveLayerBox: function() {
             var layerCount = this._layerDescriptions.length;
-            this._inactiveLayerBox.style.width = (this._inactiveWidth + this._margin + 2) * layerCount + 'px';
+            this._inactiveLayerBox.style.maxWidth = '1024px';
         },
 
         _hideInactiveLayerBox: function() {
-            this._inactiveLayerBox.style.width = '0px';
+            this._inactiveLayerBox.style.maxWidth = '0px';
         },
 
         _updateInactiveLayersDecoration: function() {
             var activeLayer = this.activeLayer;
             for (var i = 0, len = this._layerDescriptions.length; i < len; i++) {
                 var image = this._layerDescriptions[i].image;
-                var index = image.className.indexOf(this._cssActive);
+                var index = image.className.indexOf(this.pickerActiveCss);
                 var isActive = this.activeLayer === this._layerDescriptions[i].layer;
 
                 if (index === -1 && isActive) {
-                    image.className += ' ' + this._cssActive;
+                    image.className += ' ' + this.pickerActiveCss;
                 } else if (index !== -1 && !isActive) {
-                    image.className = image.className.substr(0, index - 1) + image.className.substr(index + this._cssActive.length);
+                    image.className = image.className.substr(0, index - 1) + image.className.substr(index + this.pickerActiveCss.length);
                 }
             }
         }
     });
 
     Object.defineProperties(sGis.controls.BaseLayerSwitch.prototype, {
-        layerDescriptions: {
-            get: function() {
-                return this._layerDescriptions;
-            },
-            set: function(descriptions) {
-                if (this._layerDescriptions.length > 0) {
-                    for (var i = 0, len = this._layerDescriptions; i < len; i++) {
-                        this.removeLayer(this._layerDescriptions[i]);
-                    }
-                }
-                for (var i = 0, len = descriptions.length; i < len; i++) {
-                    this.addLayer(descriptions[i].layer, descriptions[i].imageSrc);
-                }
-            }
-        },
-
-        activeLayer: {
-            get: function() {
-                return this._activeLayer;
-            },
-            set: function(layer) {
-                if (layer !== this._activeLayer) {
-                    var indexInList = this.getLayerIndex(layer),
-                        indexOnMap = 0;
-                    if (indexInList === -1) utils.error('The layer is not in the list');
-
-                    if (this._activeLayer) {
-                        indexOnMap = this._map.getLayerIndex(this._activeLayer);
-                        this._map.removeLayer(this._activeLayer);
-                    }
-
-                    this._map.moveLayerToIndex(layer, indexOnMap);
-                    this._activeLayer = layer;
-
-                    this._setActiveLayerImage();
-                    this._updateInactiveLayersDecoration();
-
-                    this.fire('activeLayerChange');
-                }
-            }
-        },
-
         xAlign: {
             get: function() {
                 return this._xAlign;
@@ -318,16 +260,6 @@
             }
         },
 
-        css: {
-            get: function() {
-                return this._css;
-            },
-            set: function(css) {
-                utils.validateString(css);
-                this._css = css;
-            }
-        },
-
         inactiveWidth: {
             get: function() {
                 return this._inactiveWidth;
@@ -349,7 +281,117 @@
         }
     });
 
-    var defaultCss = '.sGis-control-baseLayerSwitch {cursor: pointer; border: 1px solid gray;} .sGis-control-baseLayerSwitch-active {border: 2px solid DarkViolet;}',
+    sGis.utils.proto.setProperties(sGis.controls.BaseLayerSwitch.prototype, {
+        layerDescriptions: {
+            get: function() {
+                return this._layerDescriptions;
+            },
+            set: function(descriptions) {
+                if (this._layerDescriptions.length > 0) {
+                    for (var i = 0, len = this._layerDescriptions; i < len; i++) {
+                        this.removeLayer(this._layerDescriptions[i]);
+                    }
+                }
+                for (var i = 0, len = descriptions.length; i < len; i++) {
+                    this.addLayer(descriptions[i].layer, descriptions[i].imageSrc);
+                }
+            }
+        },
+
+        activeLayer: {
+            get: function() {
+                return this._activeLayer;
+            },
+            set: function(layer) {
+                if (layer !== this._activeLayer) {
+                    var indexInList = this.getLayerIndex(layer),
+                        indexOnMap = 0;
+                    if (indexInList === -1) utils.error('The layer is not in the list');
+
+                    if (this._activeLayer) {
+                        indexOnMap = this._map.getLayerIndex(this._activeLayer);
+                        this._map.removeLayer(this._activeLayer);
+                    }
+
+                    this._map.moveLayerToIndex(layer, indexOnMap);
+                    this._activeLayer = layer;
+
+                    this._setActiveLayerImage();
+                    this._updateInactiveLayersDecoration();
+
+                    this.fire('activeLayerChange');
+                }
+            }
+        },
+
+        useToggle: true,
+        isActive: {
+            default: true,
+            set: function(bool) {
+                if (bool) {
+                    if (this._map.innerWrapper) this._map.innerWrapper.appendChild(this._container);
+                    this._isActive = true;
+                    this.fire('activate');
+                } else {
+                    if (this._map.innerWrapper && this._container.parentNode) this._map.innerWrapper.removeChild(this._container);
+                    this._isActive = false;
+                    this.fire('deactivate');
+                }
+            }
+        },
+
+        containerCss: {
+            default: 'sGis-control-baseLayerSwitch-container',
+            set: function(css) {
+                if (this._container) this._container.className = css;
+                this._containerCss = css;
+            }
+        },
+        activeCss: {
+            default: 'sGis-control-baseLayerSwitch-active',
+            set: function(css) {
+                if (this._activeLayerImageContainer) this._activeLayerImageContainer.className = css;
+                this._activeCss = css;
+            }
+        },
+        pickerCss: {
+            default: 'sGis-control-baseLayerSwitch-picker',
+            set: function(css) {
+                if (this._inactiveLayerBox) {
+                    var images = this._inactiveLayerBox.childNodes;
+                    for (var i = 0; i < images.length; i++) {
+                        images.className = css;
+                    }
+                }
+
+                this._pickerCss = css;
+
+                this._updateInactiveLayersDecoration();
+            }
+        },
+        pickerActiveCss: {
+            default: 'sGis-control-baseLayerSwitch-pickerActive',
+            set: function(css) {
+                this._pickerActiveCss = css;
+                this.pickerCss = this._pickerCss;
+            }
+        },
+        pickerContainerCss: {
+            default: 'sGis-control-baseLayerSwitch-pickerContainer',
+            set: function(css) {
+                if (this._inactiveLayerBox) this._inactiveLayerBox.className = css;
+                this._pickerContainerCss = css;
+            }
+        }
+    });
+
+
+    var defaultCss = '.sGis-control-baseLayerSwitch-container {position: absolute; right: 32px; bottom: 32px; width: 64px; height: 64px;} ' +
+            '.sGis-control-baseLayerSwitch-active {position: absolute; right: 0px; top: 0px; width: 64px; height: 64px; border: 1px solid black; background-size: 100%; cursor: pointer;}' +
+            '.sGis-control-baseLayerSwitch-picker {cursor: pointer; border: 1px solid gray;} ' +
+            '.sGis-control-baseLayerSwitch-pickerActive {border: 2px solid DarkViolet;} ' +
+            '.sGis-control-baseLayerSwitch-pickerContainer {transition: max-width 0.5s, max-height 0.5s; -webkit-transition: max-width 0.5s, max-height 0.5s; overflow: hidden; position: absolute; right: 70px; white-space: nowrap;} ' +
+            '.sGis-control-baseLayerSwitch-pickerContainer img {width: 56px; height: 56px; margin: 5px;}',
         buttonStyle = document.createElement('style');
     buttonStyle.type = 'text/css';
     if (buttonStyle.styleSheet) {

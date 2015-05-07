@@ -35,7 +35,8 @@
             self._handleEvent(sGisEvent);
         });
 
-        this._map.addListener('layerOrderChange layerRemove', function() {
+        this._map.addListener('layerOrderChange layerRemove', function(e) {
+            e.layer.off('.sGis-painter-' + self._id);
             self._updateLayerOrder();
         });
 
