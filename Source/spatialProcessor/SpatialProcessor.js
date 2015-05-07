@@ -281,6 +281,12 @@
             get: function() {
                 return this._sfs;
             }
+        },
+
+        baseMapControl: {
+            get: function() {
+                return this._baseMapControl;
+            }
         }
     });
 
