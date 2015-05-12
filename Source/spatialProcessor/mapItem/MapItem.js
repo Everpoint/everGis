@@ -178,6 +178,17 @@
                 }
             }
             return null;
+        },
+
+        getChildByStorageId: function(id, recurse) {
+            for (var i = 0, len = this._children.length; i < len; i++) {
+                if (this._children[i].storageId === id) return this._children[i];
+                if (recurse) {
+                    var foundChild = this._children[i].getChildByStorageId(id, recurse);
+                    if (foundChild) return foundChild;
+                }
+            }
+            return null;
         }
     };
 
