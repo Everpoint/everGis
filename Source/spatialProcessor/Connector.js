@@ -8,6 +8,7 @@
 
         this._url = url;
         this._notificationListners = {};
+        this._objectSelectorListeners = [];
         this._operationList = {};
         this._rootMapItem = rootMapItem;
         this._failedNotificationRequests = 0;
@@ -26,6 +27,15 @@
 
         removeNotificationListner: function(string) {
             if (this._notificationListners[string]) delete this._notificationListners[string];
+        },
+
+        addObjectSelectorListener: function(f) {
+            this._objectSelectorListeners.push(f);
+        },
+
+        removeObjectSelectorListener: function(f) {
+            var index = this._objectSelectorListeners.indexOf(f);
+            if (index !== -1) this._objectSelectorListeners.splice(index, 1);
         },
 
         initializeSession: function(login, password) {
@@ -260,6 +270,11 @@
                 delete connector._operationList[response.operation.id];
             } else {
                 connector._latestOperationNotification = response;
+            }
+        },
+        'trolling': function(connector, data, type) {
+            for (var i = 0; i < connector._objectSelectorListeners.length; i++) {
+                connector._objectSelectorListeners[i](data);
             }
         }
     };
