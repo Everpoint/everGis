@@ -106,10 +106,11 @@
          * Changes the scale of map by scalingK
          * @param {Number} scalingK - Coefficient of scaling (Ex. 5 -> 5 times zoom in)
          * @param {sGis.Point} basePoint - /optional/ Base point of zooming
+         * @param {Boolean} [doNotAdjust=false] - do not adjust resolution to the round ones
          */
-        changeScale: function(scalingK, basePoint) {
+        changeScale: function(scalingK, basePoint, doNotAdjust) {
             var resolution = this.resolution;
-            this.setResolution(resolution * scalingK, basePoint);
+            this.setResolution(resolution * scalingK, basePoint, doNotAdjust);
         },
 
         /**
@@ -259,9 +260,10 @@
          * Sets new resolution to the map
          * @param {Number} resolution
          * @param {sGis.Point} [basePoint] - Base point of zooming
+         * @param {Boolean} [doNotAdjust=false] - do not adjust resolution to the round ones
          */
-        setResolution: function(resolution, basePoint) {
-            this.setPosition(this._getScaledPosition(this.resolution, basePoint), this.getAdjustedResolution(resolution));
+        setResolution: function(resolution, basePoint, doNotAdjust) {
+            this.setPosition(this._getScaledPosition(this.resolution, basePoint), doNotAdjust ? resolution : this.getAdjustedResolution(resolution));
         },
 
         /**
@@ -759,7 +761,7 @@
                 len1 = Math.sqrt(Math.pow(x11 - x21, 2) + Math.pow(y11 - y21, 2)),
                 len2 = Math.sqrt(Math.pow(x12 - x22, 2) + Math.pow(y12 - y22, 2));
 
-            map.changeScale(len1/len2, map.getPointFromPxPosition(baseX, baseY));
+            map.changeScale(len1/len2, map.getPointFromPxPosition(baseX, baseY), true);
 
             event.currentTarget.dragPrevPosition[touch1.identifier].x = touch1.pageX;
             event.currentTarget.dragPrevPosition[touch1.identifier].y = touch1.pageY;
