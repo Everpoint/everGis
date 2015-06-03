@@ -9,7 +9,7 @@
 
     sGis.utils.proto.setMethods(sGis.spatialProcessor.MapTip.prototype, {
         getUrl: function(storageId, objectId) {
-            return this._url + 'build?storageId=' + storageId + '&id=' + objectId + '&_sb=' + this._connector.sessionId;
+            return this._url + 'build?storageId=' + storageId + '&id=' + objectId + '&_sb=' + encodeURIComponent(this._connector.sessionId);
         }
     });
 
