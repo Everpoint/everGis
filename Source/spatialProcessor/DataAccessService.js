@@ -50,6 +50,28 @@ sGis.spatialProcessor.DataAccessService.prototype = {
                 }
             }
         });
+    },
+
+    getTemplates: function(properties) {
+        this.__operation(function() {
+            return {
+                operation: 'getTemplates',
+                dataParameters: 'StorageId=' + properties.storageId,
+                cache: false,
+                requested: properties.requested,
+                error: properties.error,
+                success: function(response) {
+                    if (properties.success) {
+                        var templates = [];
+                        for (var i = 0; i < response.content.length; i++) {
+                            templates.push(new sGis.spatialProcessor.Template(response.content[i].Content, response.content[i].FileName));
+                        }
+
+                        properties.success(templates);
+                    }
+                }
+            }
+        });
     }
 };
 

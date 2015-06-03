@@ -6,17 +6,22 @@
         this.geometryType = asset.GeometryType;
         this.symbol = this._getSymbol(asset.JsonVisualDefinition);
         this.layerReference = asset.Meta;
+        this.name = asset.Name;
+
+        this._asset = asset;
     };
 
     sGis.spatialProcessor.Template.prototype = {
-        getImage: function() {
+        getImage: function(w, h) {
+            w = w || 30;
+            h = h || 30;
             if (this.symbol) {
                 var tempFeature;
                 if (this.symbol.type === 'point') {
                     tempFeature = new sGis.feature.Point([0, 0], {crs: sGis.CRS.plain});
                 } else {
                     var type = this.symbol.type === 'polyline' ? sGis.feature.Polyline : sGis.feature.Polygon;
-                    tempFeature = new type([[-15, -15], [0, 15], [15, 0]], {crs: sGis.CRS.plain});
+                    tempFeature = new type([[-w/2, -h/2], [0, h/2], [w/2, 0]], {crs: sGis.CRS.plain});
                 }
 
                 tempFeature.symbol = this.symbol;

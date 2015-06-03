@@ -176,6 +176,65 @@
                 self._rootMapItem.moveChildToIndex(activeMapItem, index);
                 self._activeBaseMapItem = activeMapItem;
             });
+        },
+
+        getPath: function(options) {
+            utils.ajax({
+                url: this._connector.url + 'api/efs/objects?path=' + encodeURIComponent(options.path) + '&_sb=' + this._connector.sessionId + '&ts=' + Date.now(),
+                success: function(response) {
+                    try {
+                        var data = utils.parseJSON(response);
+                    } catch (e) {
+                        if (options.error) options.error('Server responded with: ' + response);
+                    }
+
+                    if (data.Success === true && options.success) {
+                        options.success(data.Items);
+                    }
+                },
+                error: options.error
+            })
+        },
+
+        loadTemplateLibrary: function(options) {
+            var self = this;
+            this.getPath({
+                path: options.path,
+                success: function(list) {
+                    var paths = [];
+                    for (var i = 0; i < list.length; i++) {
+                        if (list[i].Type === 'File') paths.push({Path: list[i].Path, Type: 1});
+                    }
+
+                    var pathList = {Items: paths};
+                    var string = JSON.stringify(pathList);
+
+                    utils.ajax({
+                        url: self._connector.url + 'api/efs/files?_sb=' + self._connector.sessionId + '&ts=' + Date.now(),
+                        type: 'POST',
+                        data: string,
+                        success: function(response) {
+                            if (options.success) {
+                                try {
+                                    var data = utils.parseJSON(response);
+                                } catch (e) {
+                                    if (options.error) options.error('Server responded with: ' + response);
+                                }
+
+                                var templates = [];
+                                for (var i = 0; i < data.length; i++) {
+                                    if (data[i].Success === true) templates.push(new sGis.spatialProcessor.Template(data[i].Content, paths[i].Path));
+                                }
+
+                                options.success(templates);
+                            }
+                        },
+                        error: options.error
+                    });
+
+                },
+                error: options.error
+            });
         }
     };
 
