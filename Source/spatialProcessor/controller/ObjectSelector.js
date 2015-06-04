@@ -60,6 +60,25 @@
             });
         },
 
+        pick: function(properties) {
+            this.__operation(function() {
+                var param = 'geom=' + encodeURIComponent(JSON.stringify({rings: properties.geometry.coordinates, spatialReference: this._map.crs.getWkidString()})) + //TODO: spatial reference should be fixed
+                        '&res=' + encodeURIComponent(this._map.resolution) +
+                        '&sr=' + encodeURIComponent(JSON.stringify(this._map.crs.getWkidString())),
+                    self = this;
+
+                return {
+                    operation: 'pick',
+                    dataParameters: param,
+                    success: !properties.success ? undefined : function(response) {
+                        properties.success(self._createFeatures(response, properties.crs || properties.geometry && properties.geometry.crs || self._map && self._map.crs));
+                    },
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
+        },
+
         activate: function() {
             if (this._layer && !this._layer.map) this._layer.map = this._map;
         },
