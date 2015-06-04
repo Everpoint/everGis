@@ -360,7 +360,8 @@
         'clientLayer': sGis.spatialProcessor.controller.ClientLayer,
         'definitionQuery': sGis.spatialProcessor.controller.DefinitionQuery,
         'tableView': sGis.spatialProcessor.controller.TableView,
-        'objectSelector': sGis.spatialProcessor.controller.ObjectSelector
+        'objectSelector': sGis.spatialProcessor.controller.ObjectSelector,
+        'stats': sGis.spatialProcessor.controller.Stats
     };
 
 })();
