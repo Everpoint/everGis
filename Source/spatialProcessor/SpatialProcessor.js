@@ -180,7 +180,7 @@
 
         getPath: function(options) {
             utils.ajax({
-                url: this._connector.url + 'api/efs/objects?path=' + encodeURIComponent(options.path) + '&_sb=' + this._connector.sessionId + '&ts=' + Date.now(),
+                url: this._connector.url + 'api/efs/objects?path=' + encodeURIComponent(options.path) + '&_sb=' + encodeURIComponent(this._connector.sessionId) + '&ts=' + Date.now(),
                 success: function(response) {
                     try {
                         var data = utils.parseJSON(response);
@@ -210,7 +210,7 @@
                     var string = JSON.stringify(pathList);
 
                     utils.ajax({
-                        url: self._connector.url + 'api/efs/files?_sb=' + self._connector.sessionId + '&ts=' + Date.now(),
+                        url: self._connector.url + 'api/efs/files?_sb=' + encodeURIComponent(self._connector.sessionId) + '&ts=' + Date.now(),
                         type: 'POST',
                         data: string,
                         success: function(response) {
@@ -360,7 +360,8 @@
         'clientLayer': sGis.spatialProcessor.controller.ClientLayer,
         'definitionQuery': sGis.spatialProcessor.controller.DefinitionQuery,
         'tableView': sGis.spatialProcessor.controller.TableView,
-        'objectSelector': sGis.spatialProcessor.controller.ObjectSelector
+        'objectSelector': sGis.spatialProcessor.controller.ObjectSelector,
+        'stats': sGis.spatialProcessor.controller.Stats
     };
 
 })();

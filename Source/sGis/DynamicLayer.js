@@ -17,6 +17,9 @@
 
         getFeatures: function(bbox, resolution) {
             if (!this._display) return [];
+
+            if (this._features && this._features[0].crs !== bbox.crs) this._features = null;
+
             if (!this._features) this._createFeature(bbox);
             var width  = bbox.width / resolution;
             var height = bbox.height / resolution;

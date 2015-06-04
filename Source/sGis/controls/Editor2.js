@@ -399,8 +399,9 @@
         deleteSelected: function() {
             if (this.deselectionAllowed && this.allowDeletion && this.selectedFeature) {
                 var feature = this._selectedFeature;
+                this.prohibitEvent('featureDeselect');
                 this.activeLayer.remove(this.selectedFeature);
-                this.deselect();
+                this.allowEvent('featureDeselect');
 
                 this._saveDeletion(feature);
 

@@ -288,6 +288,10 @@ sGis.spatialProcessor.Controller.prototype = {
                 }
             };
         });
+    },
+
+    _createFeatures: function(response, crs) {
+        return createFeatures(response, crs);
     }
 };
 
