@@ -78,6 +78,10 @@
                     Size: 'size'
                 };
 
+            var parameters = getNodeAttributes(node);
+            attributesDefinition._identity = parameters.Identity;
+            attributesDefinition._display = parameters.Display;
+
             for (var i in node.childNodes) {
                 var attributeInfo = node.childNodes[i];
                 if (!attributeInfo.attributes) continue;
