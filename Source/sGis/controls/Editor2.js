@@ -71,6 +71,13 @@
         _keydownHandler: function(sGisEvent) {
             if (this.ignoreEvents) return;
             var event = sGisEvent.browserEvent;
+
+            // Ignore key events if there is active form element on the page
+            var activeElement = document.activeElement;
+            if (activeElement && activeElement !== document.body) {
+                return;
+            }
+
             if (event.which === 27) {
                 if (!this._deselectProhibited) this.deselect();
                 sGisEvent.stopPropagation();
