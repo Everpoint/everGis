@@ -355,7 +355,7 @@ function createFeatures(response, crs) {
                 }
             }
 
-            if (feature) {
+            if (feature && response.attributesDefinitions && object.attributesDefinition) {
                 feature.displayField = response.attributesDefinitions[object.attributesDefinition]._display;
                 feature.visualDefinitionId = object.visualDefinitionId;
                 feature.generatorId = object.generatorId;
