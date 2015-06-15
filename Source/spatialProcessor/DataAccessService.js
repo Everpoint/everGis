@@ -72,6 +72,18 @@ sGis.spatialProcessor.DataAccessService.prototype = {
                 }
             }
         });
+    },
+
+    clientMapInfo: function(properties) {
+        this.__operation(function() {
+            return {
+                operation: 'clientMapInfo',
+                dataParameters: 'info=' + encodeURIComponent(JSON.stringify({sr: properties.map.crs.getWkidString()})),
+                requested: properties.requested,
+                error: properties.error,
+                success: properties.success
+            };
+        });
     }
 };
 
