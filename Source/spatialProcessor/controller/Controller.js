@@ -374,13 +374,13 @@ function parseOperationResponse(data) {
     } else {
         return parseOperationSuccess(data);
     }
-};
+}
 
 function parseOperationError(data) {
     try {
         var response = JSON.parse(data);
     } catch (e) {
-        var response = data;
+        response = data;
     } finally {
         response.status = 'error';
         return response;
