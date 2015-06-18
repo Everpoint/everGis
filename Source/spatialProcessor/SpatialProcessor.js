@@ -129,6 +129,8 @@
                 this._map.position = sGis.Map.prototype._position;
                 this._map.resolution = sGis.Map.prototype._resolution;
             }
+
+            this.dataAccessService.clientMapInfo({map: this._map});
         },
 
         _initializeDataAccessService: function() {

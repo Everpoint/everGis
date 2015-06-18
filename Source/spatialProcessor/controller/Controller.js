@@ -355,7 +355,7 @@ function createFeatures(response, crs) {
                 }
             }
 
-            if (feature) {
+            if (feature && response.attributesDefinitions && object.attributesDefinition) {
                 feature.displayField = response.attributesDefinitions[object.attributesDefinition]._display;
                 feature.visualDefinitionId = object.visualDefinitionId;
                 feature.generatorId = object.generatorId;
@@ -374,13 +374,13 @@ function parseOperationResponse(data) {
     } else {
         return parseOperationSuccess(data);
     }
-};
+}
 
 function parseOperationError(data) {
     try {
         var response = JSON.parse(data);
     } catch (e) {
-        var response = data;
+        response = data;
     } finally {
         response.status = 'error';
         return response;
