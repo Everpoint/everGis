@@ -154,7 +154,7 @@
 
     var geometryTypes = {
         esriGeometryPoint: 'point',
-        esriGeometryLine: 'line',
+        esriGeometryLine: 'polyline',
         esriGeometryPolyline: 'polyline',
         esriGeometryPolygon: 'polygon'
     };

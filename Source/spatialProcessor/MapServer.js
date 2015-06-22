@@ -229,6 +229,12 @@
             }
         },
 
+        serviceName: {
+            get: function() {
+                return this._name;
+            }
+        },
+
         name: {
             get: function() {
                 return this._serviceInfo && this._serviceInfo.meta && this._serviceInfo.meta.Alias || this._name;
