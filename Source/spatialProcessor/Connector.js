@@ -231,6 +231,10 @@
                     callback(data);
                 }
             });
+        },
+
+        getEfsFileUrl: function(path) {
+            return this.url + 'api/efs/file?path=' + path + (this._sessionId ? '&_sb=' + this._sessionId : '');
         }
     };
 
