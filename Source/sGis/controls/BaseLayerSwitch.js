@@ -324,7 +324,20 @@
             }
         },
 
-        useToggle: true,
+        useToggle: {
+            default: true,
+            set: function(bool) {
+                if (this._inactiveLayerBox) {
+                    if (bool) {
+                        this._inactiveLayerBox.style.maxWidth = '0px';
+                    } else {
+                        this._inactiveLayerBox.style.maxWidth = '';
+                    }
+                }
+                this._useToggle = bool;
+            }
+        },
+
         isActive: {
             default: true,
             set: function(bool) {
