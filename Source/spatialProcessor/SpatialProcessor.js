@@ -272,6 +272,7 @@
                 if (description.Opactiy) service.opacity = description.Opactiy;
                 if (description.Children) service.activeLayers = getActiveLayers(description.Children);
                 if (description.IsVisible === false) service.mapItem.deactivate();
+                if (description.Title) service.mapItem.name = description.Title;
             }
         }
     };
