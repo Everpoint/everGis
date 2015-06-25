@@ -297,7 +297,7 @@ sGis.spatialProcessor.Controller.prototype = {
 
 sGis.utils.proto.setMethods(sGis.spatialProcessor.Controller.prototype, sGis.IEventHandler);
 
-function createFeatures(response, crs) {
+function createFeatures(response, mapCrs) {
     var features = [];
     if (response.objects) {
         for (var i in response.objects) {
@@ -309,6 +309,17 @@ function createFeatures(response, crs) {
                     attributes = object.attributes,
                     color = object.visualDefinition.stroke ? parseColor(object.visualDefinition.stroke) : undefined,
                     fillColor = object.visualDefinition.fill ? object.visualDefinition.fill : undefined;
+
+                var serverCrs = object.geometry.data.crs;
+                var crs;
+
+                if (serverCrs.wkid === 102100 || serverCrs.wkid === 102113) {
+                    crs = sGis.CRS.webMercator;
+                } else if (mapCrs.description === serverCrs) {
+                    crs = mapCrs;
+                } else {
+                    crs = new sGis.Crs({description: serverCrs});
+                }
 
                 if (geometry.type === 'polygon') {
                     var feature = new sGis.feature.Polygon(points, {id: i, attributes: attributes, crs: crs, color: color, width: object.visualDefinition.strokeThickness});

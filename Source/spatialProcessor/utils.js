@@ -2,7 +2,7 @@
 (function() {
     sGis.utils.Color = function(string) {
         this._original = string;
-        this._color = string.trim();
+        this._color = string && string.trim() || 'transparent';
         this._setChannels();
     };
 

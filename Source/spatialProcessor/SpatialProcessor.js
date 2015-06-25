@@ -7,25 +7,34 @@
         this._connector = new sGis.spatialProcessor.Connector(options.url, this._rootMapItem, options.password && options.login ? options.login : options.sessionId, options.password);
         this._map = new sGis.Map();
 
-        this._services = {};
-        if (options.baseMaps && options.baseMaps.length > 0) this._initializeBaseMaps(options.baseMaps);
-        if (options.services) this._initializeServices(options.services);
-
-        this._controllers = {};
-        if (options.controllers) {
-            for (var i = 0, len = options.controllers.length; i < len; i++) {
-                this.addController(options.controllers[i]);
-            }
+        if (this._connector.sessionId) {
+            this._initialize(options);
+        } else {
+            this._connector.once('sessionInitialized', this._initialize.bind(this, options));
         }
-
-        if (options.mapWrapper) this.mapWrapper = options.mapWrapper;
-
-        this._initializeDataAccessService();
-        if (options.fsServiceName) this._sfs = new sGis.spatialProcessor.Sfs(this._connector, options.fsServiceName);
     };
 
     sGis.SpatialProcessor.prototype = {
         autoActivateBaseMapSwitcher: true,
+
+        _initialize: function(options) {
+            this._services = {};
+            if (options.baseMaps && options.baseMaps.length > 0) this._initializeBaseMaps(options.baseMaps);
+            if (options.services) this._initializeServices(options.services);
+            if (options.project) this.loadProject(options.project);
+
+            this._controllers = {};
+            if (options.controllers) {
+                for (var i = 0, len = options.controllers.length; i < len; i++) {
+                    this.addController(options.controllers[i]);
+                }
+            }
+
+            if (options.mapWrapper) this.mapWrapper = options.mapWrapper;
+
+            this._initializeDataAccessService();
+            if (options.fsServiceName) this._sfs = new sGis.spatialProcessor.Sfs(this._connector, options.fsServiceName);
+        },
 
         _initializeServices: function(list) {
             for (var i = 0, len = list.length; i < len; i++) {
@@ -237,8 +246,49 @@
                 },
                 error: options.error
             });
+        },
+
+        loadProject: function(path) {
+            var self = this;
+            this._connector.getJSONFile({
+                path: path,
+                success: function(project) {
+                    for (var i = 0; i < project.length; i++) {
+                        self._initializeServiceFromProject(project[i]);
+                    }
+                },
+                error: function() {
+                    utils.message('Could not load project: ' + path);
+                }
+            });
+        },
+
+        _initializeServiceFromProject: function(description) {
+            if (!description.Url) return;
+
+            var name = getServiceName(description.Url);
+            if (name && !this._services[name]) {
+                var service = this.addService(name);
+                if (description.Opactiy) service.opacity = description.Opactiy;
+                if (description.Children) service.activeLayers = getActiveLayers(description.Children);
+                if (description.IsVisible === false) service.mapItem.deactivate();
+                if (description.Title) service.mapItem.name = description.Title;
+            }
         }
     };
+
+    function getActiveLayers(children) {
+        var activeLayers = [];
+        for (var i = 0; i < children.length; i++) {
+            if (children[i].IsVisible) activeLayers.push(children[i].LayerId);
+            if (children[i].Children) activeLayers = activeLayers.concat(getActiveLayers(children[i].Children));
+        }
+        return activeLayers;
+    }
+
+    function getServiceName(url) {
+        return url.match(/.*\/(\w+)\/MapServer/)[1];
+    }
 
     function initializeService(sp, mapItem) {
         var mapItems = sp._rootMapItem.getChildren(true);
