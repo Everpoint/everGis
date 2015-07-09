@@ -67,12 +67,12 @@ sGis.spatialProcessor.Printer.prototype = {
         var description = {
             ServiceStateDefinition: [],
             MapCenter: {
-                X: this._sp.map.position.x,
-                Y: this._sp.map.position.y
+                X: properties.position ? properties.position.x : this._sp.map.position.x,
+                Y: properties.position ? properties.position.y :this._sp.map.position.y
             },
             SpatialReference: this._sp.map.crs.getWkidString(),
             Dpi: properties.dpi || defaults.dpi,
-            Resolution: this._sp.map.resolution,
+            Resolution: properties.resolution || this._sp.map.resolution,
             PaperSize: {
                 Width: properties.paperSize && properties.paperSize.width || defaults.paperSize.width,
                 Height: properties.paperSize && properties.paperSize.height || defaults.paperSize.height
@@ -84,7 +84,7 @@ sGis.spatialProcessor.Printer.prototype = {
                 Bottom: properties.margin && properties.margin.bottom || defaults.margin.bottom
             },
             PrintingTemplateName: properties.template.Name,
-            Parameters: [],
+            Parameters: []
         };
 
         for (var i = 0, len = properties.template.BindingGroups.length; i < len; i++) {
