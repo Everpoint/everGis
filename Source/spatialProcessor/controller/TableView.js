@@ -176,7 +176,7 @@
         removeQuery: function(properties) {
             this.__operation(function() {
                 return {
-                    operation: 'tableView.removeAll',
+                    operation: 'removeQuery',
                     dataParameters: 'queryId=' + properties.queryId,
                     success: properties.success,
                     error: properties.error,
