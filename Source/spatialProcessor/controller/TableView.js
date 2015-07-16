@@ -167,6 +167,22 @@
                     requested: properties.requested
                 };
             });
+        },
+
+        /**
+         * Removes the query from the server memory
+         * @param properties
+         */
+        removeQuery: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'removeQuery',
+                    dataParameters: 'queryId=' + properties.queryId,
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
         }
     });
 
