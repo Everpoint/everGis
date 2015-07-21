@@ -26,10 +26,12 @@
 
                 tempFeature.symbol = this.symbol;
                 var render = tempFeature.render(1, sGis.CRS.plain);
-                if (render instanceof sGis.geom.Point || render instanceof sGis.geom.Polyline) {
-                    return render[0].svg;
-                } else {
-                    return render[0].node;
+                if (render && render[0]) {
+                    if (render instanceof sGis.geom.Point || render instanceof sGis.geom.Polyline) {
+                        return render[0].svg;
+                    } else {
+                        return render[0].node;
+                    }
                 }
             }
         },
