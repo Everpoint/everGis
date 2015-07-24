@@ -29,11 +29,11 @@
                         sGisEvent.preventDefault();
                     });
 
-                    this.on('dragEnd.sGis-RectangleControl', function() {
+                    this.on('dragEnd.sGis-RectangleControl', function(sGisEvent) {
                         var feature = self._activeFeature;
                         this.removeListener('drag dragEnd.sGis-RectangleControl');
                         this._activeFeature = null;
-                        self.fire('drawingFinish', { geom: feature });
+                        self.fire('drawingFinish', { geom: feature, browserEvent: sGisEvent.browserEvent });
                     });
 
                     self.fire('drawingStart', { geom: self._activeFeature });
