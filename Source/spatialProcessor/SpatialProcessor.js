@@ -204,7 +204,7 @@
             for (var i = 0; i < this._baseMapConfig.length; i++) {
                 var mapServer = this._baseMapConfig[i].mapItem.mapServer;
                 if (mapServer.initialized) {
-                    if (this._baseMapControl.getLayerIndex(mapServer.layer) === -1) {
+                    if (mapServer.serviceInfo.tileInfo && this._baseMapControl.getLayerIndex(mapServer.layer) === -1) {
                         this._baseMapControl.addLayer(mapServer.layer, this._baseMapConfig[i].imageUrl);
                         if (!this._baseMapControl.activeLayer) {
                             this._baseMapControl.activeLayer = mapServer.layer;
