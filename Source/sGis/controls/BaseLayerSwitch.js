@@ -33,7 +33,7 @@
 
         addLayer: function(layer, imageSrc) {
             if (!(layer instanceof sGis.Layer)) utils.error('sGis.Layer instance is expected but got ' + layer + ' instead');
-            if (!layer.tileScheme) utils.error('A layer without tile cscheme cannot be interpreted as base layer');
+            if (!layer.tileScheme) utils.error('A layer without tile scheme cannot be interpreted as base layer');
             if (this.getLayerIndex(layer) !== -1) utils.error('The layer is already in the list');
 
             this._layerDescriptions.push({ layer: layer, imageSrc: imageSrc });

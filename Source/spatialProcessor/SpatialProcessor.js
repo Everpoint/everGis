@@ -15,11 +15,9 @@
     };
 
     sGis.SpatialProcessor.prototype = {
-        autoActivateBaseMapSwitcher: true,
-
         _initialize: function(options) {
             this._services = {};
-            if (options.baseMaps && options.baseMaps.length > 0) this._initializeBaseMaps(options.baseMaps);
+            this._initializeBaseMaps(options.baseMaps || []);
             if (options.services) this._initializeServices(options.services);
             if (options.project) this.loadProject(options.project);
             this.api = new sGis.spatialProcessor.Api(this._connector);
@@ -149,46 +147,75 @@
 
         _initializeBaseMaps: function(list) {
             this._baseMapControl = new sGis.controls.BaseLayerSwitch(this._map);
-            this._baseMapItems = {};
+            this._baseMapConfig = [];
 
-            var self = this;
-            for (var i = 0, len = list.length; i < len; i++) {
-                this._createService(list[i].name);
-                this._baseMapItems[list[i].name] = new sGis.mapItem.MapServer(this._services[list[i].name], { name: 'Базовая карта' });
+            this._baseMapControl.on('activeLayerChange', this._onActiveBaseMapChange.bind(this));
 
-                if (this._services[list[i].name].initialized) {
-                    this._baseMapControl.addLayer(this._services[list[i].name].layer, list[i].imageUrl);
-                } else {
-                    this._services[list[i].name].addListener('initialize.spatialProcessor-baseMap', (function (i) {
-                        return function() {
-                            self._baseMapControl.addLayer(this.layer, list[i].imageUrl);
-                            if (self.autoActivateBaseMapSwitcher && !self._baseMapControl.isActive) self._baseMapControl.activate();
-                        };
-                    })(i));
+            this.addBaseServices(list);
+        },
+
+        _onActiveBaseMapChange: function() {
+            if (this._activeBaseMapItem) {
+                var index = this._rootMapItem.getChildIndex(this._activeBaseMapItem);
+                this._rootMapItem.removeChild(this._activeBaseMapItem);
+            } else {
+                index = 0;
+            }
+
+            for (var i = 0; i < this._baseMapConfig.length; i++) {
+                if (this._baseMapConfig[i].mapItem.mapServer.layer === this._baseMapControl.activeLayer) {
+                    var activeMapItem = this._baseMapConfig[i].mapItem;
+                    break;
                 }
             }
 
-            this._activeBaseMapItem = this._baseMapItems[list[0].name];
-            this._rootMapItem.addChild(this._activeBaseMapItem);
-
-            this._baseMapControl.addListener('activeLayerChange', function() {
-                var index = self._rootMapItem.getChildIndex(self._activeBaseMapItem);
-                self._rootMapItem.removeChild(self._activeBaseMapItem);
-
-                var activeMapItem = self._baseMapItems[list[0].name];
-                for (var i in self._baseMapItems) {
-                    if (self._baseMapItems[i].layer.layer === this.activeLayer) {
-                        activeMapItem = self._baseMapItems[i];
-                        break;
-                    }
-                }
-
-                activeMapItem.isActive = self._activeBaseMapItem.isActive;
-                activeMapItem.layer._map = self._map; // TODO: durty hack must fix
-                self._rootMapItem.moveChildToIndex(activeMapItem, index);
-                self._activeBaseMapItem = activeMapItem;
-            });
+            activeMapItem.isActive = this._activeBaseMapItem ? this._activeBaseMapItem.isActive : true;
+            activeMapItem.layer._map = this._map; // TODO: durty hack must fix
+            this._rootMapItem.moveChildToIndex(activeMapItem, index);
+            this._activeBaseMapItem = activeMapItem;
         },
+
+        addBaseServices: function(list) {
+            var self = this;
+            for (var i = 0, len = list.length; i < len; i++) {
+                var item = list[i];
+                this._createService(item.name);
+                var mapItem = new sGis.mapItem.MapServer(this._services[item.name], { name: 'Базовая карта' });
+                this._baseMapConfig.push({
+                    name: item.name,
+                    imageUrl: item.imageUrl,
+                    mapItem: mapItem
+                });
+
+                if (this._services[item.name].initialized) {
+                    this._onBaseMapInitialize(mapItem);
+                } else {
+                    this._services[item.name].on('initialize error.spatialProcessor-baseMap', this._onBaseMapInitialize.bind(this, mapItem));
+                }
+            }
+        },
+
+        _onBaseMapInitialize: function(mapItem) {
+            mapItem.mapServer.off('.spatialProcessor-baseMap');
+
+            // This cycle ensures that base maps are set at same order as in config
+            for (var i = 0; i < this._baseMapConfig.length; i++) {
+                var mapServer = this._baseMapConfig[i].mapItem.mapServer;
+                if (mapServer.initialized) {
+                    if (this._baseMapControl.getLayerIndex(mapServer.layer) === -1) {
+                        this._baseMapControl.addLayer(mapServer.layer, this._baseMapConfig[i].imageUrl);
+                        if (!this._baseMapControl.activeLayer) {
+                            this._baseMapControl.activeLayer = mapServer.layer;
+                            this._baseMapControl.activate();
+                        }
+                    }
+                } else if (!mapServer.error) {
+                    return;
+                }
+            }
+        },
+
+
 
         getPath: function(options) {
             utils.ajax({
@@ -324,7 +351,7 @@
     }
 
     function addServiceToMap(sp, mapItem) {
-        if (mapItem.parent) {
+        if (mapItem.parent && !mapItem.mapServer.map) {
             mapItem.mapServer.map = sp.map;
             if (mapItem.controller) mapItem.controller.map = sp.map;
             var index = mapItem.parent.getChildIndex(mapItem);
