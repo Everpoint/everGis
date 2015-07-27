@@ -17,6 +17,37 @@
 
         _downloadFile: function(url) {
             this._frame.src = url;
+        },
+
+        getServiceCatalog: function(properties) {
+            if (properties && properties.filter) {
+                if (utils.isString(properties.filter)) {
+                    var filter = 'filter=' + properties.filter;
+                } else {
+                    filter = 'jsfilter=' + encodeURIComponent(JSON.stringify(properties.filter));
+                }
+            } else {
+                filter = '';
+            }
+            this._requestOperation('serviceCatalog/list', {
+                filter: filter,
+                success: function(response) {
+                    try {
+                        var list = JSON.parse(response);
+                    } catch (e) {
+                        if (properties.error) properties.error(e);
+                    }
+                    if (properties.success) properties.success(list);
+                },
+                error: properties.error});
+        },
+
+        _requestOperation: function(name, parameters) {
+            utils.ajax({
+                url: this._url + name + '?' + parameters.filter + '&_sb=' + this._connector.sessionId,
+                error: parameters.error,
+                success: parameters.success
+            });
         }
     });
 
