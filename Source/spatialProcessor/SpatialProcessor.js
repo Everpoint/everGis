@@ -179,6 +179,8 @@
             var self = this;
             for (var i = 0, len = list.length; i < len; i++) {
                 var item = list[i];
+                if (this._services[item.name]) continue;
+
                 this._createService(item.name);
                 var mapItem = new sGis.mapItem.MapServer(this._services[item.name], { name: 'Базовая карта' });
                 this._baseMapConfig.push({
