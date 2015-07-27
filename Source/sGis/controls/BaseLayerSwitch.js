@@ -395,6 +395,13 @@
                 if (this._inactiveLayerBox) this._inactiveLayerBox.className = css;
                 this._pickerContainerCss = css;
             }
+        },
+        container: {
+            default: null,
+            get: function() {
+                return this._container;
+            },
+            set: null
         }
     });
 
