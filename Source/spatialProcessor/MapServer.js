@@ -16,8 +16,7 @@
             var self = this;
 
             if (!serverConnector.sessionId) {
-                serverConnector.addListener('sessionInitialized.mapServer-' + name, function() {
-                    serverConnector.removeListener('sessionInitialized.mapServer-' + name);
+                serverConnector.once('sessionInitialized', function() {
                     self.__initialize(name, serverConnector, options);
                 });
                 return;
