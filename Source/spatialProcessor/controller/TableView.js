@@ -183,6 +183,23 @@
                     requested: properties.requested
                 };
             });
+        },
+
+        /**
+         * Returns the id of a temporary file, that contains exported xlsx table
+         * @param {Object} properties
+         * @param {String} properties.queryId - table query id
+         */
+        export: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.export',
+                    dataParameters: 'queryId=' + properties.queryId + '&resultAsUrl=true',
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
         }
     });
 

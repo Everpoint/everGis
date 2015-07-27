@@ -22,6 +22,7 @@
             if (options.baseMaps && options.baseMaps.length > 0) this._initializeBaseMaps(options.baseMaps);
             if (options.services) this._initializeServices(options.services);
             if (options.project) this.loadProject(options.project);
+            this.api = new sGis.spatialProcessor.Api(this._connector);
 
             this._controllers = {};
             if (options.controllers) {
