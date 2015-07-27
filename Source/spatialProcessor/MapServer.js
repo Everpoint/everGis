@@ -42,7 +42,9 @@
                     var parsedResponse = utils.parseJSON(data);
 
                     if (!parsedResponse.ServiceInfo) {
-                        utils.message('Could not initialize service: server responded with error "' + (parsedResponse.error && parsedResponse.error.message || 'Unknown error') + '"');
+                        self.error = parsedResponse.error && parsedResponse.error.message || 'Unknown error';
+                        utils.message('Could not initialize service: server responded with error "' + self.error + '"');
+                        self.fire('error');
                     } else {
                         self._serviceInfo = parsedResponse.ServiceInfo;
                         self._layerInfo = parsedResponse.LayersInfo;
@@ -67,6 +69,10 @@
                             self.fire('initialize');
                         }
                     }
+                },
+                error: function(response) {
+                    self.error = response || 'Unknown error';
+                    self.fire('error');
                 }
             });
         },
