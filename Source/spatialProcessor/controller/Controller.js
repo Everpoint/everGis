@@ -290,6 +290,26 @@ sGis.spatialProcessor.Controller.prototype = {
         });
     },
 
+    projectGeometry: function(properties) {
+        var features = properties.features;
+        var geometry = [];
+        for (var i = 0; i < features.length; i++) {
+            geometry.push({rings: features[i].coordinates});
+        }
+        var geometryString = JSON.stringify(geometry);
+        this.__operation(function() {
+            return {
+                operation: 'gcProject',
+                dataParameters: 'sourceGeom=' + geometryString + '&sourceSr=' + properties.sourceSr + '&destSr=' + properties.destinationSr,
+                requested: properties.requested,
+                error: properties.error,
+                success: function(response) {
+                    if (properties.success) properties.success(response.content);
+                }
+            };
+        });
+    },
+
     _createFeatures: function(response, crs) {
         return createFeatures(response, crs);
     }

@@ -84,7 +84,9 @@ sGis.spatialProcessor.DataAccessService.prototype = {
                 success: properties.success
             };
         });
-    }
+    },
+
+    projectGeometry: sGis.spatialProcessor.Controller.prototype.projectGeometry
 };
 
 Object.defineProperties(sGis.spatialProcessor.DataAccessService.prototype, {
