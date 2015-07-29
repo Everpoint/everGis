@@ -11,8 +11,9 @@
     };
 
     sGis.utils.proto.setMethods(Api.prototype, {
-        downloadBinary: function(id) {
-            this._downloadFile(this._url + 'page/getBinary?id=' + encodeURIComponent(id) + '&_sb=' + this._connector.sessionId);
+        downloadBinary: function(id, name) {
+            name = name || 'sp_binary_file';
+            this._downloadFile(this._url + 'page/getBinary/' + name + '?id=' + encodeURIComponent(id) + '&_sb=' + this._connector.sessionId);
         },
 
         _downloadFile: function(url) {
