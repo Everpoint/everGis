@@ -49,7 +49,7 @@
             } else if (attributes.ContentType === 'JSON') {
                 parsed.content = utils.parseXmlJsonNode(node);
             } else if (attributes.ContentType === 'Text') {
-                parsed.content = node.innerHTML;
+                parsed.content = node.innerHTML || node.textContent;
             }
         },
 
