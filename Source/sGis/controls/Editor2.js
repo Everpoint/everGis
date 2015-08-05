@@ -644,6 +644,10 @@
             this._featureStates = {};
         },
 
+        /**
+         * Sets the mode of editing.
+         * @param {String|String[]} mode - the mode or list of modes. Possible values are: 'rotate', 'scale', 'drag', 'vertex', 'all'.
+         */
         setMode: function(mode) {
             var state = mode === 'all';
             this.allowRotation = this.allowScaling = this.allowDragging = this.allowVertexEditing = state;
