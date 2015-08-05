@@ -187,10 +187,15 @@
         },
 
         _createTransformControls: function() {
+            this._transformControls = [];
+            if (this.allowScaling) this._createScalingControls();
+            if (this.allowRotation) this._createRotationControl();
+        },
+
+        _createScalingControls: function() {
             var OFFSET = 10;
             var self = this;
 
-            this._transformControls = [];
             for (var x = 0; x < 3; x++) {
                 this._transformControls.push([]);
                 for (var y = 0; y < 3; y++) {
@@ -208,7 +213,10 @@
                     }
                 }
             }
+        },
 
+        _createRotationControl: function() {
+            var self = this;
             var rotationControl = new sGis.feature.Point([0,0], {crs: this._map.crs, symbol: this._rotationControlSymbol});
             rotationControl.addListener('dragStart', function(sGisEvent) {
                 self._rotationBase = self._selectedFeature.centroid;
@@ -229,14 +237,17 @@
 
         _hideTransformControls: function() {
             if (this._transformControls) {
-                for (var i = 0; i < 3; i++) {
-                    for (var j = 0; j < 3; j++) {
-                        if (this._transformControls[i][j]) {
-                            this._transformControls[i][j].hide();
+                if (this._transformControls.length > 0) {
+                    for (var i = 0; i < 3; i++) {
+                        for (var j = 0; j < 3; j++) {
+                            if (this._transformControls[i][j]) {
+                                this._transformControls[i][j].hide();
+                            }
                         }
                     }
                 }
-                this._transformControls.rotationControl.hide();
+
+                if (this._transformControls.rotationControl) this._transformControls.rotationControl.hide();
             }
         },
 
@@ -284,23 +295,36 @@
         },
 
         _updateTransformControls: function() {
-            if (this._selectedFeature && this._selectedFeature instanceof sGis.feature.Polyline) {
+            if (this._transformControls && this._selectedFeature && this._selectedFeature instanceof sGis.feature.Polyline) {
                 var bbox = this._selectedFeature.bbox.projectTo(this._map.crs);
                 var coordinates = [[bbox.xMin, bbox.yMin], [bbox.xMax, bbox.yMax]];
                 var controls = this._transformControls;
-                for (var i = 0; i < 3; i++) {
-                    for (var j = 0; j < 3; j++) {
-                        if (i !== 1 || j !== 1) {
-                            var x = coordinates[0][0] + (coordinates[1][0] - coordinates[0][0]) * i / 2;
-                            var y = coordinates[0][1] + (coordinates[1][1] - coordinates[0][1]) * j / 2;
-                            controls[i][j].coordinates = [x, y];
-                            controls[i][j].show();
 
-                            if (i === 1 && j === 2) controls.rotationControl.coordinates = [x, y];
+                if (controls.length > 0) {
+                    for (var i = 0; i < 3; i++) {
+                        for (var j = 0; j < 3; j++) {
+                            if (i !== 1 || j !== 1) {
+                                var x = coordinates[0][0] + (coordinates[1][0] - coordinates[0][0]) * i / 2;
+                                var y = coordinates[0][1] + (coordinates[1][1] - coordinates[0][1]) * j / 2;
+                                controls[i][j].coordinates = [x, y];
+                                if (this.allowScaling) {
+                                    controls[i][j].show();
+                                } else {
+                                    controls[i][j].hide();
+                                }
+                            }
                         }
                     }
                 }
-                controls.rotationControl.show();
+
+                if (controls.rotationControl) {
+                    controls.rotationControl.coordinates = [(coordinates[0][0] + coordinates[1][0]) / 2, coordinates[1][1]];
+                    if (this.allowRotation) {
+                        controls.rotationControl.show();
+                    } else {
+                        controls.rotationControl.hide();
+                    }
+                }
                 this._map.redrawLayer(this._snappingLayer);
             } else {
                 this._hideTransformControls();
@@ -344,7 +368,8 @@
         },
 
         _dragStartHandler: function(sGisEvent, feature) {
-            if (this.ignoreEvents) return;
+            if (this.ignoreEvents || !(this.allowVertexEditing || this.allowDragging)) return;
+
             if (feature instanceof sGis.feature.Polyline) {
                 this._currentDragInfo = this._getAdjustedEventData(sGisEvent, feature);
             }
@@ -362,7 +387,8 @@
         },
 
         _polylineMousemoveHandler: function(sGisEvent, feature) {
-            if (this.ignoreEvents) return;
+            if (this.ignoreEvents || !this.allowVertexEditing) return;
+
             var adjustedEvent = this._getAdjustedEventData(sGisEvent, feature);
             var symbol = adjustedEvent.type === 'line' ? this._snappingPointSymbol : adjustedEvent.type === 'vertex' ? this._snappingVertexSymbol : null;
 
@@ -378,7 +404,8 @@
         },
 
         _polylineDblclickHandler: function(sGisEvent, feature) {
-            if (this.ignoreEvents) return;
+            if (this.ignoreEvents || !this.allowVertexEditing) return;
+
             var adjustedEvent = this._getAdjustedEventData(sGisEvent, feature);
             if (adjustedEvent.type === 'vertex') {
                 var coordinates = feature.coordinates;
@@ -462,6 +489,8 @@
 
         _polylineDragHandler: function(sGisEvent, feature) {
             var dragInfo = this._currentDragInfo;
+            if ((dragInfo.type === 'vertex' || dragInfo.type === 'line') && !this.allowVertexEditing || dragInfo.type === 'bulk' && !this.allowDragging) return;
+
             if (dragInfo.type === 'vertex') {
                 if (!sGisEvent.browserEvent.altKey) {
                     var snappingPoint = this._getSnappingPoint(sGisEvent.point, this._polylineSnappingFunctions, [feature], {
@@ -489,6 +518,8 @@
         },
 
         _pointDragHandler: function(sGisEvent, feature) {
+            if (!this.allowDragging) return;
+
             var projected = feature.projectTo(this._map.crs);
             if (!sGisEvent.browserEvent.altKey) {
                 var snappingPoint = this._getSnappingPoint(sGisEvent.point, this._pointSnappingFunctions, [feature]);
@@ -611,6 +642,27 @@
             this._states = [];
             this._currentState = -1;
             this._featureStates = {};
+        },
+
+        setMode: function(mode) {
+            var state = mode === 'all';
+            this.allowRotation = this.allowScaling = this.allowDragging = this.allowVertexEditing = state;
+
+            if (!state) {
+                var props = {
+                    'rotate': 'allowRotation',
+                    'scale': 'allowScaling',
+                    'drag': 'allowDragging',
+                    'vertex': 'allowVertexEditing'
+                };
+
+                if (utils.isString(mode)) mode = [mode];
+                for (var i = 0; i < mode.length; i++) {
+                    if (props[mode[i]]) this[props[mode[i]]] = true;
+                }
+            }
+
+            this._updateTransformControls();
         }
     });
 
@@ -624,6 +676,10 @@
         polylineSnappingFunctions: { default: ['vertex', 'midpoint', 'line', 'axis', 'orthogonal'], get: function() { return this._polylineSnappingFunctions.concat(); }},
         rotationControlSymbol: { default: new sGis.symbol.point.Point({offset: {x: 0, y: -30}}) },
         deselectionAllowed: true,
+        allowRotation: true,
+        allowScaling: true,
+        allowDragging: true,
+        allowVertexEditing: true,
 
         selectedFeature: {
             default: null,
