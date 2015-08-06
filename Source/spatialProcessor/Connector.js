@@ -231,42 +231,6 @@
                     callback(data);
                 }
             });
-        },
-
-        getEfsFileUrl: function(path) {
-            return this.url + 'api/efs/file?path=' + encodeURIComponent(path) + (this._sessionId ? '&_sb=' + this._sessionId : '');
-        },
-
-        getEfsFile: function(options) {
-            var url = this.getEfsFileUrl(options.path) + (options.type ? '&media_type=' + options.type : '');
-            utils.ajax({
-                url: url,
-                success: options.success,
-                error: options.error
-            });
-        },
-
-        getJSONFile: function(options) {
-            return this.getEfsFile({
-                path: options.path,
-                type: 'Json',
-                success: function(response) {
-                    try {
-                        var data = JSON.parse(response);
-                        if (options.success) options.success(data);
-                    } catch (e) {
-                        if (options.error) options.error(e);
-                    }
-                },
-                error: options.error
-            });
-        },
-
-        getTextFile: function(options) {
-            return this.getEfsFile({
-                path: options,
-                type: 'Text'
-            });
         }
     };
 

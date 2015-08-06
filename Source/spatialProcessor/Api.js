@@ -13,25 +13,13 @@
     sGis.utils.proto.setMethods(Api.prototype, {
         downloadBinary: function(id, name) {
             name = name || 'sp_binary_file';
-            this._downloadFile(this._url + 'page/getBinary/' + name + '?id=' + encodeURIComponent(id) + '&_sb=' + this._connector.sessionId);
-        },
-
-        _downloadFile: function(url) {
-            this._frame.src = url;
+            this._downloadFile(this._getOperationUrl('page/getBinary/' + name, {id: id}));
         },
 
         getServiceCatalog: function(properties) {
-            if (properties && properties.filter) {
-                if (utils.isString(properties.filter)) {
-                    var filter = 'filter=' + properties.filter;
-                } else {
-                    filter = 'jsfilter=' + encodeURIComponent(JSON.stringify(properties.filter));
-                }
-            } else {
-                filter = '';
-            }
-            this._requestOperation('serviceCatalog/list', {
-                filter: filter,
+            this._operation('serviceCatalog/list', {
+                filter: utils.isString(properties.filter) ? properties.filter : undefined,
+                jsfilter: properties.filter instanceof Object ? properties.filter : undefined,
                 success: function(response) {
                     try {
                         var list = JSON.parse(response);
@@ -40,15 +28,113 @@
                     }
                     if (properties.success) properties.success(list);
                 },
-                error: properties.error});
+                error: properties.error
+            });
         },
 
-        _requestOperation: function(name, parameters) {
+        getEfsFileUrl: function(path) {
+            return this._getOperationUrl('efs/file', {path: path});
+        },
+
+        /**
+         *
+         * @param {Object} options
+         * @param {String} options.path
+         * @param {String} options.type - possible values: Json, Text
+         * @param {Function} [options.success]
+         * @param {Function} [options.error]
+         */
+        getEfsFile: function(options) {
+            this._operation('efs/file', {path: options.path, media_type: options.type, success: options.success, error: options.error});
+        },
+
+        getJsonFile: function(options) {
+            this.getEfsFile({path: options.path, type: 'Json', success: successHandler, error: options.error});
+
+            function successHandler(response) {
+                try {
+                    var data = JSON.parse(response);
+                    if (options.success) options.success(data);
+                } catch (e) {
+                    if (options.error) options.error(e);
+                }
+            }
+        },
+
+        getTextFile: function(options) {
+            this.getEfsFile({path: options.path, type: 'Text', success: options.success, error: options.error});
+        },
+
+        getEfsObjects: function(options) {
+            this._operation('efs/objects', {path: options.path, success: successHandler, error: options.error});
+
+            function successHandler(response) {
+                try {
+                    var data = utils.parseJSON(response);
+                } catch (e) {
+                    if (options.error) options.error('Server responded with: ' + response);
+                }
+
+                if (data.Success === true) {
+                    if (options.success) options.success(data.Items);
+                } else if (data.Error) {
+                    if (options.error) options.error(data);
+                }
+            }
+        },
+
+        getEfsFiles: function(options) {
+            var pathList = {Items: options.paths};
+            var string = JSON.stringify(pathList);
+
+            this._operation('efs/files', {success: successHandler, error: options.error}, string);
+
+            function successHandler(response) {
+                try {
+                    var data = utils.parseJSON(response);
+                } catch (e) {
+                    if (options.error) options.error('Server responded with: ' + response);
+                }
+
+                if (data.Error) {
+                    if (options.error) options.error(data);
+                } else {
+                    if (options.success) options.success(data);
+                }
+            }
+        },
+
+        _downloadFile: function(url) {
+            this._frame.src = url;
+        },
+
+        _operation: function(name, parameters, data) {
             utils.ajax({
-                url: this._url + name + '?' + parameters.filter + '&_sb=' + this._connector.sessionId,
-                error: parameters.error,
-                success: parameters.success
+                url: this._getOperationUrl(name, parameters),
+                type: data ? 'POST' : 'GET',
+                data: data,
+                success: parameters.success,
+                error: parameters.error
             });
+        },
+
+        _getOperationUrl: function(name, parameters) {
+            var textParam = '';
+            var keys = Object.keys(parameters);
+            for (var i = 0; i < keys.length; i++) {
+                if (keys[i] === 'success' || keys[i] === 'error' || parameters[keys[i]] === undefined) continue;
+                textParam += '&' + keys[i] + '=';
+
+                if (parameters[keys[i]] instanceof Object) {
+                    textParam += encodeURIComponent(JSON.stringify(parameters[keys[i]]));
+                } else {
+                    textParam += encodeURIComponent(parameters[keys[i]]);
+                }
+            }
+
+            textParam = textParam.substr(1);
+
+            return this._url + name + '?' + textParam + '&_sb' + (this._connector.sessionId ? '&_sb=' + this._connector.sessionId : '');
         }
     });
 
