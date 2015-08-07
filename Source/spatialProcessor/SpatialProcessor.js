@@ -303,6 +303,43 @@
                     }
                 }
             });
+        },
+
+        saveUserSettings: function(options) {
+            var settings = this._serializeUserSettings();
+            this.api.saveUserSettings(settings, options);
+        },
+
+        _serializeUserSettings: function() {
+            var settings = {};
+            this._serializeLayerSettings(settings);
+            this._serializePositionSettings(settings);
+            return settings;
+        },
+
+        _serializeLayerSettings: function(settings) {
+            settings.layers = [];
+            var mapItems = this._rootMapItem.children;
+            for (var i = 0; i < mapItems.length; i++) {
+                var mapItem = mapItems[i];
+                if (mapItem instanceof sGis.mapItem.MapServer && mapItem !== this._activeBaseMapItem) {
+                    settings.layers.push({
+                        type: 'mapServer',
+                        name: mapItem.mapServer.serviceName,
+                        alias: mapItem.name,
+                        opacity: mapItem.mapServer.opacity,
+                        activeLayers: mapItem.mapServer.activeLayers,
+                        active: mapItem.isActive
+                    });
+                }
+            }
+        },
+
+        _serializePositionSettings: function(settings) {
+            var position = this._map.position;
+            settings.position = [position.x, position.y];
+            settings.crs = this._map.crs.getWkidString();
+            settings.resolution = this._map.resolution;
         }
     };
 

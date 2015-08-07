@@ -106,16 +106,17 @@
 
         getUserSettings: function(options) {
             // STUB
-            var point = new sGis.Point(55.755831, 37.617673).projectTo(sGis.CRS.webMercator);
+            var settings = localStorage.userSettings;
+            if (settings) {
+                options.success(JSON.parse(settings));
+            } else {
+                options.success({});
+            }
+        },
 
-             if (options.success) options.success({
-                layers: [
-                    { type: 'mapServer', name: 'evergisjs_mrc_test', alias: 'Тестовый слойчик', opacity: 0.5, activeLayers: [0,1], active: false}
-                ],
-                position: [point.x, point.y],
-                crs: point.crs.getWkidString(),
-                resolution: 1000
-            });
+        saveUserSettings: function(settings, options) {
+            localStorage.userSettings = JSON.stringify(settings);
+            if (options && options.success) options.success();
         },
 
         _downloadFile: function(url) {
