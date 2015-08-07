@@ -315,8 +315,10 @@
 
         _removeFromLoadingList: function(feature, layer) {
             var layerData = this._layerData[layer.id];
-            var loadingIndex = layerData.loadingFeatureIds.indexOf(feature.id);
-            if (loadingIndex !== -1) layerData.loadingFeatureIds.splice(loadingIndex, 1);
+            if (layerData) {
+                var loadingIndex = layerData.loadingFeatureIds.indexOf(feature.id);
+                if (loadingIndex !== -1) layerData.loadingFeatureIds.splice(loadingIndex, 1);
+            }
         },
 
         _fullyDrawn: function(layer) {

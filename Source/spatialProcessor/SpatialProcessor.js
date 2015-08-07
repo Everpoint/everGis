@@ -209,7 +209,7 @@
                 if (mapServer.initialized) {
                     if (mapServer.serviceInfo.tileInfo && this._baseMapControl.getLayerIndex(mapServer.layer) === -1) {
                         this._baseMapControl.addLayer(mapServer.layer, this._baseMapConfig[i].imageUrl);
-                        if (!this._baseMapControl.activeLayer) {
+                        if (!this._baseMapControl.activeLayer || mapServer.serviceName === this._preferredBaseMap) {
                             this._baseMapControl.activeLayer = mapServer.layer;
                             this._baseMapControl.activate();
                         }
@@ -301,8 +301,22 @@
                             }
                         }
                     }
+
+                    if (settings.preferredBaseMap) self._setPreferredBaseMap(settings.preferredBaseMap);
                 }
             });
+        },
+
+        _setPreferredBaseMap: function(name) {
+            for (var i = 0; i < this._baseMapConfig.length; i++) {
+                var config = this._baseMapConfig[i];
+                if (config.name === name && config.mapItem.mapServer.initialized) {
+                    this._baseMapControl.activeLayer = config.mapItem.mapServer.layer;
+                    return;
+                }
+            }
+
+            this._preferredBaseMap = name;
         },
 
         saveUserSettings: function(options) {
@@ -314,6 +328,7 @@
             var settings = {};
             this._serializeLayerSettings(settings);
             this._serializePositionSettings(settings);
+            this._serializeBaseMapSettings(settings);
             return settings;
         },
 
@@ -340,6 +355,12 @@
             settings.position = [position.x, position.y];
             settings.crs = this._map.crs.getWkidString();
             settings.resolution = this._map.resolution;
+        },
+
+        _serializeBaseMapSettings: function(settings) {
+            if (this._activeBaseMapItem) {
+                settings.preferredBaseMap = this._activeBaseMapItem.mapServer.serviceName;
+            }
         }
     };
 
