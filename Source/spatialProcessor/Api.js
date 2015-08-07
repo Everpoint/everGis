@@ -104,6 +104,20 @@
             }
         },
 
+        getUserSettings: function(options) {
+            // STUB
+            var point = new sGis.Point(55.755831, 37.617673).projectTo(sGis.CRS.webMercator);
+
+             if (options.success) options.success({
+                layers: [
+                    { type: 'mapServer', name: 'evergisjs_mrc_test', alias: 'Тестовый слойчик', opacity: 0.5, activeLayers: [0,1], active: false}
+                ],
+                position: [point.x, point.y],
+                crs: point.crs.getWkidString(),
+                resolution: 1000
+            });
+        },
+
         _downloadFile: function(url) {
             this._frame.src = url;
         },

@@ -22,6 +22,7 @@
             this._initializeBaseMaps(options.baseMaps || []);
             if (options.services) this._initializeServices(options.services);
             if (options.project) this.loadProject(options.project);
+            if (options.loadUserSettings) this.loadUserSettings();
 
             this._controllers = {};
             if (options.controllers) {
@@ -140,6 +141,7 @@
             }
 
             this.dataAccessService.clientMapInfo({map: this._map});
+            this._mapPositionIsSet = true;
         },
 
         _initializeDataAccessService: function() {
@@ -273,6 +275,34 @@
                 if (description.IsVisible === false) service.mapItem.deactivate();
                 if (description.Title) service.mapItem.name = description.Title;
             }
+        },
+
+        loadUserSettings: function() {
+            var self = this;
+            this.api.getUserSettings({
+                success: function(settings) {
+                    if (settings.position) {
+                        var crs = settings.crs && (settings.crs.wkid === 102113 || settings.crs.wkid === 102100) ? sGis.CRS.webMercator : self._map.crs;
+                        var point = new sGis.Point(settings.position[0], settings.position[1], crs);
+                        self._map.setPosition(point, settings.resolution);
+                        self._mapPositionIsSet = true;
+                    }
+
+                    if (settings.layers) {
+                        for (var i = 0; i < settings.layers.length; i++) {
+                            var description = settings.layers[i];
+                            var name = description.name;
+                            if (name && !self._services[name]) {
+                                var service = self.addService(name);
+                                if (description.opacity) service.opacity = description.opacity;
+                                if (description.activeLayers) service.activeLayers = description.activeLayers;
+                                if (description.active === false) service.mapItem.deactivate();
+                                if (description.alias) service.mapItem.name = description.alias;
+                            }
+                        }
+                    }
+                }
+            });
         }
     };
 
@@ -303,7 +333,7 @@
         }
 
         if (baseService) {
-            if (mapItem.layer === baseService) sp.setMapPositionByService(baseService);
+            if (mapItem.layer === baseService && !sp._mapPositionIsSet) sp.setMapPositionByService(baseService);
 
             if (baseService.initialized) {
                 addServiceToMap(sp, mapItem);
