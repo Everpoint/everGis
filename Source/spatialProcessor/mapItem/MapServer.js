@@ -14,9 +14,6 @@
         if (mapServer.legend) this.__onLegendUpdate();
         mapServer.addListener('initialize', function() { self.__onServiceInfoUpdate(); });
         mapServer.addListener('legendUpdate', function() { self.__onLegendUpdate(); });
-        mapServer.addListener('layerVisibilityChange', function() {
-            self.__onLayerVisibilityChange();
-        });
     };
 
     sGis.mapItem.MapServer.prototype = new sGis.MapItem({
