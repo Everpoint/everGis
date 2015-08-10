@@ -19,6 +19,7 @@
             this._services = {};
             this.api = new sGis.spatialProcessor.Api(this._connector);
 
+            this._initializeDataAccessService();
             this._initializeBaseMaps(options.baseMaps || []);
             if (options.services) this._initializeServices(options.services);
             if (options.project) this.loadProject(options.project);
@@ -33,7 +34,6 @@
 
             if (options.mapWrapper) this.mapWrapper = options.mapWrapper;
 
-            this._initializeDataAccessService();
             if (options.fsServiceName) this._sfs = new sGis.spatialProcessor.Sfs(this._connector, options.fsServiceName);
         },
 
@@ -286,6 +286,7 @@
                         var point = new sGis.Point(settings.position[0], settings.position[1], crs);
                         self._map.setPosition(point, settings.resolution);
                         self._mapPositionIsSet = true;
+                        self.dataAccessService.clientMapInfo({map: self._map});
                     }
 
                     if (settings.layers) {
