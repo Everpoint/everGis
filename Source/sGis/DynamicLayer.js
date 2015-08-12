@@ -10,7 +10,7 @@
     };
 
     sGis.DynamicLayer.prototype = new sGis.Layer({
-        _layers: [],
+        _layers: null,
         _delayedUpdate: true,
         _crs: null,
         _transitionTime: sGis.browser.indexOf('Chrome') === 0 ? 0 : 200,
@@ -67,7 +67,7 @@
     Object.defineProperties(sGis.DynamicLayer.prototype, {
         layers: {
             get: function() {
-                return this._layers.concat();
+                return this._layers && this._layers.concat();
             },
             set: function(layers) {
                 if (!utils.isArray(layers)) utils.error('Array is expected but got ' + layers + ' instead');

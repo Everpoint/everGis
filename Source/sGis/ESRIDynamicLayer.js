@@ -76,7 +76,7 @@
     });
 
     function getLayersString(layers) {
-        if (layers.length === 0) return '';
+        if (!layers || layers.length === 0) return '';
         return 'layers=show:' + layers.join('%2C') + '&';
     }
 
