@@ -304,14 +304,14 @@
         return getXML(formatedData);
     };
 
-    sGis.spatialProcessor.serializeGeometryEdit = function(editDescription, attributesOnly, ignoreVisualDefinition) {
+    sGis.spatialProcessor.serializeGeometryEdit = function(editDescription, attributesOnly) {
         var featureList = [];
         for (var i in editDescription) {
             if (utils.isArray(editDescription[i]) && i !== 'deleted') featureList = featureList.concat(editDescription[i]);
         }
 
         var formatedData = getFormatedData(featureList, attributesOnly);
-        return getXML(formatedData, editDescription, attributesOnly, true); //todo: should make serializer ignore visual definition only for update objects
+        return getXML(formatedData, editDescription, attributesOnly);
     };
 
     sGis.spatialProcessor.serializeSymbols = function(symbols) {
@@ -357,14 +357,14 @@
         polygon: sGis.feature.Polygon
     };
 
-    function getXML(data, editDescription, attributesOnly, ignoreVisualDefinition) {
+    function getXML(data, editDescription, attributesOnly) {
         var xml = getNewXMLDocument(),
             dataNode = xml.getElementsByTagName('Data')[0];
 
         dataNode.appendChild(getSerializerGeometricSettingsNode(xml));
         dataNode.appendChild(getSerializerCalloutSettingsNode(xml));
         dataNode.appendChild(getResourcesNode(data, xml, attributesOnly));
-        dataNode.appendChild(getVisualObjectsNode(data, xml, attributesOnly, ignoreVisualDefinition));
+        dataNode.appendChild(getVisualObjectsNode(data, xml, attributesOnly));
         if (editDescription) dataNode.appendChild(getEditCommandsNode(editDescription, xml, attributesOnly));
 
         var text = new XMLSerializer().serializeToString(xml);
@@ -612,18 +612,18 @@
         return node;
     }
 
-    function getVisualObjectsNode(data, xml, attributesOnly, ignoreVisualDefinition) {
+    function getVisualObjectsNode(data, xml, attributesOnly) {
         var node = xml.createElement('VisualObjects');
         for (var i in data.visualObjects) {
             if (data.visualObjects.hasOwnProperty(i)) {
-                node.appendChild(getGeometricNode(data.visualObjects[i], xml, attributesOnly, ignoreVisualDefinition));
+                node.appendChild(getGeometricNode(data.visualObjects[i], xml, attributesOnly));
             }
         }
 
         return node;
     }
 
-    function getGeometricNode(visualObject, xml, attributesOnly, ignoreVisualDefinition) {
+    function getGeometricNode(visualObject, xml, attributesOnly) {
         var node = xml.createElement('Geometric');
 
         var nodeAttributes = {
@@ -632,10 +632,8 @@
         };
 
         if (!attributesOnly) {
-            if (!ignoreVisualDefinition) {
-                nodeAttributes.VisualDefinition = visualObject.symbolIndex;
-                nodeAttributes.VisualDefinitionId = visualObject.feature.visualDefinitionId ? visualObject.feature.visualDefinitionId : visualObject.feature.visualDefinitionId === undefined ? undefined : '00000000-0000-0000-0000-000000000000';
-            }
+            nodeAttributes.VisualDefinition = visualObject.symbolIndex;
+            nodeAttributes.VisualDefinitionId = visualObject.feature.visualDefinitionId ? visualObject.feature.visualDefinitionId : visualObject.feature.visualDefinitionId === undefined ? undefined : '00000000-0000-0000-0000-000000000000';
             nodeAttributes.GeneratorId = visualObject.feature.generatorId ? visualObject.feature.generatorId : visualObject.feature.generatorId === undefined ? undefined : '00000000-0000-0000-0000-000000000000';
         }
 
