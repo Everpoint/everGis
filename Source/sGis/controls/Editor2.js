@@ -188,8 +188,9 @@
 
         _createTransformControls: function() {
             this._transformControls = [];
-            if (this.allowScaling) this._createScalingControls();
-            if (this.allowRotation) this._createRotationControl();
+            this._createScalingControls();
+            this._createRotationControl();
+            this._updateTransformControls();
         },
 
         _createScalingControls: function() {
@@ -372,6 +373,9 @@
 
             if (feature instanceof sGis.feature.Polyline) {
                 this._currentDragInfo = this._getAdjustedEventData(sGisEvent, feature);
+                if (!this.allowVertexEditing && (this._currentDragInfo.type === 'line' || this._currentDragInfo.type === 'vertex')) {
+                    this._currentDragInfo.type = 'bulk';
+                }
             }
 
             sGisEvent.draggingObject = feature;

@@ -330,7 +330,7 @@ function createFeatures(response, mapCrs) {
                     color = object.visualDefinition.stroke ? parseColor(object.visualDefinition.stroke) : undefined,
                     fillColor = object.visualDefinition.fill ? object.visualDefinition.fill : undefined;
 
-                var serverCrs = object.geometry.data.crs;
+                var serverCrs = object.geometry.data.crs || mapCrs.getWkidString();
                 var crs;
 
                 if (serverCrs.wkid === 102100 || serverCrs.wkid === 102113) {
