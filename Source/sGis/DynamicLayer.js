@@ -16,7 +16,7 @@
         _transitionTime: sGis.browser.indexOf('Chrome') === 0 ? 0 : 200,
 
         getFeatures: function(bbox, resolution) {
-            if (!this._display) return [];
+            if (!this._display || this._layers && this._layers.length === 0) return [];
 
             if (this._features && this._features[0].crs !== bbox.crs) this._features = null;
 
@@ -56,7 +56,7 @@
         },
 
         showLayers: function(layerArray) {
-            if (layerArray) this._layers = layerArray;
+            this.layers = layerArray;
         },
 
         getDisplayedLayers: function() {

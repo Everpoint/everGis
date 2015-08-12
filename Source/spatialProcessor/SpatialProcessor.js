@@ -296,7 +296,10 @@
                             if (name && !self._services[name]) {
                                 var service = self.addService(name);
                                 if (description.opacity) service.opacity = description.opacity;
-                                if (description.activeLayers) service.activeLayers = description.activeLayers;
+                                if (description.activeLayers) {
+                                    service.activeLayers = description.activeLayers;
+                                    service.mapItem.updateChildrenStatus();
+                                }
                                 if (description.active === false) service.mapItem.deactivate();
                                 if (description.alias) service.mapItem.name = description.alias;
                             }

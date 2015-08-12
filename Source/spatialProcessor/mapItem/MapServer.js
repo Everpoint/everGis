@@ -81,12 +81,7 @@
                     activeLayerList.push(activeChildren[i].layerId);
                 }
 
-                if (activeLayerList.length > 0) {
-                    if (this.isDisplayed) this._layer.display = true;
-                    this._layer.activeLayers = activeLayerList;
-                } else {
-                    this._layer.display = false;
-                }
+                this._layer.activeLayers = activeLayerList;
             }
         },
 
@@ -104,6 +99,10 @@
             }
 
             this.fire('legendUpdate');
+        },
+
+        updateChildrenStatus: function() {
+            this.__onLayerVisibilityChange();
         },
 
         __onLayerVisibilityChange: function() {
