@@ -37,7 +37,7 @@
                     color: this._color,
                     width: this._width,
                     fillColor: this.fillColor,
-                    symbol: this.symbol
+                    symbol: this.originalSymbol
                 });
             }
         },

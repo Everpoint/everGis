@@ -37,7 +37,7 @@
         },
 
         clone: function() {
-            return new sGis.feature.Polyline(this._coordinates, {crs: this._crs, color: this._color, width: this._width, symbol: this.symbol});
+            return new sGis.feature.Polyline(this._coordinates, {crs: this._crs, color: this._color, width: this._width, symbol: this.originalSymbol});
         },
 
         projectTo: function(crs) {
@@ -151,11 +151,13 @@
             set: function(coordinates) {
                 if (!utils.isArray(coordinates)) utils.error('Array is expected but got ' + coordinates + ' instead');
 
+                this._coordinates = [[]];
                 if (!utils.isArray(coordinates[0]) || utils.isNumber(coordinates[0][0])) {
                     // One ring is specified
                     this.setRing(0, coordinates);
                 } else {
                     // Array of rings is specified
+
                     for (var ring = 0, l = coordinates.length; ring < l; ring++) {
                         this.setRing(ring, coordinates[ring]);
                     }
