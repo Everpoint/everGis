@@ -23,10 +23,7 @@
 
         _defaultHandlers: {
             activate: function() {
-                var activeChildren = this.getActiveChildren();
-                if (this.children.length === 0 || activeChildren && activeChildren.length > 0) {
-                    if (this.mapServer) this.mapServer.display = true;
-                }
+                this.mapServer.display = true;
             },
 
             deactivate: function() {

@@ -67,7 +67,7 @@
     Object.defineProperties(sGis.DynamicLayer.prototype, {
         layers: {
             get: function() {
-                return this._layers;
+                return this._layers.concat();
             },
             set: function(layers) {
                 if (!utils.isArray(layers)) utils.error('Array is expected but got ' + layers + ' instead');
