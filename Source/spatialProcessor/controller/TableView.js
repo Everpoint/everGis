@@ -200,6 +200,24 @@
                     requested: properties.requested
                 };
             });
+        },
+
+        getOperatorInfo: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'tableView.getOperatorInfo',
+                    dataParameters: 'queryId=' + properties.queryId,
+                    success: function(response) {
+                        if (response.operation && response.operation.status === 'Success') {
+                            if (properties.success) properties.success(response.content);
+                        } else {
+                            if (properties.error) properties.error(response);
+                        }
+                    },
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
         }
     });
 
