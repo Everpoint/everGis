@@ -105,18 +105,18 @@
         },
 
         getUserSettings: function(options) {
-            // STUB
-            var settings = localStorage.userSettings;
-            if (settings) {
-                options.success(JSON.parse(settings));
-            } else {
-                options.success({});
-            }
+            this._operation('workspace/settings/load', {
+                success:function(data) {
+                    if (options.success) {
+                        options.success(JSON.parse(data));
+                    }
+                }
+            });
         },
 
         saveUserSettings: function(settings, options) {
-            localStorage.userSettings = JSON.stringify(settings);
-            if (options && options.success) options.success();
+            var data = JSON.stringify(settings);
+            this._operation('workspace/settings/save', options, data);
         },
 
         _downloadFile: function(url) {
