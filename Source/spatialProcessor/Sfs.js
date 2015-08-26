@@ -51,7 +51,7 @@
                         successHandler(template);
                     }
                 } catch(e) {
-                    if (properties.error) properties.error('Could not read the template');
+                    if (properties.error) properties.error('Could not read the templates');
                 }
             };
 

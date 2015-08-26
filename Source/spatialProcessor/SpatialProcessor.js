@@ -302,11 +302,22 @@
                                 }
                                 if (description.active === false) service.mapItem.deactivate();
                                 if (description.alias) service.mapItem.name = description.alias;
+
+                                if (description.childrenSettings) service.once('initialize', self._loadChildrenSettings.bind(this, service.mapItem, description));
                             }
                         }
                     }
 
                     if (settings.preferredBaseMap) self._setPreferredBaseMap(settings.preferredBaseMap);
+                }
+            });
+        },
+
+        _loadChildrenSettings: function(mapItem, settings) {
+            var children = mapItem.getChildren();
+            children.forEach(function(child) {
+                if (settings.childrenSettings[child.layerId]) {
+                    child.attributeSettings = settings.childrenSettings[child.layerId].attributeSettings;
                 }
             });
         },
@@ -342,14 +353,22 @@
             for (var i = 0; i < mapItems.length; i++) {
                 var mapItem = mapItems[i];
                 if (mapItem instanceof sGis.mapItem.MapServer && mapItem !== this._activeBaseMapItem) {
-                    settings.layers.push({
+                    var setting = {
                         type: 'mapServer',
                         name: mapItem.mapServer.serviceName,
                         alias: mapItem.name,
                         opacity: mapItem.mapServer.opacity,
                         activeLayers: mapItem.mapServer.activeLayers,
-                        active: mapItem.isActive
+                        active: mapItem.isActive,
+                        childrenSettings: {}
+                    };
+
+                    var children = mapItem.getChildren(true);
+                    children.forEach(function(child) {
+                        if (child.attributeSettings) setting.childrenSettings[child.layerId] = { attributeSettings: child.attributeSettings };
                     });
+
+                    settings.layers.push(setting);
                 }
             }
         },
