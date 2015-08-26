@@ -108,7 +108,12 @@
             this._operation('workspace/settings/load', {
                 success:function(data) {
                     if (options.success) {
-                        options.success(JSON.parse(data));
+                        try {
+                            var settings = JSON.parse(data);
+                            options.success(settings);
+                        } catch (e) {
+                            if (options.error) options.error('Failed to load user settings, unexpected response from server: ' + data);
+                        }
                     }
                 }
             });
