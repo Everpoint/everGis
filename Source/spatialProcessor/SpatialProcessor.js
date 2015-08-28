@@ -211,6 +211,7 @@
                         this._baseMapControl.addLayer(mapServer.layer, this._baseMapConfig[i].imageUrl);
                         if (!this._baseMapControl.activeLayer || mapServer.serviceName === this._preferredBaseMap) {
                             this._baseMapControl.activeLayer = mapServer.layer;
+                            this.fire('serviceAdd', { service: mapServer.name });
                             this._baseMapControl.activate();
                         }
                     }
