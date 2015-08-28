@@ -15,8 +15,10 @@
         _defaultSymbol: sGis.symbol.label.Label,
         _content: defaultDiv.cloneNode(true),
         _crs: sGis.CRS.geo,
+        currentBbox: null,
 
         _resetCache: function() {
+            this.currentBbox = null;
             this._cache = null;
         }
     });
@@ -81,7 +83,7 @@
 
         bbox: {
             get: function() {
-                return new sGis.Bbox(this._point, this._point);
+                return this.currentBbox || new sGis.Bbox(this._point, this._point);
             }
         }
     });

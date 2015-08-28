@@ -54,10 +54,21 @@
                 div.style.cursor = 'inherit';
                 div.style.textAlign = this.align;
 
-                feature._cache = [{node: div, position: div.position, resolution: resolution}];
+                feature._cache = [{node: div, position: div.position, resolution: resolution, onAfterDisplay: this._getBboxSetter(point, resolution, div, feature)}];
             }
 
             return feature._cache;
+        },
+
+        _getBboxSetter: function(center, resolution, node, feature) {
+            return function() {
+                var width = node.offsetWidth * resolution / 2;
+                var height = node.offsetHeight * resolution / 2;
+                var offset = feature.symbol.offset;
+
+                var bbox = new sGis.Bbox([center.x - width + offset.x, center.y - height + offset.y], [center.x + width + offset.x, center.y + height + offset.y], center.crs);
+                feature.currentBbox = bbox;
+            }
         }
     });
 
