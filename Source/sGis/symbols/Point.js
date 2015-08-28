@@ -99,25 +99,32 @@
             var pxPosition = [f._point[0] / resolution, - f._point[1] / resolution];
             var imageCache = this._image;
 
-            if (imageCache.complete) {
-                var image = new Image();
-                image.src = this.source;
+            //if (imageCache.complete) {
+            var image = new Image();
+            image.src = this.source;
 
-                var k = this.size / image.width;
-                image.width = this.size;
+            var k = this.size / image.width;
+            image.style.width = this.size;
+
+            if (imageCache.width) {
                 image.height = this.size / imageCache.width * imageCache.height;
-                image.position = [pxPosition[0] - this.anchorPoint.x * k, pxPosition[1] - this.anchorPoint.y * k];
-
-                var render = {
-                    node: image,
-                    position: image.position,
-                    persistent: true,
-                    renderToCanvas: this.renderToCanvas
-                };
-                return [render];
             } else {
-                return [];
+                var self = this;
+                imageCache.onload = function() {
+                    image.height = self.size / imageCache.width * imageCache.height;
+                }
             }
+
+
+            image.position = [pxPosition[0] - this.anchorPoint.x * k, pxPosition[1] - this.anchorPoint.y * k];
+
+            var render = {
+                node: image,
+                position: image.position,
+                persistent: true,
+                renderToCanvas: this.renderToCanvas
+            };
+            return [render];
         }
     });
 
