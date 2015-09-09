@@ -472,14 +472,7 @@
                 return this._map.wrapper;
             },
             set: function(wrapper) {
-                if (document.readyState === 'complete') {
-                    this._map.wrapper = wrapper;
-                } else {
-                    var self = this;
-                    Event.add(document, 'DOMContentLoaded', function() {
-                        self._map.wrapper = wrapper;
-                    });
-                }
+                this._map.wrapper = wrapper;
             }
         },
 
