@@ -60,6 +60,8 @@
             if (!resolution) utils.error('Obligatory parameter resolution is omitted');
 
             if (!this._display || bbox.p[0].crs !== this.crs && (!bbox.p[0].crs.from || !this.crs.from)) return [];
+            if (this.resolutionLimits[0] >= 0 && resolution < this.resolutionLimits[0] || this.resolutionLimits[1] > 0 && resolution > this.resolutionLimits[1]) return [];
+
             var scale = getScaleLevel(this, resolution),
                 baseBbox = {
                     minX: this._tileScheme.origin.x,

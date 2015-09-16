@@ -74,6 +74,17 @@
             return activeChildren;
         },
 
+        getDisplayedChildren: function(recurse) {
+            var displayedChildren = [];
+            for (var i in this._children) {
+                if (this._children[i].isDisplayed) {
+                    displayedChildren.push(this._children[i]);
+                    if (recurse) displayedChildren = displayedChildren.concat(this._children[i].getDisplayedChildren(true));
+                }
+            }
+            return displayedChildren;
+        },
+
         addChildren: function(children) {
             if (utils.isArray(children)) {
                 for (var i in children) {

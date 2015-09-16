@@ -19,6 +19,7 @@
         _maxScale: 0,
         _dpm: 96 * 100 / 2.54,
         _parentName: null,
+        _resolutionLimits: [-1, -1],
 
         //addChild: function(child) {
         //    if (this.isValidChild(child)) this._children.push(child);
@@ -101,12 +102,18 @@
 
         isDisplayed: {
             get: function() {
-                if (!this.map) return false;
+                if (!this.isActive || this.isSuppressed) return false;
+                if (!this.map) return true;
+
+                var resolution = this.map.resolution;
                 if (this._minScale !== 0 || this._maxScale !== 0) {
-                    var scale = this.map.resolution * this._dpm;
+                    var scale = resolution * this._dpm;
                     if (scale < this._maxScale || this._minScale && scale > this._minScale) return false;
                 }
-                return this.isActive && !this.isSuppressed;
+
+                var limits = this.resolutionLimits;
+                var isInLimits = (limits[0] < 0 || resolution > limits[0]) && (limits[1] < 0 || resolution < limits[1]);
+                return isInLimits;
             }
         },
 
@@ -148,6 +155,28 @@
         isEditable: {
             get: function() {
                 return this._layerInfo && this._layerInfo.CanEdit;
+            }
+        },
+
+        resolutionLimits: {
+            get: function() {
+                if (this._maxScale > 0) {
+                    var minResolution = this._resolutionLimits[0] >= 0 ? Math.min(this._resolutionLimits[0], this._maxScale / this._dpm) : this._maxScale / this._dpm;
+                } else {
+                    minResolution = this._resolutionLimits[0];
+                }
+
+                if (this._minScale > 0) {
+                    var maxResolution = this._resolutionLimits[1] >= 0 ? Math.max(this._resolutionLimits[1], this._minScale / this._dpm) : this._minScale / this._dpm;
+                } else {
+                    maxResolution = this._resolutionLimits[1];
+                }
+
+                return [minResolution, maxResolution];
+            },
+            set: function(limits) {
+                this._resolutionLimits = limits;
+                this.fire('resolutionLimitsChange');
             }
         }
     });

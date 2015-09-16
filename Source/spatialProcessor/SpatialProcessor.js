@@ -359,7 +359,7 @@
                         name: mapItem.mapServer.serviceName,
                         alias: mapItem.name,
                         opacity: mapItem.mapServer.opacity,
-                        activeLayers: mapItem.mapServer.activeLayers,
+                        activeLayers: mapItem.getActiveChildren(true).map(function(item) { return item.layerId; }),
                         active: mapItem.isActive,
                         childrenSettings: {}
                     };

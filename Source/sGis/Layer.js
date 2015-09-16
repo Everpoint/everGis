@@ -14,6 +14,7 @@
         _needAnimate: sGis.browser.indexOf('Chrome') === 0 ? false : true,
         _name: null,
         _delayedUpdate: false,
+        _resolutionLimits: [-1, -1],
 
         __initialize: function() {
             this._id = utils.getGuid();
@@ -95,6 +96,16 @@
 
             set: function(bool) {
                 this._delayedUpdate = bool;
+            }
+        },
+
+        resolutionLimits: {
+            get: function() {
+                return this._resolutionLimits;
+            },
+            set: function(limits) {
+                this._resolutionLimits = limits;
+                this.fire('propertyChange', {property: 'resolutionLimits'});
             }
         }
     });

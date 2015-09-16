@@ -15,7 +15,10 @@
 
         getFeatures: function(bbox) {
             if (!bbox || !(bbox instanceof sGis.Bbox)) utils.error('Expected bbox, but got ' + bbox + 'instead');
-            if (!this._display) return {};
+
+            if (!this._display) return [];
+            if (this.resolutionLimits[0] >= 0 && resolution < this.resolutionLimits[0] || this.resolutionLimits[1] > 0 && resolution > this.resolutionLimits[1]) return [];
+
             var obj = [];
             for (var i in this._features) {
                 if (this._features[i].crs !== bbox.p[0].crs && !(this._features[i].crs.to && bbox.p[0].crs.to)) continue;

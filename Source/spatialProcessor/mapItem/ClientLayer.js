@@ -65,6 +65,22 @@
             get: function() {
                 return true;
             }
+        },
+
+        resolutionLimits: {
+            get: function() { return this.mapServer.layer.resolutionLimits},
+            set: function(limits) { this.mapServer.layer.resolutionLimits = limits; }
+        },
+
+        isDisplayed: {
+            get: function() {
+                if (this.mapServer.map) {
+                    var currResolution = this.mapServer.map.resolution;
+                    var isInLimits = (this.resolutionLimits[0] < 0 || currResolution > this.resolutionLimits[0]) && (this.resolutionLimits[1] < 0 || currResolution < this.resolutionLimits[1]);
+                }
+
+                return isInLimits && this._active && !this._suppressed;
+            }
         }
     });
 

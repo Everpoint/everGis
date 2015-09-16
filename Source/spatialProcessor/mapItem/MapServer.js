@@ -14,6 +14,8 @@
         if (mapServer.legend) this.__onLegendUpdate();
         mapServer.addListener('initialize', function() { self.__onServiceInfoUpdate(); });
         mapServer.addListener('legendUpdate', function() { self.__onLegendUpdate(); });
+
+        mapServer.on('mapChange', this.__updateLayerVisibility.bind(this));
     };
 
     sGis.mapItem.MapServer.prototype = new sGis.MapItem({
@@ -70,8 +72,8 @@
         },
 
         __updateLayerVisibility: function() {
-            if (this._layer) {
-                var activeChildren = this.getActiveChildren(true),
+            if (this._layer && this._children.length > 0) {
+                var activeChildren = this.getDisplayedChildren(true),
                     activeLayerList = [];
 
                 for (var i in activeChildren) {
@@ -195,6 +197,35 @@
         isEditable: {
             get: function() {
                 return !!this.isEverGis;
+            }
+        },
+
+        resolutionLimits: {
+            get: function() {
+                if (this._layer.layer) {
+                    return this._layer.layer.resolutionLimits;
+                } else {
+                    return this._resolutionLimits || [-1, -1];
+                }
+            },
+            set: function(limits) {
+                if (this._layer.layer) {
+                    this._layer.layer.resolutionLimits = limits;
+                } else {
+                    this._resolutionLimits = limits;
+                }
+            }
+        },
+
+        isDisplayed: {
+            get: function() {
+                if (this._layer.map) {
+                    var currResolution = this._layer.map.resolution;
+                    var limits = this.resolutionLimits;
+                    var isInLimits = (limits[0] < 0 || currResolution > limits[0]) && (limits[1] < 0 || currResolution < limits[1]);
+                }
+
+                return isInLimits && this._active && !this._suppressed;
             }
         }
     });

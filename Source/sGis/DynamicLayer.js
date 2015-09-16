@@ -17,6 +17,7 @@
 
         getFeatures: function(bbox, resolution) {
             if (!this._display || this._layers && this._layers.length === 0) return [];
+            if (this.resolutionLimits[0] >= 0 && resolution < this.resolutionLimits[0] || this.resolutionLimits[1] > 0 && resolution > this.resolutionLimits[1]) return [];
 
             if (this._features && this._features[0].crs !== bbox.crs) this._features = null;
 

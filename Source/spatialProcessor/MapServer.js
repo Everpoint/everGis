@@ -196,6 +196,8 @@
                     if (map !== null) map.addLayer(this._layer);
                 }
                 this._map = map;
+
+                this.fire('mapChange');
             }
         },
 

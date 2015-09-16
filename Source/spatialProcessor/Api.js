@@ -33,7 +33,7 @@
         },
 
         getEfsFileUrl: function(path) {
-            return this._getOperationUrl('efs/file', {path: path});
+            return this._getOperationUrl('efs/fiqle', {path: path});
         },
 
         /**
