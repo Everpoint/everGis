@@ -71,7 +71,7 @@
             };
 
             this._dblclickHandler = function(sGisEvent) {
-                finishDrawing(self);
+                finishDrawing(self, sGisEvent);
                 sGisEvent.preventDefault();
                 self._dblClickTime = Date.now();
             };
@@ -212,7 +212,7 @@
         return polygon;
     }
 
-    function finishDrawing(control) {
+    function finishDrawing(control, sGisEvent) {
         var ring = control._activeFeature.coordinates.length - 1;
         if (control._activeFeature.coordinates[ring].length < 3) {
             control.activeLayer.remove(control._activeFeature);
@@ -228,7 +228,7 @@
         control._activeFeature = null;
 
         control._map.redrawLayer(control.activeLayer);
-        if (geom) control.fire('drawingFinish', {geom: geom});
+        if (geom) control.fire('drawingFinish', {geom: geom, browserEvent: sGisEvent.browserEvent});
     }
 
 })();

@@ -813,7 +813,7 @@
                 mouseOffset = getMouseOffset(event.currentTarget, event),
                 point = map.getPointFromPxPosition(mouseOffset.x, mouseOffset.y),
                 position = {x: point.x / map.resolution, y: - point.y / map.resolution};
-            map.fire('dblclick', {map: map, mouseOffset: mouseOffset, ctrlKey: event.ctrlKey, point: point, position: position});
+            map.fire('dblclick', {map: map, mouseOffset: mouseOffset, ctrlKey: event.ctrlKey, point: point, position: position, browserEvent: event});
         }
     }
 
