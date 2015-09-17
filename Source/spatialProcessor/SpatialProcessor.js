@@ -278,7 +278,7 @@
             }
         },
 
-        loadUserSettings: function() {
+        loadUserSettings: function(callback) {
             var self = this;
             this.api.getUserSettings({
                 success: function(settings) {
@@ -310,6 +310,8 @@
                     }
 
                     if (settings.preferredBaseMap) self._setPreferredBaseMap(settings.preferredBaseMap);
+                    self.loadedSettings = settings;
+                    self.fire('settingsLoaded');
                 }
             });
         },
@@ -337,6 +339,7 @@
 
         saveUserSettings: function(options) {
             var settings = this._serializeUserSettings();
+            this.loadedSettings = settings;
             this.api.saveUserSettings(settings, options);
         },
 
@@ -372,6 +375,7 @@
                     settings.layers.push(setting);
                 }
             }
+            settings.saveTime = Date.now();
         },
 
         _serializePositionSettings: function(settings) {

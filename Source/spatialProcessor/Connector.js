@@ -39,6 +39,8 @@
         },
 
         initializeSession: function(login, password) {
+            this._login = login;
+
             var self = this;
             if (password) {
                 var spUrl = this._url.substr(-4, 4) === 'IIS/' ? this._url.substr(0, this._url.length - 4) : this._url,
@@ -250,6 +252,12 @@
         synchronized: {
             get: function() {
                 return this._synchronized;
+            }
+        },
+
+        login: {
+            get: function() {
+                return this._login;
             }
         }
     });
