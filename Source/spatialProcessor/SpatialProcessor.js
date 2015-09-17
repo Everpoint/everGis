@@ -6,6 +6,7 @@
         this._rootMapItem = new sGis.mapItem.Folder();
         this._connector = new sGis.spatialProcessor.Connector(options.url, this._rootMapItem, options.password && options.login ? options.login : options.sessionId, options.password);
         this._map = new sGis.Map();
+        this._login = options.login;
 
         if (this._connector.sessionId) {
             this._initialize(options);
@@ -507,6 +508,12 @@
         baseMapControl: {
             get: function() {
                 return this._baseMapControl;
+            }
+        },
+
+        login: {
+            get: function() {
+                return this._login;
             }
         }
     });
