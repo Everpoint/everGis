@@ -155,8 +155,33 @@
             textParam = textParam.substr(1);
 
             return this._url + name + '?' + textParam + '&_sb' + (this._connector.sessionId ? '&_sb=' + this._connector.sessionId : '');
+        },
+
+        symbolize: function(options) {
+            this._operation('storage/meta/set', {
+                storageId: options.storageId,
+                type: 'rendering',
+                success: successHandler,
+                error: options.error
+            }, options.data);
+
+            function successHandler(response) {
+                try {
+                    var data = utils.parseJSON(response);
+                } catch (e) {
+                    if (options.error) options.error('Server responded with: ' + response);
+                }
+
+                if (data.Error) {
+                    if (options.error) options.error(data);
+                } else {
+                    if (options.success) options.success(data);
+                }
+            }
         }
     });
+
+
 
     sGis.spatialProcessor.Api = Api;
 
