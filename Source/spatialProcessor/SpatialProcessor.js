@@ -317,6 +317,7 @@
 
                                 if (description.childrenSettings) service.once('initialize', self._loadChildrenSettings.bind(this, service.mapItem, description));
                                 if (description.resolutionLimits) service.mapItem.resolutionLimits = description.resolutionLimits;
+                                if (description.data) service.mapItem.data = description.data;
                             }
                         }
                     }
@@ -334,6 +335,7 @@
                 if (settings.childrenSettings[child.layerId]) {
                     child.attributeSettings = settings.childrenSettings[child.layerId].attributeSettings;
                     if (settings.childrenSettings[child.layerId].resolutionLimits) child.resolutionLimits = settings.childrenSettings[child.layerId].resolutionLimits;
+                    if (settings.childrenSettings[child.layerId].data) child.data = settings.childrenSettings[child.layerId].data;
                 }
             });
         },
@@ -378,12 +380,13 @@
                         activeLayers: mapItem.getActiveChildren(true).map(function(item) { return item.layerId; }),
                         active: mapItem.isActive,
                         resolutionLimits: mapItem.resolutionLimits,
-                        childrenSettings: {}
+                        childrenSettings: {},
+                        data: mapItem.data
                     };
 
                     var children = mapItem.getChildren(true);
                     children.forEach(function(child) {
-                        setting.childrenSettings[child.layerId] = { attributeSettings: child.attributeSettings, resolutionLimits: child.resolutionLimits };
+                        setting.childrenSettings[child.layerId] = { attributeSettings: child.attributeSettings, resolutionLimits: child.resolutionLimits, data: child.data };
                     });
 
                     settings.layers.push(setting);

@@ -23,6 +23,7 @@
             this._id = utils.getGuid();
             this._suppressed = !!(this._parent && this._parent.isDisplayed);
             this._children = [];
+            this.data = {};
             if (options && options.children) this.addChildren(options.children);
         },
 
