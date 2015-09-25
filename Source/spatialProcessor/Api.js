@@ -33,7 +33,7 @@
         },
 
         getEfsFileUrl: function(path) {
-            return this._getOperationUrl('efs/fiqle', {path: path});
+            return this._getOperationUrl('efs/file', {path: path});
         },
 
         /**
@@ -160,7 +160,7 @@
         symbolize: function(options) {
             this._operation('storage/meta/set', {
                 storageId: options.storageId,
-                type: 'rendering',
+                type: options.type,
                 success: successHandler,
                 error: options.error
             }, options.data);
