@@ -62,7 +62,7 @@
                     } else {
                         children[serviceInfo.layers[i].parentLayerId].addChild(children[serviceInfo.layers[i].id]);
                     }
-                    children[serviceInfo.layers[i].id].addListener('activate deactivate', function() {
+                    children[serviceInfo.layers[i].id].addListener('activate deactivate resolutionLimitsChange', function() {
                         self.__updateLayerVisibility();
                     });
                 }
