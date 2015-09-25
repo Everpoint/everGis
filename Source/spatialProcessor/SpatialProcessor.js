@@ -36,6 +36,16 @@
             if (options.mapWrapper) this.mapWrapper = options.mapWrapper;
 
             if (options.fsServiceName) this._sfs = new sGis.spatialProcessor.Sfs(this._connector, options.fsServiceName);
+
+            this._map.on('bboxChangeEnd', this._updateLayerVisibility.bind(this));
+        },
+
+        _updateLayerVisibility: function() {
+            this._rootMapItem.children.forEach(function(mapItem) {
+                if (mapItem instanceof sGis.mapItem.MapServer) {
+                    mapItem.updateLayerVisibility();
+                }
+            });
         },
 
         _initializeServices: function(list) {
@@ -306,6 +316,7 @@
                                 if (description.alias) service.mapItem.name = description.alias;
 
                                 if (description.childrenSettings) service.once('initialize', self._loadChildrenSettings.bind(this, service.mapItem, description));
+                                if (description.resolutionLimits) service.mapItem.resolutionLimits = description.resolutionLimits;
                             }
                         }
                     }
@@ -322,6 +333,7 @@
             children.forEach(function(child) {
                 if (settings.childrenSettings[child.layerId]) {
                     child.attributeSettings = settings.childrenSettings[child.layerId].attributeSettings;
+                    if (settings.childrenSettings[child.layerId].resolutionLimits) child.resolutionLimits = settings.childrenSettings[child.layerId].resolutionLimits;
                 }
             });
         },
@@ -365,12 +377,13 @@
                         opacity: mapItem.mapServer.opacity,
                         activeLayers: mapItem.getActiveChildren(true).map(function(item) { return item.layerId; }),
                         active: mapItem.isActive,
+                        resolutionLimits: mapItem.resolutionLimits,
                         childrenSettings: {}
                     };
 
                     var children = mapItem.getChildren(true);
                     children.forEach(function(child) {
-                        if (child.attributeSettings) setting.childrenSettings[child.layerId] = { attributeSettings: child.attributeSettings };
+                        setting.childrenSettings[child.layerId] = { attributeSettings: child.attributeSettings, resolutionLimits: child.resolutionLimits };
                     });
 
                     settings.layers.push(setting);

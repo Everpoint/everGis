@@ -71,6 +71,10 @@
             this.fire('propertyChange', {property: 'name'});
         },
 
+        updateLayerVisibility: function() {
+            this.__updateLayerVisibility();
+        },
+
         __updateLayerVisibility: function() {
             if (this._layer && this._children.length > 0) {
                 var activeChildren = this.getDisplayedChildren(true),
@@ -214,6 +218,7 @@
                 } else {
                     this._resolutionLimits = limits;
                 }
+                this.fire('resolutionLimitsChange')
             }
         },
 
