@@ -108,7 +108,7 @@
                 var resolution = this.map.resolution;
                 if (this._minScale !== 0 || this._maxScale !== 0) {
                     var scale = resolution * this._dpm;
-                    if (scale < this._maxScale || this._minScale && scale > this._minScale) return false;
+                    if (this._maxScale && (scale > this._maxScale) || this._minScale && (scale < this._minScale)) return false;
                 }
 
                 var limits = this.resolutionLimits;

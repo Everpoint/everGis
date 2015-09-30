@@ -316,7 +316,7 @@
             get: function() {
                 if (!this._layerInfo) {
                     return null;
-                } else if (this._layerInfo.length === 1 && this._serviceInfo.capabilities.indexOf('tile') === -1 && this._layerInfo[0].LayerInfo.geometryType === 'unknown' && this._url.indexOf('VisualObjectsRendering') === -1) {
+                } else if (this._serviceInfo.isEvergis === true) {
                     return true;
                 } else {
                     return false;
