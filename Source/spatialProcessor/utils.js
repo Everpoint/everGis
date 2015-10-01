@@ -21,7 +21,7 @@
             } else if (format === 'rgb') {
                 return 'rgb(' + this.r + ',' + this.g + ',' + this.b + ')';
             } else {
-                return 'rgba(' + this.r + ',' + this.g + ',' + this.b + ',' + (this.a / 255).toFixed(7).replace(/\.*0+$/, '') + ')';
+                return 'rgba(' + this.r + ',' + this.g + ',' + this.b + ',' + (this.a / 255).toFixed(2).replace(/\.*0+$/, '') + ')';
             }
         }
     };
