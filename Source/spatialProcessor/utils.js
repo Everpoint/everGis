@@ -182,7 +182,7 @@
                     } else if (channels.a > 1) {
                         channels.a = 1;
                     }
-                    channels.a *= 255;
+                    channels.a = Math.round(channels.a * 255);
                 }
             }
             return channels;
