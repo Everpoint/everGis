@@ -360,29 +360,34 @@ function createFeatures(response, mapCrs) {
                     }
                 } else if (geometry.type === 'polyline') {
                     feature = new sGis.feature.Polyline(points, {id: i, attributes: attributes, crs: crs, color: color, width: parseFloat(object.visualDefinition.strokeThickness)});
-                } else if (geometry.type === 'point') {
-                    feature = new sGis.feature.Point(points, {id: i, attributes: attributes, crs: crs, color: color, size: parseFloat(object.visualDefinition.size)});
+                } else if (geometry.type === 'point' || geometry.type === 'multipoint') {
+                    var symbol;
+
                     if (object.visualDefinition.imageSrc) {
-                        feature.symbol = new sGis.symbol.point.Image({
+                        symbol = new sGis.symbol.point.Image({
                             source: object.visualDefinition.imageSrc,
                             size: parseFloat(object.visualDefinition.size),
                             anchorPoint: object.visualDefinition.anchorPoint
                         });
                     } else if (object.visualDefinition.shape === 'Circle') {
-                        feature.style = {
+                        symbol = new sGis.symbol.point.Point({
                             size: parseFloat(object.visualDefinition.size),
-                            color: fillColor ? parseColor(fillColor) : 'transparent',
+                            fillColor: fillColor ? parseColor(fillColor) : 'transparent',
                             strokeColor: color,
                             strokeWidth: parseFloat(object.visualDefinition.strokeThickness)
-                        };
+                        });
                     } else {
-                        feature.symbol = new sGis.symbol.point.Square({
+                        symbol = new sGis.symbol.point.Square({
                             size: parseFloat(object.visualDefinition.size),
                             strokeWidth: parseFloat(object.visualDefinition.strokeThickness),
                             strokeColor: color,
                             fillColor: fillColor ? parseColor(fillColor) : 'transparent'
                         });
                     }
+
+                    var featureClass = geometry.type === 'point' ? sGis.feature.Point : sGis.feature.MultiPoint;
+                    if (geometry.type === 'multipoint') points = points[0];
+                    feature = new featureClass(points, {id: i, attributes: attributes, crs: crs, symbol: symbol});
                 }
             }
 

@@ -648,16 +648,19 @@
 
     function getGeometryNode(feature, xml) {
         var node = xml.createElement('Geometry');
-        setNodeAttributes(node, {Type: geometryTypes[feature.type]});
+        var type = feature instanceof sGis.feature.MultiPoint ? 'MultiPoint' : geometryTypes[feature.type];
+        setNodeAttributes(node, {Type: type});
 
         var geometryJSON = {
-            type: feature.type,
+            type: feature instanceof sGis.feature.MultiPoint ? 'multipoint' : feature.type,
             sr: feature.crs.getWkidString()
         };
 
         if (feature instanceof sGis.feature.Point) {
             geometryJSON.x = feature.x;
             geometryJSON.y = feature.y;
+        } else if (feature instanceof sGis.feature.MultiPoint) {
+            geometryJSON.v = [feature.coordinates];
         } else {
             geometryJSON.v = feature.coordinates;
         }
