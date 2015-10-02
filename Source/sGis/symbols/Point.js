@@ -104,7 +104,7 @@
             image.src = this.source;
 
             var k = this.size / image.width;
-            image.style.width = this.size;
+            image.width = this.size;
 
             if (imageCache.width) {
                 image.height = this.size / imageCache.width * imageCache.height;
