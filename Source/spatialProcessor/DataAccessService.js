@@ -86,7 +86,19 @@ sGis.spatialProcessor.DataAccessService.prototype = {
         });
     },
 
-    projectGeometry: sGis.spatialProcessor.Controller.prototype.projectGeometry
+    projectGeometry: sGis.spatialProcessor.Controller.prototype.projectGeometry,
+
+    getScalarValue: function(properties) {
+        this.__operation(function() {
+            return {
+                operation: 'selectScalarValue',
+                dataParameters: 'storageId=' + properties.storageId + '&query=' + properties.query,
+                requested: properties.requested,
+                error: properties.error,
+                success: properties.success
+            };
+        });
+    }
 };
 
 Object.defineProperties(sGis.spatialProcessor.DataAccessService.prototype, {

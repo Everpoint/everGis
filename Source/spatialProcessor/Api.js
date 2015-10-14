@@ -178,6 +178,28 @@
                     if (options.success) options.success(data);
                 }
             }
+        },
+
+        getJsonLog: function(options) {
+            this._operation('logger/json', {
+                logLevel: 3,
+                success: successHandler,
+                error: options.error
+            }, options.data);
+
+            function successHandler(response) {
+                try {
+                    var data = utils.parseJSON(response);
+                } catch (e) {
+                    if (options.error) options.error('Server responded with: ' + response);
+                }
+
+                if (data.Error) {
+                    if (options.error) options.error(data);
+                } else {
+                    if (options.success) options.success(data);
+                }
+            }
         }
     });
 
