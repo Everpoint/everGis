@@ -8,6 +8,17 @@
         this._map = new sGis.Map();
         this._login = options.login;
 
+        this._services = {};
+        this._initializeBaseMaps(options.baseMaps || []);
+        if (options.services) this._initializeServices(options.services);
+
+        this._controllers = {};
+        if (options.controllers) {
+            for (var i = 0, len = options.controllers.length; i < len; i++) {
+                this.addController(options.controllers[i]);
+            }
+        }
+
         if (this._connector.sessionId) {
             this._initialize(options);
         } else {
@@ -17,24 +28,14 @@
 
     sGis.SpatialProcessor.prototype = {
         _initialize: function(options) {
-            this._services = {};
             this.api = new sGis.spatialProcessor.Api(this._connector);
 
             this._initializeDataAccessService();
-            this._initializeBaseMaps(options.baseMaps || []);
-            if (options.services) this._initializeServices(options.services);
             if (options.project) this.loadProject(options.project);
             if (options.loadUserSettings) this.loadUserSettings();
 
-            this._controllers = {};
-            if (options.controllers) {
-                for (var i = 0, len = options.controllers.length; i < len; i++) {
-                    this.addController(options.controllers[i]);
-                }
-            }
 
             if (options.mapWrapper) this.mapWrapper = options.mapWrapper;
-
             if (options.fsServiceName) this._sfs = new sGis.spatialProcessor.Sfs(this._connector, options.fsServiceName);
 
             this._map.on('bboxChangeEnd', this._updateLayerVisibility.bind(this));

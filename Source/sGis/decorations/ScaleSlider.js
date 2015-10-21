@@ -9,6 +9,7 @@
 
         sGis.utils.init(this, options);
         this.updateDisplay();
+        this._setListeners();
     };
 
     sGis.decorations.ScaleSlider.prototype = {
@@ -27,7 +28,14 @@
             if (wrapper) {
                 wrapper.appendChild(this._grid);
                 wrapper.appendChild(this._slider);
+            } else if (this._grid.parentNode) {
+                this._grid.parentNode.removeChild(this._grid);
+                this._slider.parentNode.removeChild(this._grid);
             }
+        },
+
+        _setListeners: function() {
+            this._map.on('wrapperSet', this.updateDisplay.bind(this));
         },
 
         _createGrid: function() {

@@ -21,7 +21,7 @@
 
             var obj = [];
             for (var i in this._features) {
-                if (this._features[i].crs !== bbox.p[0].crs && !(this._features[i].crs.to && bbox.p[0].crs.to)) continue;
+                if (!this._features[i].crs.equals(bbox.p[0].crs) && !(this._features[i].crs.to && bbox.p[0].crs.to)) continue;
                 var featureBbox = this._features[i].bbox;
                 if (!featureBbox || bbox.intersects(featureBbox)) obj.push(this._features[i]);
             }

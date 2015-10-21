@@ -749,6 +749,7 @@
      * @deprecated
      */
     sGis.controls.Editor.prototype.deselectFeature = sGis.controls.Editor.prototype.deselect;
+    sGis.controls.Editor.prototype.selectFeature = sGis.controls.Editor.prototype.select;
 
     var selectionSymbols = {
         point: sGis.symbol.editor.Point,

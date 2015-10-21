@@ -21,7 +21,7 @@
     sGis.Point.prototype = {
         projectTo: function(newCrs) {
             if (!(newCrs instanceof sGis.Crs)) utils.error('sGis.Crs instance is expected but got ' + newCrs + ' instead');
-            if (newCrs !== this.crs) {
+            if (!newCrs.equals(this.crs)) {
                 var positionGeo = this.crs.from(this.x, this.y),
                     positionCrs = newCrs.to(positionGeo.x, positionGeo.y);
             } else {
@@ -35,7 +35,7 @@
         },
 
         setCoordinates: function(x, y, crs) {
-            if (!crs || crs === this.crs) {
+            if (!crs || crs.equals(this.crs)) {
                 this.x = x;
                 this.y = y;
             } else {

@@ -15,6 +15,10 @@
             } else if (this.description) {
                 return this.description;
             }
+        },
+
+        equals: function(crs) {
+            return this === crs || this.description && (this.description === crs.description || this.description.wkt === crs.description.wkt);
         }
     };
 
