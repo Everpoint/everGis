@@ -38,6 +38,18 @@
                     requested: properties.requested
                 };
             });
+        },
+
+        clear: function(properties) {
+            properties = properties || {};
+            this.__operation(function() {
+                return {
+                    operation: 'maxdark',
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
         }
     });
 
