@@ -161,13 +161,13 @@
         resolutionLimits: {
             get: function() {
                 if (this._maxScale > 0) {
-                    var minResolution = this._resolutionLimits[0] >= 0 ? Math.min(this._resolutionLimits[0], this._maxScale / this._dpm) : this._maxScale / this._dpm;
+                    var minResolution = this._resolutionLimits[0] >= 0 ? Math.max(this._resolutionLimits[0], this._maxScale / this._dpm) : this._maxScale / this._dpm;
                 } else {
                     minResolution = this._resolutionLimits[0];
                 }
 
                 if (this._minScale > 0) {
-                    var maxResolution = this._resolutionLimits[1] >= 0 ? Math.max(this._resolutionLimits[1], this._minScale / this._dpm) : this._minScale / this._dpm;
+                    var maxResolution = this._resolutionLimits[1] >= 0 ? Math.min(this._resolutionLimits[1], this._minScale / this._dpm) : this._minScale / this._dpm;
                 } else {
                     maxResolution = this._resolutionLimits[1];
                 }
