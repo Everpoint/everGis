@@ -56,8 +56,16 @@ sGis.spatialProcessor.Printer.prototype = {
         var successHandler = properties.success,
             self = this;
         properties.success = function() {
-            var link = self._serverConnector.url + 'export/print/?noHeader=true&f=binary&_sb=' + self._serverConnector.sessionId + '&ts=' + Date.now();
-            if (successHandler) successHandler(link);
+            var link = self._serverConnector.url + 'export/print/?noHeader=true&f=' + (properties.useApi ? 'json' : 'binary') + '&_sb=' + self._serverConnector.sessionId + '&ts=' + Date.now() + (properties.useApi ? '&asLink=true' : '');
+            if (successHandler) {
+                if (properties.useApi) {
+                    utils.ajax({url: link, success: function(id) {
+                        successHandler(id);
+                    }});
+                } else {
+                    successHandler(link);
+                }
+            }
         };
 
         this.__store(properties);
