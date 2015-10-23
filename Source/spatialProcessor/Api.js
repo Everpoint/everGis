@@ -13,7 +13,7 @@
     sGis.utils.proto.setMethods(Api.prototype, {
         downloadBinary: function(id, name) {
             name = name || 'sp_binary_file';
-            this._downloadFile(this._getOperationUrl('page/getBinary/' + name, {id: id}));
+            this.downloadFile(this._getOperationUrl('page/getBinary/' + name, {id: id}));
         },
 
         getServiceCatalog: function(properties) {
@@ -124,7 +124,7 @@
             this._operation('workspace/settings/save', options, data);
         },
 
-        _downloadFile: function(url) {
+        downloadFile: function(url) {
             this._frame.src = url;
         },
 

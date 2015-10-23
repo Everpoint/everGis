@@ -95,7 +95,7 @@ sGis.spatialProcessor.Printer.prototype = {
             servicesWithLegend = [];
         for (var i = 0, len = layers.length; i < len; i++) {
             if (layers[i].mapServer) {
-                if (layers[i].isDisplayed && layers[i].mapServer.mapItem.legend && layers[i].mapServer.mapItem.legend.length > 0) servicesWithLegend.push(layers[i].mapServer.mapItem);
+                if (layers[i].isDisplayed && layers[i].mapServer.mapItem && layers[i].mapServer.mapItem.legend && layers[i].mapServer.mapItem.legend.length > 0) servicesWithLegend.push(layers[i].mapServer.mapItem);
                 description.ServiceStateDefinition.push({
                     UniqueName: layers[i].mapServer.fullName || layers[i].mapServer.id,
                     Opactiy: layers[i].opacity,
