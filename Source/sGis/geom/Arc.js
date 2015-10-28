@@ -100,13 +100,13 @@
                         'stroke-width': this._strokeWidth,
                         fill: this._fillColor,
 
-                        width: r2 + this._strokeWidth,
-                        height: r2 + this._strokeWidth,
+                        width: r2,
+                        height: r2,
                         viewBox: [
                             this._center[0] - this._radius - this._strokeWidth / 2,
                             this._center[1] - this._radius - this._strokeWidth / 2,
-                            r2 + this._strokeWidth,
-                            r2 + this._strokeWidth
+                            r2,
+                            r2
                         ].join(' ')
                     });
                 }

@@ -28,7 +28,7 @@
 
     sGis.symbol.label = {
         Label: function(style) {
-            utils.init(this, style);
+            utils.init(this, style, true);
         }
     };
 
@@ -127,7 +127,7 @@
 
     sGis.symbol.image = {
         Image: function(style) {
-            utils.init(this, style);
+            utils.init(this, style, true);
         }
     };
 

@@ -2,15 +2,15 @@
 
     sGis.symbol.point = {
         Point: function(style) {
-            sGis.utils.init(this, style);
+            sGis.utils.init(this, style, true);
         },
 
         Image: function(style) {
-            sGis.utils.init(this, style);
+            sGis.utils.init(this, style, true);
         },
 
         Square: function(style) {
-            sGis.utils.init(this, style);
+            sGis.utils.init(this, style, true);
         }
     };
 
@@ -26,6 +26,10 @@
 
             var point = new sGis.geom.Arc(pxPosition, {fillColor: this.fillColor, strokeColor: this.strokeColor, strokeWidth: this.strokeWidth, radius: this.size / 2});
             return [point];
+        },
+
+        clone: function() {
+            return new sGis.symbol.point.Point({size: this.size, fillColor: this.fillColor, strokeWidth: this.strokeWidth, strokeColor: this.strokeColor, offset: this.offset});
         }
     });
 
@@ -125,6 +129,10 @@
                 renderToCanvas: this.renderToCanvas
             };
             return [render];
+        },
+
+        clone: function() {
+            return new sGis.symbol.point.Image({size: this.size, color: this.color, source: this.source, anchorPoint: this.anchorPoint, renderToCanvas: this.renderToCanvas});
         }
     });
 
@@ -202,6 +210,10 @@
                 ];
 
             return [new sGis.geom.Polygon(coordinates, {fillColor: this.fillColor, color: this.strokeColor, width: this.strokeWidth})];
+        },
+
+        clone: function() {
+            return new sGis.symbol.point.Square({size: this.size, fillColor: this.fillColor, strokeWidth: this.strokeWidth, strokeColor: this.strokeColor, offset: this.offset});
         }
     });
 

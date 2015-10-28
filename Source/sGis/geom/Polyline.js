@@ -84,8 +84,8 @@
                 }
             }
 
-            var width = xmax - x + 2 * this._width;
-            var height = ymax - y + 2 * this._width;
+            var width = xmax - x + this._width;
+            var height = ymax - y + this._width;
             x -= this._width / 2;
             y -= this._width / 2;
             d = d.trim();

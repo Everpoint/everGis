@@ -241,9 +241,9 @@
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);});
     };
 
-    utils.init = function(object, options) {
+    utils.init = function(object, options, setUndefined) {
         for (var i in options) {
-            if (object[i] !== undefined && options[i] !== undefined) {
+            if (setUndefined || object[i] !== undefined && options[i] !== undefined) {
                 try {
                     object[i] = options[i];
                 } catch (e) {

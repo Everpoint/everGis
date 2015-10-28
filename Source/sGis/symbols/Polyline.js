@@ -2,7 +2,7 @@
 
     sGis.symbol.polyline = {
         Simple: function(style) {
-            utils.init(this, style);
+            utils.init(this, style, true);
         }
     };
 
@@ -14,6 +14,10 @@
             var coordinates = getPolylineRenderedCoordinates(feature, resolution, crs);
 
             return [new sGis.geom.Polyline(coordinates, {color: this.strokeColor, width: this.strokeWidth})];
+        },
+
+        clone: function() {
+            return new sGis.symbol.polyline.Simple({strokeWidth: this.strokeWidth, strokeColor: this.strokeColor});
         }
     });
 

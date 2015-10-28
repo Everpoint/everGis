@@ -2,13 +2,13 @@
 
     sGis.symbol.polygon = {
         Simple: function(style) {
-            utils.init(this, style);
+            utils.init(this, style, true);
         },
         BrushFill: function(style) {
-            utils.init(this, style);
+            utils.init(this, style, true);
         },
         ImageFill: function(style) {
-            utils.init(this, style);
+            utils.init(this, style, true);
         }
     };
 
@@ -34,6 +34,10 @@
             var coordinates = getPolylineRenderedCoordinates(feature, resolution, crs);
 
             return [new sGis.geom.Polygon(coordinates, {color: this.strokeColor, width: this.strokeWidth, fillColor: this.fillColor})];
+        },
+
+        clone: function() {
+            return new sGis.symbol.polygon.Simple({fillColor: this.fillColor, strokeWidth: this.strokeWidth, strokeColor: this.strokeColor, offset: this.offset});
         }
     });
 
@@ -83,6 +87,10 @@
             var coordinates = getPolylineRenderedCoordinates(feature, resolution, crs);
 
             return [new sGis.geom.Polygon(coordinates, {color: this.strokeColor, width: this.strokeWidth, fillStyle: 'image', fillImage: this._image})];
+        },
+
+        clone: function() {
+            return new sGis.symbol.polygon.BrushFill({fillBrush: this.fillBrush, fillForeground: this.fillForeground, fillBackground: this.fillBackground, strokeWidth: this.strokeWidth, strokeColor: this.strokeColor, offset: this.offset});
         }
     });
 
@@ -156,6 +164,10 @@
             var coordinates = getPolylineRenderedCoordinates(feature, resolution, crs);
 
             return [new sGis.geom.Polygon(coordinates, {color: this.strokeColor, width: this.strokeWidth, fillStyle: 'image', fillImage: this._image})];
+        },
+
+        clone: function() {
+            return new sGis.symbol.polygon.BrushFill({fillImage: this.fillImage, strokeWidth: this.strokeWidth, strokeColor: this.strokeColor, offset: this.offset});
         }
     });
 
