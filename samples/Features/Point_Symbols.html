@@ -58,6 +58,7 @@
     <script src="../../Source/sGis/features/PointGroup.js"></script>
     <script src="../../Source/sGis/controls/Control.js"></script>
     <script src="../../Source/sGis/controls/Point.js"></script>
+    <script src="../../Source/sGis/controls/Poly.js"></script>
     <script src="../../Source/sGis/controls/Polyline.js"></script>
     <script src="../../Source/sGis/controls/Polygon.js"></script>
     <script src="../../Source/sGis/controls/Editor.js"></script>
@@ -112,7 +113,9 @@
             new sGis.feature.Point([0, -100], {crs: map.crs, symbol: new sGis.symbol.point.Square({offset: {x: 0, y: 50}})}),
             new sGis.feature.Point([0, -100], {crs: map.crs, symbol: new sGis.symbol.point.Square({offset: {x: 50, y: 50}})}),
             new sGis.feature.Point([-100, 0], {crs: map.crs, symbol: new sGis.symbol.point.Image({size: 15})}), // to use custom image use parameter 'source' with url as value
-            new sGis.feature.Point([-100, 0], {crs: map.crs, symbol: new sGis.symbol.point.Image({anchorPoint: {x: 40, y: 16}})})
+            new sGis.feature.Point([-100, 0], {crs: map.crs, symbol: new sGis.symbol.point.Image({anchorPoint: {x: 40, y: 16}})}),
+            new sGis.feature.Point([-200, 0], {crs: map.crs, symbol: new sGis.symbol.point.MaskedImage()}),
+            new sGis.feature.Point([-200, 100], {crs: map.crs, symbol: new sGis.symbol.point.MaskedImage({maskColor: 'blue', size: 48, anchorPoint: {x: 24, y: 48}})})
         ]);
 
         map.addLayer(layer);
