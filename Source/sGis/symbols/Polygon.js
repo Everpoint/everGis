@@ -38,6 +38,15 @@
 
         clone: function() {
             return new sGis.symbol.polygon.Simple({fillColor: this.fillColor, strokeWidth: this.strokeWidth, strokeColor: this.strokeColor, offset: this.offset});
+        },
+
+        getDescription: function() {
+            return {
+                symbolName: 'polygon.Simple',
+                fillColor: this.fillColor,
+                strokeWidth: this.strokeWidth,
+                strokeColor: this.strokeColor
+            }
         }
     });
 

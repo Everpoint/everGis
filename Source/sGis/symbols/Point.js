@@ -35,6 +35,17 @@
 
         clone: function() {
             return new sGis.symbol.point.Point({size: this.size, fillColor: this.fillColor, strokeWidth: this.strokeWidth, strokeColor: this.strokeColor, offset: this.offset});
+        },
+
+        getDescription: function() {
+            return {
+                symbolName: 'point.Point',
+                size: this.size,
+                fillColor: this.fillColor,
+                strokeWidth: this.strokeWidth,
+                strokeColor: this.strokeColor,
+                offset: this.offset
+            }
         }
     });
 
@@ -138,6 +149,16 @@
 
         clone: function() {
             return new sGis.symbol.point.Image({size: this.size, color: this.color, source: this.source, anchorPoint: this.anchorPoint, renderToCanvas: this.renderToCanvas});
+        },
+
+        getDescriptions: function() {
+            return {
+                symbolName: 'point.Image',
+                size: this.size,
+                source: this.source,
+                anchorPoint: this.anchorPoint,
+                renderToCanvas: this.renderToCanvas
+            }
         }
     });
 
@@ -219,6 +240,17 @@
 
         clone: function() {
             return new sGis.symbol.point.Square({size: this.size, fillColor: this.fillColor, strokeWidth: this.strokeWidth, strokeColor: this.strokeColor, offset: this.offset});
+        },
+
+        getDescription: function() {
+            return {
+                symbolName: 'point.Square',
+                size: this.size,
+                fillColor: this.fillColor,
+                strokeWidth: this.strokeWidth,
+                strokeColor: this.strokeColor,
+                offset: this.offset
+            }
         }
     });
 
@@ -370,6 +402,20 @@
 
         clone: function() {
             return new sGis.symbol.point.MaskedImage({size: this.size, anchorPoint: this.anchorPoint, renderToCanvas: this.renderToCanvas, imageSource: this.imageSource, maskSource: this.maskSource, maskColor: this.maskColor});
+        },
+
+        getDescription: function() {
+            return {
+                symbolName: 'point.MaskedImage',
+                size: this.size,
+                anchorPoint: this.anchorPoint,
+                renderToCanvas: this.renderToCanvas,
+                imageSource: this.imageSource,
+                maskSource: this.maskSource,
+                maskColor: this.maskColor,
+                imageWidth: this.imageWidth,
+                imageHeight: this.imageHeight
+            }
         }
     });
 

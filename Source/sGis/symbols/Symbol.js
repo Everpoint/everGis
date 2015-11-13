@@ -8,6 +8,16 @@
         }
     };
 
+    sGis.Symbol.fromDescription = function(desc) {
+        var classDesc = desc.symbolName.split('.');
+        var classLink = sGis.symbol[classDesc[0]];
+        for (var i = 1; i < classDesc.length; i++) {
+            classLink = classLink[classDesc[i]];
+        }
+
+        return new classLink(desc);
+    };
+
     sGis.Symbol.prototype = {
         setDefaults: function(style) {
             this.defaults = {};

@@ -18,6 +18,14 @@
 
         clone: function() {
             return new sGis.symbol.polyline.Simple({strokeWidth: this.strokeWidth, strokeColor: this.strokeColor});
+        },
+
+        getDescription: function() {
+            return {
+                symbolName: 'polyline.Simple',
+                strokeWidth: this.strokeWidth,
+                strokeColor: this.strokeColor,
+            }
         }
     });
 

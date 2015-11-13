@@ -331,7 +331,7 @@
         },
 
         _loadChildrenSettings: function(mapItem, settings) {
-            var children = mapItem.getChildren();
+            var children = mapItem.getChildren(true);
             children.forEach(function(child) {
                 if (settings.childrenSettings[child.layerId]) {
                     child.attributeSettings = settings.childrenSettings[child.layerId].attributeSettings;
