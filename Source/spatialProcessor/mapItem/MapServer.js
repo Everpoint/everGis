@@ -232,6 +232,12 @@
 
                 return isInLimits && this._active && !this._suppressed;
             }
+        },
+
+        serviceType: {
+            get: function() {
+                return this._layer.serviceInfo.meta && this._layer.serviceInfo.meta.Type;
+            }
         }
     });
 

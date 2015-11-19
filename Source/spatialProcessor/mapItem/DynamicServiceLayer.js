@@ -178,6 +178,12 @@
                 this._resolutionLimits = limits;
                 this.fire('resolutionLimitsChange');
             }
+        },
+
+        serviceType: {
+            get: function() {
+                return this._parent.serviceType;
+            }
         }
     });
 
