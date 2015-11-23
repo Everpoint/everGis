@@ -39,6 +39,8 @@
                 self = this;
 
             if (serviceInfo.layers && !this._layer.isEverGis) {
+                serviceInfo.layers.sort(function(a, b) { return a.id > b.id ? 1 : a.id < b.id ? -1 : 0; });
+
                 var children = {};
                 for (var i in serviceInfo.layers) {
                     children[serviceInfo.layers[i].id] = new sGis.mapItem.DynamicServiceLayer({
