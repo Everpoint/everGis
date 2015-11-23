@@ -180,6 +180,12 @@
             }
         },
 
+        serverResolutionLimits: {
+            get: function() {
+                return [this._maxScale > 0 ? this._maxScale / this._dpm : -1, this._minScale > 0 ? this._minScale / this._dpm : -1];
+            }
+        },
+
         serviceType: {
             get: function() {
                 return this._parent.serviceType;
