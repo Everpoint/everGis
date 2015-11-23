@@ -188,7 +188,7 @@
 
         serviceType: {
             get: function() {
-                return this._parent.serviceType;
+                return this.layerInfo.info && this.layerInfo.info.Type || this._parent.serviceType;
             }
         }
     });
