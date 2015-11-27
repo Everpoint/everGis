@@ -103,7 +103,15 @@
                 }
             };
 
-            return image;
+            var label = document.createElement('span');
+            label.innerHTML = layer.name;
+
+            var container = document.createElement('div');
+            container.className = 'sGis-control-baseLayerSwitch-imageContainer';
+            container.appendChild(image);
+            container.appendChild(label);
+
+            return container;
         },
 
         _getNewInactiveLayerBox: function() {
@@ -141,7 +149,11 @@
                 this._layerDescriptions[index].image = this._getLayerImageObject(this._activeLayer);
             }
 
-            this._activeLayerImageContainer.style.backgroundImage = 'url(' + this._layerDescriptions[index].image.src + ')';
+            var images = this._layerDescriptions[index].image.getElementsByTagName('img');
+
+            if (images && images[0]) {
+                this._activeLayerImageContainer.style.backgroundImage = 'url(' + images[0].src + ')';
+            }
         },
 
         _getNewActiveLayerImageContainer: function() {
@@ -411,7 +423,9 @@
             '.sGis-control-baseLayerSwitch-picker {cursor: pointer; border: 1px solid gray;} ' +
             '.sGis-control-baseLayerSwitch-pickerActive {border: 2px solid DarkViolet;} ' +
             '.sGis-control-baseLayerSwitch-pickerContainer {transition: max-width 0.5s, max-height 0.5s; -webkit-transition: max-width 0.5s, max-height 0.5s; overflow: hidden; position: absolute; right: 70px; white-space: nowrap;} ' +
-            '.sGis-control-baseLayerSwitch-pickerContainer img {width: 56px; height: 56px; margin: 5px;}',
+            '.sGis-control-baseLayerSwitch-pickerContainer img {width: 56px; height: 56px; margin: 5px;}' +
+            '.sGis-control-baseLayerSwitch-imageContainer { display: inline-block; }' +
+            '.sGis-control-baseLayerSwitch-imageContainer span { display: none; }',
         buttonStyle = document.createElement('style');
     buttonStyle.type = 'text/css';
     if (buttonStyle.styleSheet) {

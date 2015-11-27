@@ -78,7 +78,7 @@
         },
 
         __createLayer: function() {
-            var properties = {opacity: this._opacity, isDisplayed: this._display, layers: this._activeLayers || undefined};
+            var properties = {opacity: this._opacity, isDisplayed: this._display, layers: this._activeLayers || undefined, name: this.name};
             if (this._serviceInfo.spatialReference.wkt || this._serviceInfo.spatialReference.wkid) {
                 if (this._serviceInfo.spatialReference.wkid === 102100 || this._serviceInfo.spatialReference.wkid === 102113) {
                     properties.crs = sGis.CRS.webMercator;
