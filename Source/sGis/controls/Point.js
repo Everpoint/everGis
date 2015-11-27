@@ -15,20 +15,27 @@
 
         this._addPoint = function(sGisEvent) {
             var pxPosition = sGisEvent.mouseOffset,
-                point = self._map.getPointFromPxPosition(pxPosition.x, pxPosition.y),
-                feature = new sGis.feature.Point(point.getCoordinates(), {crs: self._map.crs, symbol: self._prototype.symbol, style: self._prototype.style}),
-                activeLayer = self.activeLayer;
+                point = self._map.getPointFromPxPosition(pxPosition.x, pxPosition.y);
 
-            activeLayer.add(feature);
-            self._map.redrawLayer(activeLayer);
+            self.startNewFeature(point);
 
-            self.fire('drawingFinish', {geom: feature});
             sGisEvent.stopPropagation();
             sGisEvent.preventDefault();
         };
     };
 
     sGis.controls.Point.prototype = new sGis.Control({
+        startNewFeature: function(point) {
+            var feature = new sGis.feature.Point(point.getCoordinates(), {crs: this._map.crs, symbol: this._prototype.symbol, style: this._prototype.style});
+            var activeLayer = this.activeLayer;
+
+            activeLayer.add(feature);
+            this._map.redrawLayer(activeLayer);
+            this.fire('drawingFinish', {geom: feature});
+
+            return feature;
+        },
+
         activate: function() {
             if (!this._isActive) {
                 if (!this._activeLayer) {

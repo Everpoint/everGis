@@ -38,7 +38,7 @@
                         }
                         self.fire('pointAdd');
                     } else {
-                        self._activeFeature = createFeature(self.activeLayer, point, {style: self._prototype.style, symbol: self._prototype.symbol, crs: self._map.crs}, self._featureClass);
+                        self.startNewFeature(point);
                         self._map.addListener('mousemove.sGis-polygon', self._mousemoveHandler);
                         self._map.addListener('dblclick.sGis-polygon', self._dblclickHandler);
 
@@ -75,6 +75,12 @@
                 sGisEvent.preventDefault();
                 self._dblClickTime = Date.now();
             };
+        },
+
+        startNewFeature: function(point) {
+            this.activate();
+            this.cancelDrawing();
+            return this._activeFeature = createFeature(this.activeLayer, point, {style: this._prototype.style, symbol: this._prototype.symbol, crs: this._map.crs}, this._featureClass);
         },
 
         _setActiveStatus: function(isActive) {
@@ -138,7 +144,9 @@
                 this._map.off('click.sGis-polygon');
                 this._isActive = false;
             }
-        }
+        },
+
+
     });
 
     Object.defineProperties(sGis.controls.Poly.prototype, {
