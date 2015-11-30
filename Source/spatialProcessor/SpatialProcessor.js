@@ -324,6 +324,8 @@
                     }
 
                     if (settings.preferredBaseMap) self._setPreferredBaseMap(settings.preferredBaseMap);
+                    self._customUserSettings = settings.customUserSettings;
+
                     self.loadedSettings = settings;
                     self.fire('settingsLoaded');
                 }
@@ -359,8 +361,17 @@
             this.api.saveUserSettings(settings, options);
         },
 
+        saveUserSetting: function(key, value) {
+            if (!this._customUserSettings) this._customUserSettings = {};
+            this._customUserSettings[key] = value;
+        },
+
+        getUserSetting: function(key) {
+            return this._customUserSettings && this._customUserSettings[key];
+        },
+
         _serializeUserSettings: function() {
-            var settings = {};
+            var settings = {customUserSettings: this._customUserSettings};
             this._serializeLayerSettings(settings);
             this._serializePositionSettings(settings);
             this._serializeBaseMapSettings(settings);
