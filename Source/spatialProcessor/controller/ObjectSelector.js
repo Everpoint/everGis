@@ -97,6 +97,18 @@
             });
         },
 
+        highlight: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'highlight2',
+                    dataParameters: 'ids=' + JSON.stringify(properties.ids) + '&reset=' + properties.reset,
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
+        },
+
         activate: function() {
             if (this._layer && !this._layer.map) this._layer.map = this._map;
         },
