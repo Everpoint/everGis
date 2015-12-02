@@ -316,7 +316,7 @@
                                 if (description.active === false) service.mapItem.deactivate();
                                 if (description.alias) service.mapItem.name = description.alias;
 
-                                if (description.childrenSettings) service.once('initialize', self._loadChildrenSettings.bind(this, service.mapItem, description));
+                                if (description.childrenSettings) service.once('initialize', self._loadChildrenSettings.bind(self, service.mapItem, description));
                                 if (description.resolutionLimits) service.mapItem.resolutionLimits = description.resolutionLimits;
                                 if (description.data) service.mapItem.data = description.data;
                             }
@@ -339,8 +339,13 @@
                     child.attributeSettings = settings.childrenSettings[child.layerId].attributeSettings;
                     if (settings.childrenSettings[child.layerId].resolutionLimits) child.resolutionLimits = settings.childrenSettings[child.layerId].resolutionLimits;
                     if (settings.childrenSettings[child.layerId].data) child.data = settings.childrenSettings[child.layerId].data;
+                    if (settings.childrenSettings[child.layerId].definitionQuery) {
+                        child.definitionQuery = settings.childrenSettings[child.layerId].definitionQuery;
+                        var controller = this.controller.definitionQuery || this.addController('definitionQuery');
+                        controller.setDefinitionQuery({storageId: child.storageId, definitionQuery: child.definitionQuery});
+                    }
                 }
-            });
+            }, this);
         },
 
         _setPreferredBaseMap: function(name) {
@@ -398,7 +403,7 @@
 
                     var children = mapItem.getChildren(true);
                     children.forEach(function(child) {
-                        setting.childrenSettings[child.layerId] = { attributeSettings: child.attributeSettings, resolutionLimits: child.resolutionLimits, data: child.data };
+                        setting.childrenSettings[child.layerId] = { attributeSettings: child.attributeSettings, resolutionLimits: child.resolutionLimits, data: child.data, definitionQuery: child.definitionQuery };
                     });
 
                     settings.layers.push(setting);
