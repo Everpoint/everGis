@@ -39,8 +39,6 @@
                         self.fire('pointAdd');
                     } else {
                         self.startNewFeature(point);
-                        self._map.addListener('mousemove.sGis-polygon', self._mousemoveHandler);
-                        self._map.addListener('dblclick.sGis-polygon', self._dblclickHandler);
 
                         self._activeFeature.prohibitEvent('click');
 
@@ -80,7 +78,13 @@
         startNewFeature: function(point) {
             this.activate();
             this.cancelDrawing();
-            return this._activeFeature = createFeature(this.activeLayer, point, {style: this._prototype.style, symbol: this._prototype.symbol, crs: this._map.crs}, this._featureClass);
+            this._activeFeature = createFeature(this.activeLayer, point, {style: this._prototype.style, symbol: this._prototype.symbol, crs: this._map.crs}, this._featureClass);
+
+            this._map.addListener('mousemove.sGis-polygon', this._mousemoveHandler);
+            this._map.addListener('dblclick.sGis-polygon', this._dblclickHandler);
+
+            return this._activeFeature;
+
         },
 
         _setActiveStatus: function(isActive) {
