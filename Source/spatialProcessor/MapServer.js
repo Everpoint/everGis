@@ -192,7 +192,7 @@
             set: function(map) {
                 if (!(map instanceof sGis.Map) && map !== null) utils.error('sGis.Map instance is expected but got ' + map + ' instead');
                 if (this._layer) {
-                    if (map === null || this._map && this._map !== map) this._map.removeLayer(this._layer);
+                    if (this._map && this._map !== map) this._map.removeLayer(this._layer);
                     if (map !== null) map.addLayer(this._layer);
                 }
                 this._map = map;

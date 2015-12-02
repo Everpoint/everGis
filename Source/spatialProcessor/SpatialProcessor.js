@@ -438,7 +438,7 @@
         var mapItems = sp._rootMapItem.getChildren(true);
 
         for (var i = 0, len = mapItems.length; i < len; i++) {
-            if (mapItems[i].layer) {
+            if (mapItems[i].layer && !mapItems[i].layer.error) {
                 if (!mapItems[i].layer.initialized || mapItems[i].layer.layer && mapItems[i].layer.layer.crs) {
                     var baseService = mapItems[i].layer;
                     sp._baseService = baseService;
@@ -453,7 +453,7 @@
             if (baseService.initialized) {
                 addServiceToMap(sp, mapItem);
             } else {
-                baseService.addListener('initialize.init-' + mapItem.id, function() {
+                baseService.addListener('initialize error.init-' + mapItem.id, function() {
                     baseService.removeListener('initialize.init-' + mapItem.id);
                     initializeService(sp, mapItem);
                 });
