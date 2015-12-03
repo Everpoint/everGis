@@ -83,6 +83,9 @@
         a: {
             get: function() {
                 return this._channels.a;
+            },
+            set: function(v) {
+                this._channels.a = Math.max(0, Math.min(255, Math.round(v)));
             }
         },
         channels: {
