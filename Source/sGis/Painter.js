@@ -50,7 +50,7 @@
 
         _container: undefined,
         _oldContainer: undefined,
-        _useTranslate3d: sGis.browser.indexOf('Chrome') !== 0 && sGis.browser !== 'MSIE 9' && sGis.browser.indexOf('Opera') !== 0,
+        _useTranslate3d: true, //sGis.browser.indexOf('Chrome') !== 0 && sGis.browser !== 'MSIE 9' && sGis.browser.indexOf('Opera') !== 0,
         _updateAllowed: true,
         _listensFor: ['click', 'dblclick', 'dragStart', 'mousemove'],
 
@@ -221,8 +221,8 @@
                 var sx = utils.normolize(nodeResolution / containerResolution);
                 var sy = sx;
 
-                var tx = utils.normolize((nodeBbox.p[0].x - containerBbox.p[0].x) / containerResolution);
-                var ty = utils.normolize((-nodeBbox.p[1].y + containerBbox.p[1].y) / containerResolution);
+                var tx = Math.round(utils.normolize((nodeBbox.p[0].x - containerBbox.p[0].x) / containerResolution));
+                var ty = Math.round(utils.normolize((-nodeBbox.p[1].y + containerBbox.p[1].y) / containerResolution));
             } else {
                 var sx = 1,
                     sy = 1;
