@@ -195,7 +195,7 @@
 
         cancelNotificationRequest: function() {
             this._aborted = true;
-            this._notificationRequestObject.abort();
+            if (this._notificationRequestObject) this._notificationRequestObject.abort();
         },
 
         getMapItemById: function(id) {
