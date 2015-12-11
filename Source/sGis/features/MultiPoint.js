@@ -15,7 +15,7 @@
             var projected = [];
             this._coordinates.forEach(function(point) {
                 projected.push(new sGis.Point(point[0], point[1], this._crs).projectTo(crs).coordinates);
-            });
+            }, this);
 
             return new MultiPoint(projected, {symbol: this.symbol, crs: crs});
         },
@@ -37,7 +37,7 @@
                 return [];
             } else {
                 var rendered = [];
-                this._coordinates.forEach(function(point) { rendered = rendered.concat(new sGis.feature.Point(point, {crs: this._crs, symbol: this._symbol}).render(resolution, crs))}, this);
+                this._coordinates.forEach(function(point) { rendered = rendered.concat(new sGis.feature.Point(point, {crs: this._crs, symbol: this.symbol}).render(resolution, crs))}, this);
 
                 return rendered;
             }

@@ -371,7 +371,7 @@
         _dragStartHandler: function(sGisEvent, feature) {
             if (this.ignoreEvents || !(this.allowVertexEditing || this.allowDragging)) return;
 
-            if (feature instanceof sGis.feature.Polyline) {
+            if (feature instanceof sGis.feature.Polyline || feature instanceof sGis.feature.MultiPoint) {
                 this._currentDragInfo = this._getAdjustedEventData(sGisEvent, feature);
                 if (!this.allowVertexEditing && (this._currentDragInfo.type === 'line' || this._currentDragInfo.type === 'vertex')) {
                     this._currentDragInfo.type = 'bulk';
@@ -387,6 +387,8 @@
                 this._pointDragHandler(sGisEvent, feature);
             } else if (feature instanceof sGis.feature.Polyline) {
                 this._polylineDragHandler(sGisEvent, feature);
+            } else if (feature instanceof sGis.feature.MultiPoint) {
+                this._multipointDragHandler(sGisEvent, feature);
             }
         },
 
@@ -460,11 +462,11 @@
                 var index;
                 var snappingDistance = this.snappingDistance * this._map.resolution;
                 for (var i = 1; i < coordinates[ring].length; i++) {
-                    var distance = sGis.geotools.pointToLineDistance(sGisEvent.point.coordinates, [coordinates[ring][i-1], coordinates[ring][i]]);
+                    var distance = sGis.geotools.pointToLineDistance(sGisEvent.point.coordinates, [coordinates[ring][i - 1], coordinates[ring][i]]);
                     if (distance < snappingDistance) {
                         for (var j = 0; j < 2; j++) {
-                            if (Math.abs(coordinates[ring][i-1+j][0] - sGisEvent.point.x) < snappingDistance && Math.abs(coordinates[ring][i-1+j][1] - sGisEvent.point.y) < snappingDistance) {
-                                snappingPoint = coordinates[ring][i-1+j];
+                            if (Math.abs(coordinates[ring][i - 1 + j][0] - sGisEvent.point.x) < snappingDistance && Math.abs(coordinates[ring][i - 1 + j][1] - sGisEvent.point.y) < snappingDistance) {
+                                snappingPoint = coordinates[ring][i - 1 + j];
                                 snappingType = 'vertex';
                                 index = i - 1 + j;
                                 break;
@@ -472,13 +474,23 @@
                         }
 
                         if (!snappingPoint) {
-                            snappingPoint = sGis.geotools.pointToLineProjection(sGisEvent.point.coordinates, [coordinates[ring][i-1], coordinates[ring][i]]);
+                            snappingPoint = sGis.geotools.pointToLineProjection(sGisEvent.point.coordinates, [coordinates[ring][i - 1], coordinates[ring][i]]);
                             snappingType = 'line';
                             index = i - 1;
                         }
                         break;
                     }
                 }
+            } else if (feature instanceof sGis.feature.MultiPoint) {
+                var minDistanceSquare = Number.MAX_VALUE;
+                feature.coordinates.forEach(function(point, i) {
+                    var distanceSquare = Math.pow((point[0] - sGisEvent.point.x), 2) + Math.pow((point[1] - sGisEvent.point.y), 2);
+                    if (distanceSquare < minDistanceSquare) {
+                        minDistanceSquare = distanceSquare;
+                        index = i;
+                    }
+                });
+                snappingType = 'bulk';
             } else {
                 snappingType = 'bulk';
             }
@@ -534,6 +546,28 @@
             } else {
                 projected.x = sGisEvent.point.x;
                 projected.y = sGisEvent.point.y;
+            }
+
+            feature.coordinates = projected.projectTo(feature.crs).coordinates;
+            this._map.redrawLayer(this._activeLayer);
+
+            this.fire('featureMove', {feature: feature});
+        },
+
+        _multipointDragHandler: function(sGisEvent, feature) {
+            if (!this.allowDragging) return;
+
+            var projected = feature.projectTo(this._map.crs);
+            var index = this._currentDragInfo.index;
+            if (!sGisEvent.browserEvent.altKey) {
+                var snappingPoint = this._getSnappingPoint(sGisEvent.point, this._pointSnappingFunctions, [feature]);
+            }
+            if (snappingPoint) {
+                projected.coordinates[index][0] = snappingPoint[0];
+                projected.coordinates[index][1] = snappingPoint[1];
+            } else {
+                projected.coordinates[index][0] = sGisEvent.point.x;
+                projected.coordinates[index][1] = sGisEvent.point.y;
             }
 
             feature.coordinates = projected.projectTo(feature.crs).coordinates;
