@@ -135,5 +135,29 @@ $(function() {
                 expect(sGis.geotools.contains(polygon, [0, -11.001], 1)).toBe(false);
             });
         });
+
+        describe('.getPointFromAngleAndDistance()', function() {
+            it('should return a point with specified parameters', function() {
+                expect(sGis.geotools.getPointFromAngleAndDistance([0,0], 0, 1)).toEqual([1,0]);
+                expect(sGis.geotools.getPointFromAngleAndDistance([5,7], 0, 1)).toEqual([6,7]);
+                expect(sGis.geotools.getPointFromAngleAndDistance([0,0], 0, 7)).toEqual([7,0]);
+                expect(sGis.geotools.getPointFromAngleAndDistance([0,0], 0, -5)).toEqual([-5,0]);
+                expect(sGis.geotools.getPointFromAngleAndDistance([0,0], Math.PI, 1)[0]).toBeCloseTo(-1);
+                expect(sGis.geotools.getPointFromAngleAndDistance([0,0], Math.PI, 1)[1]).toBeCloseTo(0);
+                expect(sGis.geotools.getPointFromAngleAndDistance([0,0], Math.PI / 2, 1)[0]).toBeCloseTo(0);
+                expect(sGis.geotools.getPointFromAngleAndDistance([0,0], Math.PI / 2, 1)[1]).toBeCloseTo(1);
+                expect(sGis.geotools.getPointFromAngleAndDistance([0,0], 0, 0)).toEqual([0,0]);
+                expect(sGis.geotools.getPointFromAngleAndDistance([3,8], Math.PI * 2, 0)).toEqual([3,8]);
+            });
+        });
+
+        describe('.getLineAngle()', function() {
+            it('should return the line angle', function() {
+                expect(sGis.geotools.getLineAngle([[0,0],[1,0]])).toBe(0);
+                expect(sGis.geotools.getLineAngle([[0,0],[0,1]])).toBeCloseTo(Math.PI / 2);
+                expect(sGis.geotools.getLineAngle([[1,0],[0,1]])).toBeCloseTo(Math.PI * 3 / 4);
+                expect(sGis.geotools.getLineAngle([[0,1],[1,0]])).toBeCloseTo(-Math.PI / 4);
+            });
+        });
     });
 });
