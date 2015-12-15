@@ -5,10 +5,14 @@
     sGis.mapItem.ClientLayer = function(controller, properties) {
         this.controller = controller;
         this.__initialize(properties);
+
+        this.controller.mapServer.on('legendUpdate', this._onLegendUpdate.bind(this))
     };
 
     sGis.mapItem.ClientLayer.prototype = new sGis.MapItem({
-
+        _onLegendUpdate: function() {
+            this.fire('legendUpdate');
+        }
     });
 
     Object.defineProperties(sGis.mapItem.ClientLayer.prototype, {
@@ -25,6 +29,12 @@
         mapServer: {
             get: function() {
                 return this._controller.mapServer;
+            }
+        },
+
+        legend: {
+            get: function() {
+                return this._controller.mapServer.legend && this._controller.mapServer.legend[0] && this._controller.mapServer.legend[0].legend
             }
         },
 

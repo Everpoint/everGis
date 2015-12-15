@@ -61,10 +61,11 @@
                         } else {
                             self.__createLayer();
                             self.__requestLegend();
-                            self._serverConnector.addNotificationListner(self._serviceInfo.fullName, function() {
+                            self._serverConnector.addNotificationListner('dynamic layer', self._serviceInfo.fullName, function() {
                                 self._layer.forceUpdate();
                                 if (self._map) self._map.redrawLayer(self._layer);
                             });
+                            self._serverConnector.addNotificationListner('symbols', self._serviceInfo.fullName, self.__requestLegend.bind(self));
                             self._initialized = true;
                             self.fire('initialize');
                         }
@@ -125,7 +126,7 @@
 
         __requestLegend: function() {
             var self = this;
-            if (/\blegend\b/.exec(this._serviceInfo.capabilities)) {
+            if (this._serviceInfo && /\blegend\b/.exec(this._serviceInfo.capabilities)) {
                 this._xhr = utils.ajax({
                     url: this._url + 'MapServer/legend?f=json&_sb=' + this._serverConnector.sessionId,
                     cache: false,
@@ -150,7 +151,7 @@
             if (this._xhr) this._xhr.abort();
             this.map = null;
             if (this._serviceInfo) {
-                this._serverConnector.removeNotificationListner(this._serviceInfo.fullName);
+                this._serverConnector.removeNotificationListner('dynamic layer', this._serviceInfo.fullName);
             }
         }
     };

@@ -21,12 +21,13 @@
 
         apiLoginUrl: '%sp%Strategis.JsClient/ApiLogin.aspx',
 
-        addNotificationListner: function(string, callback) {
-            this._notificationListners[string] = callback;
+        addNotificationListner: function(tag, string, callback) {
+            if (!this._notificationListners[tag]) this._notificationListners[tag] = {};
+            this._notificationListners[tag][string] = callback;
         },
 
-        removeNotificationListner: function(string) {
-            if (this._notificationListners[string]) delete this._notificationListners[string];
+        removeNotificationListner: function(tag, string) {
+            if (this._notificationListners[tag] && this._notificationListners[tag][string]) delete this._notificationListners[string];
         },
 
         addObjectSelectorListener: function(f) {
@@ -78,31 +79,6 @@
                 escapePrintMethod(self);
             }
         },
-
-//    initializeSession: function() {
-//        var self = this;
-//        utils.ajax({
-//            url: this._url + '_startSession?f=json',
-//            success: function(data, textStatus) {
-//                if (data === '') {
-//                    utils.message('Could not get session ID');
-//                } else {
-//                    var id = /"(.*)"/.exec(data)[1];
-//                    self._sessionId = encodeURIComponent(id);
-//                    self.synchronize();
-//                    self.requestNotifications();
-//                    
-//                    escapePrintMethod(self);
-//                    
-//                    self.fire('sessionInitialized');
-//                }
-//            },
-//            
-//            error: function() {
-//                utils.message('Could not get session ID');
-//            }
-//        });
-//    },
 
         synchronize: function() {
             var self = this;
@@ -264,8 +240,8 @@
 
     sGis.spatialProcessor.processNotification = {
         'dynamic layer': function(connector, data, type) {
-            if (connector._notificationListners[data]) {
-                connector._notificationListners[data]();
+            if (connector._notificationListners['dynamic layer'][data]) {
+                connector._notificationListners['dynamic layer'][data]();
             }
         },
 
@@ -278,9 +254,16 @@
                 connector._latestOperationNotification = response;
             }
         },
+
         'trolling': function(connector, data, type) {
             for (var i = 0; i < connector._objectSelectorListeners.length; i++) {
                 connector._objectSelectorListeners[i](data);
+            }
+        },
+
+        'symbols': function(connector, data, type) {
+            if (connector._notificationListners['symbols'][data]) {
+                connector._notificationListners['symbols'][data]();
             }
         }
     };
