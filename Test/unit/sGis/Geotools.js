@@ -159,5 +159,28 @@ $(function() {
                 expect(sGis.geotools.getLineAngle([[0,1],[1,0]])).toBeCloseTo(-Math.PI / 4);
             });
         });
+
+        describe('.isPolygonValid()', function() {
+            it('should return true if the polygon is valid', function() {
+                expect(sGis.geotools.isPolygonValid([[[0,0], [0,10], [10,10], [10,0]]])).toBe(true);
+                expect(sGis.geotools.isPolygonValid([[[0,0], [0,10], [10,0]]])).toBe(true);
+                expect(sGis.geotools.isPolygonValid([[[0,0], [0,10], [10,10], [10,0]], [[1,1], [1,9], [9,9], [9,1]]])).toBe(true);
+                expect(sGis.geotools.isPolygonValid([[[0,0], [0,10], [10,10], [10,0]], [[100,100], [100,900], [900,900], [900,100]]])).toBe(true);
+            });
+
+            it('should return false if the number of edges in one of the polygon rings is less then 3', function() {
+                expect(sGis.geotools.isPolygonValid([[[0,0], [0,10]]])).toBe(false);
+                expect(sGis.geotools.isPolygonValid([[[0,0], [0,10], [10,10], [10,0]], [[1,1], [1,9]]])).toBe(false);
+            });
+
+            it('should return false if one of the rings has self-intersections', function() {
+                expect(sGis.geotools.isPolygonValid([[[0,0], [0,10], [10,0], [10,10]]])).toBe(false);
+                expect(sGis.geotools.isPolygonValid([[[[0,0], [0,10], [10,10], [10,0]], [[1,1], [1,9], [9,1], [9,9]]]])).toBe(false);
+            });
+
+            it('should return false if the rings intersect each other', function() {
+                expect(sGis.geotools.isPolygonValid([[[0,0], [0,10], [10,10], [10,0]], [[1,1], [11,9], [9,1], [9,9]]])).toBe(false);
+            });
+        });
     });
 });

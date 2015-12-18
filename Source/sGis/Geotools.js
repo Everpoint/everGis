@@ -8,7 +8,7 @@
         if (a.crs.from) {
             var p1 = a.projectTo(sGis.CRS.geo),
                 p2 = b.projectTo(sGis.CRS.geo),
-                d = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(toRadians((p2.y - p1.y) / 2)), 2) + Math.cos(toRadians(p1.y)) * Math.cos(toRadians(p2.y)) * Math.pow(Math.sin(toRadians((p2.x - p1.x) / 2)), 2))),
+                d = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(sGis.math.degToRad((p2.y - p1.y) / 2)), 2) + Math.cos(sGis.math.degToRad(p1.y)) * Math.cos(sGis.math.degToRad(p2.y)) * Math.pow(Math.sin(sGis.math.degToRad((p2.x - p1.x) / 2)), 2))),
                 R = 6372795,
                 l = d * R;
         } else {
@@ -17,10 +17,6 @@
 
         return l;
     };
-
-    function toRadians(degree) {
-        return degree * Math.PI / 180;
-    }
 
     sGis.geotools.length = function(geometry, crs) {
         var coord = geometry instanceof sGis.feature.Polyline ? geometry.coordinates : geometry;
@@ -184,6 +180,62 @@
     sGis.geotools.getPointFromAngleAndDistance = function(point, angle, distance) {
         return [point[0] + Math.cos(angle) * distance, point[1] + Math.sin(angle) * distance];
     };
+
+    sGis.geotools.isPolygonValid = function(polygon) {
+        var coordinates = (polygon instanceof sGis.feature.Polygon || polygon instanceof sGis.geom.Polygon) ? polygon.coordinates : polygon;
+        for (var ring = 0; ring < coordinates.length; ring++) {
+            if (coordinates[ring].length <= 2) return false;
+
+            for (var i = 0; i < coordinates[ring].length; i++) {
+                var p1 = coordinates[ring][i];
+                var p2 = coordinates[ring][i + 1] || coordinates[ring][0];
+
+                if (p1[0] == p2[0] && p1[1] === p2[1]) return false;
+
+                if (hasIntersection(coordinates, [p1, p2], [ring, i])) return false;
+            }
+        }
+
+        return true;
+    };
+
+    function hasIntersection(coordinates, line, exc) {
+        for (var ring = 0; ring < coordinates.length; ring++) {
+            for (var i = 0; i < coordinates[ring].length; i++) {
+                if (ring === exc[0] && (Math.abs(i-exc[1]) < 2 || exc[1] === 0 && i === coordinates[ring].length - 1 || i === 0 && exc[1] === coordinates[ring].length - 1)) continue;
+
+                if (intersects([coordinates[ring][i], coordinates[ring][i + 1] || coordinates[ring][0]], line)) return true;
+            }
+        }
+        return false;
+    }
+
+    function intersects(l1, l2) {
+        var o1 = orient(l1[0], l1[1], l2[0]);
+        var o2 = orient(l1[0], l1[1], l2[1]);
+        var o3 = orient(l2[0], l2[1], l1[0]);
+        var o4 = orient(l2[0], l2[1], l1[1]);
+
+        if (o1 !== o2 && o3 !== o4) return true;
+
+        if (o1 === 0 && onSegment(l1[0], l2[0], l1[1])) return true;
+        if (o2 === 0 && onSegment(l1[0], l2[1], l1[1])) return true;
+        if (o3 === 0 && onSegment(l2[1], l1[0], l2[1])) return true;
+        if (o4 === 0 && onSegment(l2[1], l1[1], l2[1])) return true;
+
+        return false;
+    }
+
+    function orient(p, q, r) {
+        var val = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1]);
+        if (Math.abs(val) < 0.000001) return 0;
+        return val > 0 ? 1 : 2;
+    }
+
+    function onSegment(p, q, r) {
+        return (q[0] <= Math.max(p[0], r[0]) && q[0] >= Math.min(p[0], r[0])) &&
+            (q[1] <= Math.max(p[1], r[1]) && q[1] >= Math.min(p[1], r[1]));
+    }
 
     sGis.math = {
         /**
