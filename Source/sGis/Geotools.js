@@ -181,6 +181,11 @@
         return [point[0] + Math.cos(angle) * distance, point[1] + Math.sin(angle) * distance];
     };
 
+    /**
+     * Returns false if polygon has self-intersection, segments of zero length or contours with less then 3 points
+     * @param {sGis.feature.Polygon|sGis.geom.Polygon|[number,number][][]} polygon  - polygon feature or coordinates
+     * @returns {boolean}
+     */
     sGis.geotools.isPolygonValid = function(polygon) {
         var coordinates = (polygon instanceof sGis.feature.Polygon || polygon instanceof sGis.geom.Polygon) ? polygon.coordinates : polygon;
         for (var ring = 0; ring < coordinates.length; ring++) {
