@@ -8,11 +8,23 @@
         this.layerReference = asset.Meta;
         this.name = asset.Name;
 
+        if (asset.OverrideIcon) this._setOverrideIcon(asset.OverrideIcon);
+
         this._asset = asset;
     };
 
     sGis.spatialProcessor.Template.prototype = {
+        _setOverrideIcon: function(data) {
+            this._overrideIcon = 'data:image/png;base64,' + data;
+        },
+
         getImage: function(w, h) {
+            if (this._overrideIcon) {
+                var image = new Image();
+                image.src = this._overrideIcon;
+                return image;
+            }
+
             w = w || 30;
             h = h || 30;
             if (this.symbol) {
