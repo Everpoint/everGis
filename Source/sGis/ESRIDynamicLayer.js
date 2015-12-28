@@ -20,7 +20,7 @@
             var imgWidth = Math.round((bbox.p[1].x - bbox.p[0].x) / resolution),
                 imgHeight = Math.round((bbox.p[1].y - bbox.p[0].y) / resolution),
                 layersString = getLayersString(this.getDisplayedLayers()),
-                sr = encodeURIComponent(bbox.p[0].crs.ESRIcode || bbox.p[0].crs.description),
+                sr = encodeURIComponent(bbox.p[0].crs.ESRIcode || JSON.stringify(bbox.p[0].crs.description)),
                 layerDefs = this._layerDefs ? '&layerDefs=' + encodeURIComponent(this._layerDefs) + '&' : '',
 
                 url = this._source + 'export?' +

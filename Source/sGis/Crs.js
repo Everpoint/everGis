@@ -18,7 +18,7 @@
         },
 
         equals: function(crs) {
-            return this === crs || this.description && crs.description && (this.description === crs.description || this.description.wkt === crs.description.wkt);
+            return this === crs || this.description && crs.description && (this.description === crs.description || this.description.wkt === crs.description.wkt || this.description.wkid === crs.description.wkid);
         }
     };
 
