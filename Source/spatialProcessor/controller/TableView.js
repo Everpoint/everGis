@@ -4,7 +4,7 @@
         this._map = options && options.map;
 
         this.__initialize(serverConnector, {}, function() {
-            this._layer = new sGis.spatialProcessor.MapServer('VisualObjectsRendering/' + this._mapServiceId, this._spatialProcessor, { map: this._map, display: this._display });
+            this._layer = new sGis.spatialProcessor.MapServer('VisualObjectsRendering/' + this._mapServiceId, this._spatialProcessor, { map: this._map, display: this._display, queryLegend: false });
             this.initialized = true;
             this.fire('initialize');
         });

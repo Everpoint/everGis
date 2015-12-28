@@ -4,7 +4,7 @@
 
     sGis.spatialProcessor.controller.Stats = function(spatialProcessor, options) {
         this.__initialize(spatialProcessor, {sync: true}, function() {
-            this._layer = new sGis.spatialProcessor.MapServer('VisualObjectsRendering/' + this._mapServiceId, this._spatialProcessor, {map: options.map, display: this._display});
+            this._layer = new sGis.spatialProcessor.MapServer('VisualObjectsRendering/' + this._mapServiceId, this._spatialProcessor, {map: options.map, display: this._display, queryLegend: false});
             this.initialized = true;
             this.fire('initialize');
         });

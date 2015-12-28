@@ -11,6 +11,7 @@
         _opacity: 1,
         _display: true,
         _activeLayers: null,
+        _queryLegend: true,
 
         __initialize: function(name, serverConnector, options) {
             var self = this;
@@ -60,12 +61,12 @@
                             });
                         } else {
                             self.__createLayer();
-                            self.__requestLegend();
+                            if (self._queryLegend) self.__requestLegend();
                             self._serverConnector.addNotificationListner('dynamic layer', self._serviceInfo.fullName, function() {
                                 self._layer.forceUpdate();
                                 if (self._map) self._map.redrawLayer(self._layer);
                             });
-                            self._serverConnector.addNotificationListner('symbols', self._serviceInfo.fullName, self.__requestLegend.bind(self));
+                            if (self._queryLegend) self._serverConnector.addNotificationListner('symbols', self._serviceInfo.fullName, self.__requestLegend.bind(self));
                             self._initialized = true;
                             self.fire('initialize');
                         }
@@ -328,6 +329,15 @@
         clientLayerController: {
             get: function() {
                 return this._clientLayerController;
+            }
+        },
+
+        queryLegend: {
+            get: function() {
+                return this._queryLegend;
+            },
+            set: function(bool) {
+                this._queryLegend = bool;
             }
         }
     });
