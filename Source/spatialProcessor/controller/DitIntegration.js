@@ -19,10 +19,14 @@
         _type: 'integrationLayer',
 
         loadLayerData: function(properties) {
-            var self = this;
             this.__operation(function() {
-                properties.operation = 'loadLayerData';
-                return properties;
+                return {
+                    operation: 'loadLayerData',
+                    dataParameters: 'layerId=' + encodeURIComponent(properties.layerId),
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
             });
         },
 

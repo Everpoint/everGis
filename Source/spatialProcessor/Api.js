@@ -200,6 +200,14 @@
                     if (options.success) options.success(data);
                 }
             }
+        },
+
+        setStorageLabels: function(storageId, description) {
+            this._operation('storage/meta/setLabeling', {storageId: storageId}, JSON.stringify(description));
+        },
+
+        setStorageMeta: function(type, storageId, description) {
+            this._operation('storage/meta/set', {storageId: storageId, type: type}, JSON.stringify(description));
         }
     });
 
