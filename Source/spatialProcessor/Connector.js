@@ -240,7 +240,7 @@
 
     sGis.spatialProcessor.processNotification = {
         'dynamic layer': function(connector, data, type) {
-            if (connector._notificationListners['dynamic layer'][data]) {
+            if (connector._notificationListners['dynamic layer'] && connector._notificationListners['dynamic layer'][data]) {
                 connector._notificationListners['dynamic layer'][data]();
             }
         },
@@ -262,7 +262,7 @@
         },
 
         'symbols': function(connector, data, type) {
-            if (connector._notificationListners['symbols'][data]) {
+            if (connector._notificationListners['symbols'] && connector._notificationListners['symbols'][data]) {
                 connector._notificationListners['symbols'][data]();
             }
         }

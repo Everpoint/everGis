@@ -91,7 +91,7 @@ sGis.spatialProcessor.Controller.prototype = {
             if (this._spatialProcessor.synchronized) {
                 requestOperation();
             } else {
-                this._spatialProcessor.addListener('synchronize.' + this.id, requestOperation);
+                this._spatialProcessor.once('synchronize', requestOperation);
             }
         } else {
             this._operationQueue.push(f);

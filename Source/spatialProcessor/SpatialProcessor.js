@@ -561,7 +561,8 @@
         'definitionQuery': sGis.spatialProcessor.controller.DefinitionQuery,
         'tableView': sGis.spatialProcessor.controller.TableView,
         'objectSelector': sGis.spatialProcessor.controller.ObjectSelector,
-        'stats': sGis.spatialProcessor.controller.Stats
+        'stats': sGis.spatialProcessor.controller.Stats,
+        'routing': sGis.spatialProcessor.controller.Routing
     };
 
 })();
