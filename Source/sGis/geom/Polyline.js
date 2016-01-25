@@ -10,6 +10,7 @@
     sGis.geom.Polyline.prototype = {
         _color: 'black',
         _width: 1,
+        ignoreEvents: false,
 
         addPoint: function(point, ring) {
             if (!isValidPoint(point)) utils.error('Array of 2 coordinates is expected but got ' + point + ' instead');

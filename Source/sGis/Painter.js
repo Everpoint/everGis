@@ -683,6 +683,8 @@
                         var objects = this._layerData[layers[i].id].displayedObjects[displayedFeatures[j].id];
                         if (objects) {
                             for (var k = objects.length - 1; k >= 0; k--) {
+                                if (objects[k].ignoreEvents) continue;
+
                                 var intersectionType = contains(objects[k], position);
 
                                 if (intersectionType) {

@@ -10,6 +10,7 @@
     sGis.geom.Point.prototype = {
         _color: 'black',
         _size: 5,
+        ignoreEvents: false,
 
         getCoordinates: function() {
             return [].concat(this._coord);

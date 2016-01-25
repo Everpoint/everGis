@@ -11,6 +11,7 @@
         _strokeColor: 'black',
         _strokeWidth: 1,
         _fillColor: 'transparent',
+        ignoreEvents: false,
 
         contains: function(position) {
             var dx = position.x - this._center[0],
