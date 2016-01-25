@@ -423,6 +423,21 @@
             if (this._activeBaseMapItem) {
                 settings.preferredBaseMap = this._activeBaseMapItem.mapServer.serviceName;
             }
+        },
+
+        loadAttributeDefinitions: function(mapItem, callback) {
+            this.dataAccessService.getScalarValue({
+                storageId: mapItem.storageId,
+                query: 'union({ad})',
+                success: function(data) {
+                    mapItem.attributeDefinitions = data.content[0];
+                    mapItem.fire('attributeDefinitionsUpdate');
+                    if (callback) callback();
+                },
+                error: function() {
+                    if (callback) callback();
+                }
+            });
         }
     };
 

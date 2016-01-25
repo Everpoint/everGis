@@ -98,6 +98,30 @@ sGis.spatialProcessor.DataAccessService.prototype = {
                 success: properties.success
             };
         });
+    },
+
+    subtractStorage: function(properties) {
+        this.__operation(function() {
+            return {
+                operation: 'storageDiff',
+                dataParameters: 'a=' + properties.source + '&b=' + properties.deduction + '&target=' + properties.target,
+                requested: properties.requested,
+                error: properties.error,
+                success: properties.success
+            };
+        });
+    },
+
+    clearStorage: function(properties) {
+        this.__operation(function() {
+            return {
+                operation: 'clear',
+                dataParameters: 'id=' + properties.storageId,
+                requested: properties.requested,
+                error: properties.error,
+                success: properties.success
+            };
+        });
     }
 };
 
