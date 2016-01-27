@@ -240,6 +240,12 @@
             get: function() {
                 return this._layer.serviceInfo.meta && this._layer.serviceInfo.meta.Type;
             }
+        },
+
+        isTileService: {
+            get: function() {
+                return this.mapServer.layer instanceof sGis.TileLayer;
+            }
         }
     });
 

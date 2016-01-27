@@ -203,7 +203,7 @@
         },
 
         setStorageLabels: function(storageId, description) {
-            this._operation('storage/meta/setLabeling', {storageId: storageId}, JSON.stringify(description));
+            this.setStorageMeta('labeling', storageId, description);
         },
 
         setStorageMeta: function(type, storageId, description) {
