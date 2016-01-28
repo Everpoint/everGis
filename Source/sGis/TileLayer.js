@@ -62,8 +62,9 @@
             if (!this._display || bbox.p[0].crs !== this.crs && (!bbox.p[0].crs.from || !this.crs.from)) return [];
             if (this.resolutionLimits[0] >= 0 && resolution < this.resolutionLimits[0] || this.resolutionLimits[1] > 0 && resolution > this.resolutionLimits[1]) return [];
 
-            var scale = getScaleLevel(this, resolution),
-                baseBbox = {
+            var scale = getScaleLevel(this, resolution);
+            if (scale < 0) return [];
+            var baseBbox = {
                     minX: this._tileScheme.origin.x,
                     maxY: this._tileScheme.origin.y,
                     maxX: this._tileScheme.origin.x + this._tileScheme.tileWidth * this._tileScheme.matrix[0].resolution,
@@ -211,8 +212,14 @@
 
     function getScaleLevel(layer, resolution) {
         for (var i in layer._tileScheme.matrix) {
-            if (resolution > layer._tileScheme.matrix[i].resolution && !utils.softEquals(resolution, layer._tileScheme.matrix[i].resolution)) return i === "0" ? 0 : i - 1;
+            if (resolution > layer._tileScheme.matrix[i].resolution && !utils.softEquals(resolution, layer._tileScheme.matrix[i].resolution)) {
+                if (i == 0 && resolution / layer._tileScheme.matrix[0].resolution > 2) return -1;
+                return i === "0" ? 0 : i - 1;
+            }
         }
+
+        if (i == 0 && layer._tileScheme.matrix[0].resolution / resolution > 2) return -1;
+
         return i;
     }
 
