@@ -73,7 +73,7 @@
             var tiles = this._tiles,
                 layerCrs = this.crs,
                 features = [],
-                scaleAdj = 2 << (scale - 1);
+                scaleAdj = bbox.p[0].crs.from ? Math.round(standardTileScheme.matrix[0].resolution / this._tileScheme.matrix[scale].resolution) : 2 << (scale - 1);
 
             bbox = bbox.projectTo(layerCrs);
 
