@@ -53,8 +53,6 @@
             return url.replace('{x}', xIndex).replace('{y}', yIndex).replace('{z}', scale);
         },
 
-
-
         getFeatures: function(bbox, resolution) {
             if (!(bbox instanceof sGis.Bbox)) utils.error('sGis.Bbox instance is expected but got ' + bbox + ' instead');
             if (!resolution) utils.error('Obligatory parameter resolution is omitted');
