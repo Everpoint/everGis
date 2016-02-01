@@ -1,14 +1,19 @@
 (function() {
 
-    var Api = function(connector) {
+    var Api = function(connector, adminUrl) {
         this._connector = connector;
         this._url = connector.url + 'api/';
+        this.adminUrl = adminUrl || connector.url + 'adminUrl';
 
         this._frame = document.createElement('iframe');
         this._frame.style.display = 'none';
         this._frame.id = 'sGis-downloadFrame';
         document.body.appendChild(this._frame);
     };
+
+    sGis.utils.proto.setProperties(Api.prototype, {
+        adminUrl: null
+    });
 
     sGis.utils.proto.setMethods(Api.prototype, {
         downloadBinary: function(id, name) {
@@ -128,17 +133,18 @@
             this._frame.src = url;
         },
 
-        _operation: function(name, parameters, data) {
+        _operation: function(name, parameters, data, admin) {
             utils.ajax({
-                url: this._getOperationUrl(name, parameters),
+                url: this._getOperationUrl(name, parameters, admin),
                 type: data ? 'POST' : 'GET',
                 data: data,
                 success: parameters.success,
-                error: parameters.error
+                error: parameters.error,
+                contentType: admin ? 'application/json' : ''
             });
         },
 
-        _getOperationUrl: function(name, parameters) {
+        _getOperationUrl: function(name, parameters, admin) {
             var textParam = '';
             var keys = Object.keys(parameters);
             for (var i = 0; i < keys.length; i++) {
@@ -154,7 +160,7 @@
 
             textParam = textParam.substr(1);
 
-            return this._url + name + '?' + textParam + '&_sb' + (this._connector.sessionId ? '&_sb=' + this._connector.sessionId : '');
+            return (admin ? this.adminUrl : this._url) + name + '?' + textParam + '&_sb' + (this._connector.sessionId ? '&_sb=' + this._connector.sessionId : '');
         },
 
         symbolize: function(options) {
@@ -208,6 +214,22 @@
 
         setStorageMeta: function(type, storageId, description) {
             this._operation('storage/meta/set', {storageId: storageId, type: type}, JSON.stringify(description));
+        },
+
+        publishLayer: function(description) {
+            var props = {
+                AttributeDefinition: description.attributeDefinition,
+                Style: description.style,
+                Srid: description.srid,
+                EnableIntegration: description.enableIntegration,
+                IntegrationField: description.integrationField,
+                IntegrationFieldExt: description.integrationFieldExt,
+                Description: description.description,
+                GeometryTypeJson: description.geometryType,
+                Name: description.name
+            };
+
+            this._operation('PostGis/Publish', {success: description.success, error: description.error}, JSON.stringify(props), true);
         }
     });
 

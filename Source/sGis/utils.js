@@ -318,6 +318,9 @@
                 xhr = new XMLHttpRequest();
 
             xhr.open(requestType, properties.url);
+
+            if (properties.contentType) xhr.setRequestHeader('Content-Type', properties.contentType);
+
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {

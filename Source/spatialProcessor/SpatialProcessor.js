@@ -577,7 +577,8 @@
         'tableView': sGis.spatialProcessor.controller.TableView,
         'objectSelector': sGis.spatialProcessor.controller.ObjectSelector,
         'stats': sGis.spatialProcessor.controller.Stats,
-        'routing': sGis.spatialProcessor.controller.Routing
+        'routing': sGis.spatialProcessor.controller.Routing,
+        'importData': sGis.spatialProcessor.controller.ImportData
     };
 
 })();
