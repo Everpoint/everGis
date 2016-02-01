@@ -19,6 +19,7 @@
                 }
 
                 this._map.addListener('click' + this._ns, this._clickHandler.bind(this));
+                this._map.on('dblclick' + this._ns, this._dblClickHandler.bind(this));
                 this._isActive = true;
             }
         },
@@ -41,11 +42,27 @@
         },
 
         _clickHandler: function(sGisEvent) {
-            if (this._activeFeature && !sGisEvent.ctrlKey) {
-                this._addPoint(sGisEvent.point);
-            } else {
-                this.startNewFeature(sGisEvent.point);
-            }
+            var self = this;
+            setTimeout(function() {
+                if (sGisEvent.isCanceled() || self._isDblClick) return;
+                if (self._activeFeature) {
+                    self._addPoint(sGisEvent.point);
+                } else {
+                    self.startNewFeature(sGisEvent.point);
+                }
+            }, 0);
+        },
+
+        _dblClickHandler: function(sGisEvent) {
+            this._isDblClick = true;
+
+            this.activeFeature = null;
+            var self = this;
+            setTimeout(function() {
+                self._isDblClick = false;
+            }, 0);
+
+            sGisEvent.preventDefault();
         },
 
         _addPoint: function(point) {
@@ -73,7 +90,7 @@
 
                 if (this._activeFeature && this._activeFeature !== feature) this.fire('drawingFinish', {geom: this._activeFeature});
 
-                this.activeLayer.add(feature);
+                if (feature) this.activeLayer.add(feature);
                 this._activeFeature = feature;
             }
         }

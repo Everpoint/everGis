@@ -355,8 +355,9 @@
                 this._selectedFeature.addListener('mousemove.' + this._ns, function(sGisEvent) { self._polylineMousemoveHandler(sGisEvent, this); });
                 this._selectedFeature.addListener('mouseout.' + this._ns, function(sGisEvent) { self._polylineMouseoutHandler(sGisEvent, this); });
                 this._selectedFeature.addListener('dblclick.' + this._ns, function(sGisEvent) { self._polylineDblclickHandler(sGisEvent, this); });
+            } else if (this._selectedFeature instanceof sGis.feature.MultiPoint) {
+                this._selectedFeature.addListener('dblclick.' + this._ns, function(sGisEvent) { self._multipointDblclickHandler(sGisEvent, this); })
             }
-
         },
 
         _removeSelectedListeners: function() {
@@ -434,6 +435,26 @@
 
                 this.fire('featurePointRemove', {feature: feature, pointIndex: adjustedEvent.index, ring: adjustedEvent.ring});
             }
+        },
+
+        _multipointDblclickHandler: function(sGisEvent, feature) {
+            if (this.ignoreEvents || !this.allowVertexEditing) return;
+
+            var adjustedEvent = this._getAdjustedEventData(sGisEvent, feature);
+            var coords = feature.coordinates;
+            if (coords.length > 1) {
+                coords.splice(adjustedEvent.index, 1);
+                feature.coordinates = coords;
+                this._saveState();
+                this._map.redrawLayer(this._activeLayer);
+            } else {
+                this.deleteSelected();
+            }
+
+            sGisEvent.stopPropagation();
+            sGisEvent.preventDefault();
+
+            this.fire('featurePointRemove', {feature: feature, pointIndex: adjustedEvent.index});
         },
 
         deleteSelected: function() {

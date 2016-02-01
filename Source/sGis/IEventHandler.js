@@ -56,6 +56,7 @@
             sGisEvent.eventType = types[0];
             sGisEvent.stopPropagation = function() {sGisEvent._cancelPropagation = true;};
             sGisEvent.preventDefault = function() {sGisEvent._cancelDefault = true;};
+            sGisEvent.isCanceled = function() { return sGisEvent._cancelPropagation === true; };
 
             this.forwardEvent(sGisEvent);
         },
