@@ -32,9 +32,10 @@
                         point = self._map.getPointFromPxPosition(pxPosition.x, pxPosition.y);
 
                     if (self._activeFeature) {
-                        self._activeFeature.addPoint(point, self._activeFeature.coordinates.length - 1);
                         if (sGisEvent.ctrlKey) {
                             self.startNewRing();
+                        } else {
+                            self._activeFeature.addPoint(point, self._activeFeature.coordinates.length - 1);
                         }
                         self.fire('pointAdd');
                     } else {
