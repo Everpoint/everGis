@@ -70,6 +70,8 @@
                 }
             }
 
+            if (this._resolutionLimits) this.resolutionLimits = this._resolutionLimits;
+
             this.fire('propertyChange', {property: 'name'});
         },
 
