@@ -25,7 +25,7 @@
         },
 
         deactivate: function() {
-            if (this.isActive) {
+            if (this._isActive) {
                 if (this.activeFeature) {
                     this.cancelDrawing();
                 }
@@ -63,6 +63,7 @@
             }, 0);
 
             sGisEvent.preventDefault();
+            this.deactivate();
         },
 
         _addPoint: function(point) {

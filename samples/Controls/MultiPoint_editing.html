@@ -110,6 +110,22 @@
 
         var control = new sGis.controls.Editor(map, {activeLayer: layer});
         control.activate();
+
+        control.addListner('featureMove', function(res) {
+            console.log('featureMove');
+        });
+        control.addListner('featurePointAdd', function(res) {
+            console.log('featurePointAdd');
+        });
+        control.addListner('featurePointRemove', function(res) {
+            console.log('featurePointRemove');
+        });
+        control.addListner('featurePointChange', function(res) {
+            console.log('featurePointChange');
+        });
+        control.addListner('featureRemove', function(res) {
+            console.log('featureRemove');
+        });
     }
 </script>
 </body>
