@@ -241,7 +241,7 @@
         control._activeFeature = null;
 
         control._map.redrawLayer(control.activeLayer);
-        if (geom) control.fire('drawingFinish', {geom: geom, browserEvent: sGisEvent.browserEvent});
+        if (geom) control.fire('drawingFinish', { geom: geom, browserEvent: sGisEvent && sGisEvent.browserEvent });
     }
 
 })();
