@@ -213,7 +213,11 @@ sGis.spatialProcessor.Controller.prototype = {
                 dataParameters: 'geometry=' + geometryString + '&geometryVersion=2&generatorFile=' + encodeURIComponent(properties.templatePath),
                 requested: properties.requested,
                 error: properties.error,
-                success: properties.success
+                success: properties.deserializeResponse ? properties.success : function(response) { //TODO: this option must be eliminated in the new release of the library, left for compatibility
+                    if (properties.success) {
+                        properties.success(createFeatures(response, properties.crs || properties.object && properties.object.crs || self._map && self._map.crs));
+                    }
+                }
             };
         });
     },
@@ -246,7 +250,7 @@ sGis.spatialProcessor.Controller.prototype = {
         this.__operation(function() {
             return {
                 operation: 'reshape',
-                    dataParameters: dataParameters,
+                dataParameters: dataParameters,
                 requested: properties.requested,
                 error: properties.error,
                 success: properties.success
