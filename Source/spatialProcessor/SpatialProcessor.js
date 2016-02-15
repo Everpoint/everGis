@@ -28,7 +28,7 @@
 
     sGis.SpatialProcessor.prototype = {
         _initialize: function(options) {
-            this.api = new sGis.spatialProcessor.Api(this._connector);
+            this.api = new sGis.spatialProcessor.Api(this._connector, options.adminUrl);
 
             this._initializeDataAccessService();
             if (options.project) this.loadProject(options.project);

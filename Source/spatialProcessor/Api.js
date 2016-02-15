@@ -3,7 +3,7 @@
     var Api = function(connector, adminUrl) {
         this._connector = connector;
         this._url = connector.url + 'api/';
-        this.adminUrl = adminUrl || connector.url + 'adminUrl';
+        this.adminUrl = adminUrl || connector.url + 'Admin/';
 
         this._frame = document.createElement('iframe');
         this._frame.style.display = 'none';
@@ -160,7 +160,7 @@
 
             textParam = textParam.substr(1);
 
-            return (admin ? this.adminUrl : this._url) + name + '?' + textParam + '&_sb' + (this._connector.sessionId ? '&_sb=' + this._connector.sessionId : '');
+            return (admin ? this.adminUrl : this._url) + name + '?' + textParam + (this._connector.sessionId ? '&_sb=' + this._connector.sessionId : '');
         },
 
         symbolize: function(options) {
@@ -226,10 +226,13 @@
                 IntegrationFieldExt: description.integrationFieldExt,
                 Description: description.description,
                 GeometryTypeJson: description.geometryType,
-                Name: description.name
+                Alias: description.alias,
+                Name: description.name,
+                IsShared: description.isShared,
+                Preview: description.preview
             };
 
-            this._operation('PostGis/Publish', {success: description.success, error: description.error}, JSON.stringify(props), true);
+            this._operation('PostGis/PublishData', {success: description.success, error: description.error}, JSON.stringify(props), true);
         }
     });
 
