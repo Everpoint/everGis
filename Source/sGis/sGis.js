@@ -33,6 +33,8 @@ sGis.browser = (function() {
     return M.join(' ');
 })();
 
+sGis.isIE = sGis.browser.search('IE') !== -1;
+
 sGis.isTouch = 'ontouchstart' in document.documentElement;
 sGis.useCanvas = true;
 

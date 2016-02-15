@@ -221,14 +221,14 @@
                 var sx = utils.normolize(nodeResolution / containerResolution);
                 var sy = sx;
 
-                var tx = Math.round(utils.normolize((nodeBbox.p[0].x - containerBbox.p[0].x) / containerResolution));
-                var ty = Math.round(utils.normolize((-nodeBbox.p[1].y + containerBbox.p[1].y) / containerResolution));
+                var tx = this._browserAdj(utils.normolize((nodeBbox.p[0].x - containerBbox.p[0].x) / containerResolution));
+                var ty = this._browserAdj(utils.normolize((-nodeBbox.p[1].y + containerBbox.p[1].y) / containerResolution));
             } else {
                 var sx = 1,
                     sy = 1;
 
-                var tx = Math.round(node.position[0] - containerBbox.p[0].x / containerResolution);
-                var ty = Math.round(node.position[1] + containerBbox.p[1].y / containerResolution);
+                var tx = this._browserAdj(node.position[0] - containerBbox.p[0].x / containerResolution);
+                var ty = this._browserAdj(node.position[1] + containerBbox.p[1].y / containerResolution);
             }
 
             if (this._useTranslate3d) {
@@ -240,6 +240,13 @@
             if (!node.resolution) node.resolution = nodeResolution;
 
             return sx;
+        },
+
+        _browserAdj: function(n) {
+            if (!sGis.isIE) {
+                return Math.round(n);
+            }
+            return n;
         },
 
         _removeOldContainer: function() {
