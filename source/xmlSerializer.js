@@ -47,7 +47,7 @@
             if (attributes.ContentType === 'Visuals') {
                 serialize(node, parsed);
             } else if (attributes.ContentType === 'JSON') {
-                parsed.content = utils.parseXmlJsonNode(node);
+                parsed.content = sGis.utils.parseXmlJsonNode(node);
             } else if (attributes.ContentType === 'Text') {
                 parsed.content = node.innerHTML || node.textContent;
             }
@@ -248,7 +248,7 @@
         Geometry: function(node, parsed, parentObject) {
             if (parsed.geometryType === 'json') {
                 var attributes = getNodeAttributes(node),
-                    jsonData = utils.parseXmlJsonNode(node),
+                    jsonData = sGis.utils.parseXmlJsonNode(node),
                     coordinates = jsonData.type === 'point' ? [jsonData.x, jsonData.y] : jsonData.v;
                 parentObject.geometry = {type: attributes.Type, data: {type: jsonData.type, crs: jsonData.sr, coordinates: coordinates}};
             }
@@ -307,7 +307,7 @@
     sGis.spatialProcessor.serializeGeometryEdit = function(editDescription, attributesOnly, ignoreSymbol) {
         var featureList = [];
         for (var i in editDescription) {
-            if (utils.isArray(editDescription[i]) && i !== 'deleted') featureList = featureList.concat(editDescription[i]);
+            if (sGis.utils.isArray(editDescription[i]) && i !== 'deleted') featureList = featureList.concat(editDescription[i]);
         }
 
         var formatedData = getFormatedData(featureList, attributesOnly);
@@ -379,17 +379,17 @@
 
     function getEditCommandsNode(editDescription, xml, attributesOnly) {
         var node = xml.createElement('EditCommands');
-        if (utils.isArray(editDescription.added)) {
+        if (sGis.utils.isArray(editDescription.added)) {
             for (var i in editDescription.added) {
                 node.appendChild(getAddObjectNode(editDescription.added[i], xml));
             }
         }
-        if (utils.isArray(editDescription.updated)) {
+        if (sGis.utils.isArray(editDescription.updated)) {
             for (var i in editDescription.updated) {
                 node.appendChild(getUpdateObjectNode(editDescription.updated[i], xml, attributesOnly));
             }
         }
-        if (utils.isArray(editDescription.deleted)) {
+        if (sGis.utils.isArray(editDescription.deleted)) {
             for (var i in editDescription.deleted) {
                 node.appendChild(getDeleteObjectNode(editDescription.deleted[i], xml));
             }
@@ -606,7 +606,7 @@
         var node = xml.createElement('VisualDefinition');
         setNodeAttributes(node, {
             Key: key,
-            Id: utils.getGuid()
+            Id: sGis.utils.getGuid()
         });
 
         return node;

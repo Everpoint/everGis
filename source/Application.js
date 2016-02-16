@@ -65,7 +65,7 @@
         },
 
         removeMapServer: function(mapServer) {
-            if (!(mapServer instanceof sGis.spatialProcessor.MapServer)) utils.error('sGis.spatialProcessor instance is expected but got ' + mapServer + ' instead');
+            if (!(mapServer instanceof sGis.spatialProcessor.MapServer)) sGis.utils.error('sGis.spatialProcessor instance is expected but got ' + mapServer + ' instead');
             var mapItems = this.mapItems;
             for (var i in mapItems) {
                 if (mapItems[i].layer && mapItems[i].layer === mapServer) this.removeMapItem(mapItems[i]);
@@ -82,7 +82,7 @@
                 this._controllers.push(controller);
                 return controller;
             } else {
-                utils.error('Requested unknows type of controlller: ' + type);
+                sGis.utils.error('Requested unknows type of controlller: ' + type);
             }
         },
 
@@ -136,7 +136,7 @@
 
         onDOMReady: {
             set: function(callback) {
-                if (!(callback instanceof Function)) utils.error('Function is expected but got ' + callback + ' instead');
+                if (!(callback instanceof Function)) sGis.utils.error('Function is expected but got ' + callback + ' instead');
                 if (!isDOMReady) {
                     this._onDOMReady.push(callback);
                 } else {
@@ -147,7 +147,7 @@
 
         onInitialized: {
             set: function(callback) {
-                if (!(callback instanceof Function)) utils.error('Function is expected but got ' + callback + ' instead');
+                if (!(callback instanceof Function)) sGis.utils.error('Function is expected but got ' + callback + ' instead');
                 if (isInitialized) {
                     callback();
                 } else {

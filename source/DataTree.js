@@ -24,7 +24,7 @@
 
         __requestInstructions: function() {
             var self = this;
-            utils.ajax({
+            sGis.utils.ajax({
                 url: this._url + '?_sb=' + this._spatialProcessor.sessionId + '&ts=' + new Date().getTime(),
                 cache: false,
                 success: function(data) {
@@ -33,7 +33,7 @@
                     } catch(e) {
 
                     } finally {
-                        if (utils.isArray(instructionList) && instructionList.length > 0) {
+                        if (sGis.utils.isArray(instructionList) && instructionList.length > 0) {
                             self._state = 'loading';
                             self.__setInstructions(instructionList);
                             if (!self._currentInstruction) self._currentInstruction = instructionList[0].SequenceId;
@@ -78,7 +78,7 @@
                     }
                 }
 
-                if (this._currentInstruction > instructionLimit && this._state !== 'complete') utils.error('Number of instruction exceeded the limit');
+                if (this._currentInstruction > instructionLimit && this._state !== 'complete') sGis.utils.error('Number of instruction exceeded the limit');
             }
         },
 
@@ -175,7 +175,7 @@
 
             set: function(wrapperId) {
                 var $wrapper = $('#' + wrapperId);
-                if ($wrapper.length === 0) utils.error('DOM element with id ' + wrapperId + ' could not be found');
+                if ($wrapper.length === 0) sGis.utils.error('DOM element with id ' + wrapperId + ' could not be found');
                 if (this._wrapper) {
                     $wrapper.html('');
                 }

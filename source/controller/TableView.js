@@ -69,7 +69,7 @@
         },
 
         save: function(properties) {
-            if (!properties.added && !properties.updated && !properties.deleted) utils.error('Edit description must contain at least one feature');
+            if (!properties.added && !properties.updated && !properties.deleted) sGis.utils.error('Edit description must contain at least one feature');
 
             var edit = {added: properties.added, updated: properties.updated, deleted: properties.deleted},
                 xmlString = encodeURIComponent('<?xml version="1.0" encoding="utf-8"?>' + sGis.spatialProcessor.serializeGeometryEdit(edit, true));

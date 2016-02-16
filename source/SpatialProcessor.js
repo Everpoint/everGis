@@ -99,7 +99,7 @@
         },
 
         addService: function(name) {
-            if (this._services[name]) utils.error('The service with the name ' + name + ' alreade exists');
+            if (this._services[name]) sGis.utils.error('The service with the name ' + name + ' alreade exists');
             this._createService(name);
             this._createServiceMapItem(name);
 
@@ -107,7 +107,7 @@
         },
 
         removeService: function(service) {
-            if (!this._services[service]) utils.error('No service with the name ' + service + ' present');
+            if (!this._services[service]) sGis.utils.error('No service with the name ' + service + ' present');
             this._services[service].kill();
 
             var mapItems = this._rootMapItem.getChildren(true);
@@ -119,7 +119,7 @@
         },
 
         addController: function(controllerName, options) {
-            if (!controllerList[controllerName]) utils.error('Unknown controller: ' + controllerName);
+            if (!controllerList[controllerName]) sGis.utils.error('Unknown controller: ' + controllerName);
             if (!options) options = {};
             options.map = this.map;
             options.sp = this;
@@ -146,7 +146,7 @@
 
                 this._map.crs = service.layer.crs;
                 this._map.position = position;
-                this._map.resolution = utils.isNumber(resolution) && resolution !== 0 ? resolution : 10;
+                this._map.resolution = sGis.utils.isNumber(resolution) && resolution !== 0 ? resolution : 10;
             } else {
                 this._map.position = sGis.Map.prototype._position;
                 this._map.resolution = sGis.Map.prototype._resolution;
@@ -272,7 +272,7 @@
                     }
                 },
                 error: function() {
-                    utils.message('Could not load project: ' + path);
+                    sGis.utils.message('Could not load project: ' + path);
                 }
             });
         },

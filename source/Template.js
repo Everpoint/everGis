@@ -1,7 +1,7 @@
 (function() {
 
     sGis.spatialProcessor.Template = function(asset, path) {
-        this.id = asset.Id || utils.getGuid();
+        this.id = asset.Id || sGis.utils.getGuid();
         this.path = path;
         this.geometryType = asset.ServerBuilder ? asset.GeometryType - 1 : asset.GeometryType;
         this.symbol = this._getSymbol(asset.JsonVisualDefinition);

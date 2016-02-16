@@ -23,12 +23,12 @@ sGis.spatialProcessor.Printer = function(sp, properties) {
 
 sGis.spatialProcessor.Printer.prototype = {
     getTemplates: function(properties) {
-        utils.ajax({
+        sGis.utils.ajax({
             url: this._serverConnector.url + 'export/templates/?_sb=' + this._serverConnector.sessionId,
             cache: false,
             success: function(data) {
                 try {
-                    var templates = utils.parseJSON(data);
+                    var templates = sGis.utils.parseJSON(data);
                 } catch (e) {
                     if (properties.error) properties.error('Incorrect response: ' + data);
                 }
@@ -59,7 +59,7 @@ sGis.spatialProcessor.Printer.prototype = {
             var link = self._serverConnector.url + 'export/print/?noHeader=true&f=' + (properties.useApi ? 'json' : 'binary') + '&_sb=' + self._serverConnector.sessionId + '&ts=' + Date.now() + (properties.useApi ? '&asLink=true' : '');
             if (successHandler) {
                 if (properties.useApi) {
-                    utils.ajax({url: link, success: function(id) {
+                    sGis.utils.ajax({url: link, success: function(id) {
                         successHandler(id);
                     }});
                 } else {
@@ -133,7 +133,7 @@ sGis.spatialProcessor.Printer.prototype = {
             Children: getLayerTree(servicesWithLegend)
         };
 
-        utils.ajax({
+        sGis.utils.ajax({
             url: this._serverConnector.url + 'export/store/?_sb=' + this._serverConnector.sessionId,
             type: 'POST',
             data: 'exportDefinition=' + encodeURIComponent(JSON.stringify(description)) + '&f=json',

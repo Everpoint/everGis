@@ -18,9 +18,9 @@
 
         __initialize: function(options) {
             if (options && options.parent) this.parent = options.parent;
-            utils.initializeOptions(this, options);
+            sGis.utils.init(this, options);
 
-            this._id = utils.getGuid();
+            this._id = sGis.utils.getGuid();
             this._suppressed = !!(this._parent && this._parent.isDisplayed);
             this._children = [];
             this.data = {};
@@ -87,7 +87,7 @@
         },
 
         addChildren: function(children) {
-            if (utils.isArray(children)) {
+            if (sGis.utils.isArray(children)) {
                 for (var i in children) {
                     this.addChild(children[i]);
                 }
@@ -107,7 +107,7 @@
                 if (child.getLayer && child.getLayer()) reorderLayers(child);
                 this.fire('addChild', {child: child});
             } else {
-                utils.error('sGis.MapItem instance is expected but got ' + child + ' instead');
+                sGis.utils.error('sGis.MapItem instance is expected but got ' + child + ' instead');
             }
         },
 
@@ -118,7 +118,7 @@
                 child._parent = null;
                 this.fire('removeChild', {child: child});
             } else {
-                utils.error('Map item is not found');
+                sGis.utils.error('Map item is not found');
             }
         },
 
@@ -159,7 +159,7 @@
 
         getNewLayerIndex: function(child) {
             var childIndex = this.getChildIndex(child);
-            if (childIndex === -1) utils.error('The folder does not contain requested child');
+            if (childIndex === -1) sGis.utils.error('The folder does not contain requested child');
             for (var i = childIndex+1; i < this._children.length; i++) {
                 if (this._children[i].layer && this._children[i].layer.map && this._children[i].layer.layer) {
                     return this._children[i].layer.map.getLayerIndex(this._children[i].layer.layer); //TODO: must be fixed
@@ -219,7 +219,6 @@
             },
 
             set: function(name) {
-                if (!utils.isString(name)) utils.error('String is expected but got ' + name + ' instead');
                 this._name = name;
             }
         },

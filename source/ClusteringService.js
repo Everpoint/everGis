@@ -5,9 +5,9 @@
 sGis.spatialProcessor.ClusteringService = function(serverConnector, name, options) {
     this._serverConnector = serverConnector;
     this._url = serverConnector.url + name + '/';
-    this._id = utils.getGuid();
+    this._id = sGis.utils.getGuid();
 
-    utils.init(this, options);
+    sGis.utils.init(this, options);
 };
 
 sGis.spatialProcessor.ClusteringService.prototype = {
@@ -24,11 +24,11 @@ sGis.spatialProcessor.ClusteringService.prototype = {
             bboxString = [bbox.p[0].x, bbox.p[0].y, bbox.p[1].x, bbox.p[1].y].join(','),
             sizeString = Math.round(bbox.width / options.resolution) + ',' + Math.round(bbox.height / options.resolution);
 
-        utils.ajax({
+        sGis.utils.ajax({
             url: this._url + options.storageId + '/?bbox=' + encodeURIComponent(bboxString) + '&size=' + encodeURIComponent(sizeString) + '&_sb=' + this._serverConnector.sessionId,
             cache: false,
             success: function(response) {
-                var clusters = utils.parseJSON(response);
+                var clusters = sGis.utils.parseJSON(response);
                 if (options.success) options.success(clusters);
             },
             requested: options.requested,
@@ -72,7 +72,7 @@ Object.defineProperties(sGis.spatialProcessor.ClusteringService.prototype, {
             return this._map;
         },
         set: function(map) {
-            if (!(map instanceof sGis.Map)) utils.error('sGis.Map instance is expected but got ' + map + ' instead');
+            if (!(map instanceof sGis.Map)) sGis.utils.error('sGis.Map instance is expected but got ' + map + ' instead');
 
             if (this._map) {
                 this._map.removeListener('.sGis-clusteringService-' + this._id);
@@ -94,7 +94,7 @@ Object.defineProperties(sGis.spatialProcessor.ClusteringService.prototype, {
             return this._layer;
         },
         set: function(layer) {
-            if (!(layer instanceof sGis.FeatureLayer)) utils.error('sGis.FeatureLayer instance is expected but got ' + layer + ' instead');
+            if (!(layer instanceof sGis.FeatureLayer)) sGis.utils.error('sGis.FeatureLayer instance is expected but got ' + layer + ' instead');
 
             if (this._map) {
                 if (this._layer) {
@@ -115,7 +115,7 @@ Object.defineProperties(sGis.spatialProcessor.ClusteringService.prototype, {
             return this._storageId;
         },
         set: function(id) {
-            if (!utils.isString(id)) utils.error('String is expected but got ' + id + ' instead');
+            if (!sGis.utils.isString(id)) sGis.utils.error('String is expected but got ' + id + ' instead');
 
             this._storageId = id;
             this.updateClusters();
@@ -127,7 +127,7 @@ Object.defineProperties(sGis.spatialProcessor.ClusteringService.prototype, {
             return this._click;
         },
         set: function(handler) {
-            if (!(handler instanceof Function)) utils.error('Function is expected but got ' + handler + ' instead');
+            if (!(handler instanceof Function)) sGis.utils.error('Function is expected but got ' + handler + ' instead');
             this._click = handler;
         }
     }

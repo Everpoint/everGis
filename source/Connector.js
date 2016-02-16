@@ -4,7 +4,7 @@
     sGis.spatialProcessor = {};
 
     sGis.spatialProcessor.Connector = function(url, rootMapItem, login, password) {
-        if (!utils.isString(url) || !utils.isString(login) || !(rootMapItem instanceof sGis.MapItem)) utils.error('Incorrect parameters for Spatial Processor initialization');
+        if (!sGis.utils.isString(url) || !sGis.utils.isString(login) || !(rootMapItem instanceof sGis.MapItem)) sGis.utils.error('Incorrect parameters for Spatial Processor initialization');
 
         this._url = url;
         this._notificationListners = {};
@@ -44,26 +44,26 @@
             if (password) {
                 var spUrl = this._url.substr(-4, 4) === 'IIS/' ? this._url.substr(0, this._url.length - 4) : this._url,
                     url = this.apiLoginUrl.replace(/%sp%/, spUrl) + '?authId=855102B4-0CF7-4F59-A4AF-29C4AEE1A537&userName=' + login + '&password=' + encodeURIComponent(password) + '&ts=' + new Date().getTime();
-                utils.ajax({
+                sGis.utils.ajax({
                     url: url,
                     success: function(data, textStatus) {
                         if (data === '') {
-                            utils.message('Could not get session ID');
+                            sGis.utils.message('Could not get session ID');
                         } else {
                             var id = JSON.parse(data).token;
 
-                            if (utils.isString(id)) {
+                            if (sGis.utils.isString(id)) {
                                 initialize(id);
 
                                 self.fire('sessionInitialized');
                             } else {
-                                utils.error('Could not get session. Server responded with: ' + data);
+                                sGis.utils.error('Could not get session. Server responded with: ' + data);
                             }
                         }
                     },
 
                     error: function() {
-                        utils.message('Could not get session ID');
+                        sGis.utils.message('Could not get session ID');
                     }
                 });
             } else {
@@ -98,7 +98,7 @@
                     data = 'f=json&data=' + encodeURIComponent(JSON.stringify(structure));
 
 
-                utils.ajax({
+                sGis.utils.ajax({
                     type: 'POST',
                     url: this._url + 'MapItemStates/?_sb=' + this._sessionId,
                     data: data,
@@ -128,13 +128,13 @@
         requestNotifications: function() {
             this._aborted = false;
             var self = this,
-                xhr = utils.ajax({
+                xhr = sGis.utils.ajax({
                     url: self._url + 'ClientNotification/?f=json&_sb=' + self._sessionId + '&ts=' + new Date().getTime(),
                     success: function(stringData, textStatus) {
                         try {
                             var data = JSON.parse(stringData);
                         } catch (e) {
-                            utils.message('Connection to the server is lost...');
+                            sGis.utils.message('Connection to the server is lost...');
                             return;
                         }
                         if (data && data.Notifications) {
@@ -142,7 +142,7 @@
                                 if (sGis.spatialProcessor.processNotification[data.Notifications[i].tag]) {
                                     sGis.spatialProcessor.processNotification[data.Notifications[i].tag](self, data.Notifications[i].data, data.Notifications[i].type);
                                 } else {
-                                    utils.message(data.Notifications[i].tag);
+                                    sGis.utils.message(data.Notifications[i].tag);
                                 }
                             }
                             if (self._synchronized !== false) {
@@ -153,7 +153,7 @@
 
                             self._failedNotificationRequests = 0;
                         } else {
-                            utils.error('Unexpected notification response from the server: ' + stringData);
+                            sGis.utils.error('Unexpected notification response from the server: ' + stringData);
                         }
                     },
                     error: function(stringData, textStatus) {
@@ -193,7 +193,7 @@
         },
 
         getServiceList: function(callback) {
-            utils.ajax({
+            sGis.utils.ajax({
                 url: this._url + '?f=json&_sb=' + this._sessionId,
                 success: function(data) {
                     try {
@@ -317,7 +317,7 @@
 
         if (mapItem.getChildren) {
             var children = mapItem.getChildren();
-            if (utils.isArray(children)) {
+            if (sGis.utils.isArray(children)) {
                 for (var i in children) {
                     description.Children.push(children[i].id);
                 }

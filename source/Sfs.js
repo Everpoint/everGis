@@ -3,7 +3,7 @@
 (function() {
 
     sGis.spatialProcessor.Sfs = function(spatialProcessor, serviceName) {
-        if (!(spatialProcessor instanceof sGis.spatialProcessor.Connector)) utils.error('sGis.spatialProcessor.Connector instance is expected but got ' + spatialProcessor + ' instead');
+        if (!(spatialProcessor instanceof sGis.spatialProcessor.Connector)) sGis.utils.error('sGis.spatialProcessor.Connector instance is expected but got ' + spatialProcessor + ' instead');
 
         this._spatialProcessor = spatialProcessor;
         this._serviceName = serviceName;
@@ -14,7 +14,7 @@
             var successHandler = properties.success;
             properties.success = function(response) {
                 if (successHandler) {
-                    var list = utils.parseJSON(response);
+                    var list = sGis.utils.parseJSON(response);
                     successHandler(list);
                 }
             };
@@ -45,7 +45,7 @@
                         }
                     }
 
-                    var asset = utils.parseJSON(response);
+                    var asset = sGis.utils.parseJSON(response);
                     var template = new sGis.spatialProcessor.Template(asset, properties.path);
                     if (successHandler) {
                         successHandler(template);
@@ -105,7 +105,7 @@
 
             function requestOperation() {
                 self._spatialProcessor.removeListener('.sfs');
-                utils.ajax({
+                sGis.utils.ajax({
                     url: self._spatialProcessor.url + self._serviceName + '/?operation=' + operation + '&path=' + encodeURIComponent(properties.path) + '&_sb=' + self._spatialProcessor.sessionId,
                     error: function(data) {
                         if (properties.error) properties.error(data);

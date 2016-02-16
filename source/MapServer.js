@@ -35,16 +35,16 @@
                 }
             }
 
-            this._xhr = utils.ajax({
+            this._xhr = sGis.utils.ajax({
                 url: this._url + 'MapServer/PackedInfo?f=json&_sb=' + this._serverConnector.sessionId,
                 cache: false,
                 success: function(data, textStatus) {
                     delete self._xhr;
-                    var parsedResponse = utils.parseJSON(data);
+                    var parsedResponse = sGis.utils.parseJSON(data);
 
                     if (!parsedResponse.ServiceInfo) {
                         self.error = parsedResponse.error && parsedResponse.error.message || 'Unknown error';
-                        utils.message('Could not initialize service: server responded with error "' + self.error + '"');
+                        sGis.utils.message('Could not initialize service: server responded with error "' + self.error + '"');
                         self.fire('error');
                     } else {
                         self._serviceInfo = parsedResponse.ServiceInfo;
@@ -128,7 +128,7 @@
         __requestLegend: function() {
             var self = this;
             if (this._serviceInfo && /\blegend\b/.exec(this._serviceInfo.capabilities)) {
-                this._xhr = utils.ajax({
+                this._xhr = sGis.utils.ajax({
                     url: this._url + 'MapServer/legend?f=json&_sb=' + this._serverConnector.sessionId,
                     cache: false,
                     success: function(data, textStatus) {
@@ -141,7 +141,7 @@
         },
 
         hideObjects: function(ids) {
-            utils.ajax({
+            sGis.utils.ajax({
                 url: this._url + 'MapServer/display/?_sb=' + this._serverConnector.sessionId,
                 type: 'POST',
                 data: 'action=hide&data=' + encodeURIComponent(JSON.stringify(ids)) + '&ts=' + new Date().getTime()
@@ -192,7 +192,7 @@
             },
 
             set: function(map) {
-                if (!(map instanceof sGis.Map) && map !== null) utils.error('sGis.Map instance is expected but got ' + map + ' instead');
+                if (!(map instanceof sGis.Map) && map !== null) sGis.utils.error('sGis.Map instance is expected but got ' + map + ' instead');
                 if (this._layer) {
                     if (this._map && this._map !== map) this._map.removeLayer(this._layer);
                     if (map !== null) map.addLayer(this._layer);
@@ -209,7 +209,7 @@
             },
 
             set: function(serverConnector) {
-                if (!(serverConnector instanceof sGis.spatialProcessor.Connector)) utils.error('sGis.spatialProcessor.Connector instance is expected but got ' + serverConnector + ' instead');
+                if (!(serverConnector instanceof sGis.spatialProcessor.Connector)) sGis.utils.error('sGis.spatialProcessor.Connector instance is expected but got ' + serverConnector + ' instead');
                 this._serverConnector = serverConnector;
             }
         },
@@ -220,7 +220,7 @@
             },
 
             set: function(opacity) {
-                if (!utils.isNumber(opacity)) utils.error('Number is expected but got ' + opacity + ' instead');
+                if (!sGis.utils.isNumber(opacity)) sGis.utils.error('Number is expected but got ' + opacity + ' instead');
                 if (this._layer) this._layer.opacity = opacity;
                 this._opacity = opacity;
             }
@@ -287,7 +287,7 @@
                     }
                     this._display = false;
                 } else {
-                    utils.error('Boolean is expected but got ' + bool + ' instead');
+                    sGis.utils.error('Boolean is expected but got ' + bool + ' instead');
                 }
             }
         },

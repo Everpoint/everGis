@@ -21,7 +21,7 @@
                 return this._controller;
             },
             set: function(controller) {
-                if (!(controller instanceof sGis.spatialProcessor.controller.ClientLayer)) utils.error('sGis.spatialProcessor.controller.ClientLayer instance is expected but got ' + controller + ' instead');
+                if (!(controller instanceof sGis.spatialProcessor.controller.ClientLayer)) sGis.utils.error('sGis.spatialProcessor.controller.ClientLayer instance is expected but got ' + controller + ' instead');
                 this._controller = controller;
             }
         },

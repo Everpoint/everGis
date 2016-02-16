@@ -23,7 +23,7 @@
 
         getServiceCatalog: function(properties) {
             this._operation('serviceCatalog/list', {
-                filter: utils.isString(properties.filter) ? properties.filter : undefined,
+                filter: sGis.utils.isString(properties.filter) ? properties.filter : undefined,
                 jsfilter: properties.filter instanceof Object ? properties.filter : undefined,
                 success: function(response) {
                     try {
@@ -75,7 +75,7 @@
 
             function successHandler(response) {
                 try {
-                    var data = utils.parseJSON(response);
+                    var data = sGis.utils.parseJSON(response);
                 } catch (e) {
                     if (options.error) options.error('Server responded with: ' + response);
                 }
@@ -96,7 +96,7 @@
 
             function successHandler(response) {
                 try {
-                    var data = utils.parseJSON(response);
+                    var data = sGis.utils.parseJSON(response);
                 } catch (e) {
                     if (options.error) options.error('Server responded with: ' + response);
                 }
@@ -134,7 +134,7 @@
         },
 
         _operation: function(name, parameters, data, admin) {
-            utils.ajax({
+            sGis.utils.ajax({
                 url: this._getOperationUrl(name, parameters, admin),
                 type: data ? 'POST' : 'GET',
                 data: data,
@@ -173,7 +173,7 @@
 
             function successHandler(response) {
                 try {
-                    var data = utils.parseJSON(response);
+                    var data = sGis.utils.parseJSON(response);
                 } catch (e) {
                     if (options.error) options.error('Server responded with: ' + response);
                 }
@@ -195,7 +195,7 @@
 
             function successHandler(response) {
                 try {
-                    var data = utils.parseJSON(response);
+                    var data = sGis.utils.parseJSON(response);
                 } catch (e) {
                     if (options.error) options.error('Server responded with: ' + response);
                 }

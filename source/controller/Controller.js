@@ -55,7 +55,7 @@ sGis.spatialProcessor.Controller.prototype = {
         
         var self = this;
         
-        utils.ajax({
+        sGis.utils.ajax({
             url: this._url + '?_sb=' + this._spatialProcessor._sessionId + '&ts=' + new Date().getTime(),
             type: 'POST',
             data: request,
@@ -72,13 +72,13 @@ sGis.spatialProcessor.Controller.prototype = {
                 }
             },
             error: function() {
-                utils.message('Could not create controller');
+                sGis.utils.message('Could not create controller');
             }
         });
     },
     
     remove: function() {
-        utils.ajax({
+        sGis.utils.ajax({
             url: this._url + '?_sb=' + this._sessionId + '&delete=' + this._id
         });
     },
@@ -99,7 +99,7 @@ sGis.spatialProcessor.Controller.prototype = {
         
         function requestOperation() {
             self._spatialProcessor.removeListener('.' + self.id);
-            utils.ajax({
+            sGis.utils.ajax({
                 url: self._url + self._id + '/' + parameters.operation + '?' + (parameters.uriParameters || '') + '_sb=' + self._spatialProcessor.sessionId,
                 type: parameters.dataParameters ? 'POST' : 'GET',
                 data: parameters.dataParameters + '&timeout=20000&ts=' + new Date().getTime(),
@@ -141,9 +141,9 @@ sGis.spatialProcessor.Controller.prototype = {
             if (properties.geometry) {
                 data = JSON.stringify({rings: properties.geometry.coordinates, spatialReference: properties.geometry.crs.getWkidString()});
             } else if (properties.storageId) {
-                data = JSON.stringify(utils.isArray(properties.storageId) ? properties.storageId : [properties.storageId]);
+                data = JSON.stringify(sGis.utils.isArray(properties.storageId) ? properties.storageId : [properties.storageId]);
             } else {
-                utils.error('Lacking the query data');
+                sGis.utils.error('Lacking the query data');
             }
             data = encodeURIComponent(data);
 
@@ -174,7 +174,7 @@ sGis.spatialProcessor.Controller.prototype = {
     },
 
     save: function(properties) {
-        if (!properties.added && !properties.updated && !properties.deleted) utils.error('Edit description must contain at least one feature');
+        if (!properties.added && !properties.updated && !properties.deleted) sGis.utils.error('Edit description must contain at least one feature');
 
         var edit = {added: properties.added, updated: properties.updated, deleted: properties.deleted},
             xmlString = encodeURIComponent('<?xml version="1.0" encoding="utf-8"?>' + sGis.spatialProcessor.serializeGeometryEdit(edit, false, properties.ignoreSymbol));
