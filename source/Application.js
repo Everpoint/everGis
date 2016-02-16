@@ -164,7 +164,7 @@
 
     var isDOMReady = false;
 
-    Event.add(document, 'DOMContentLoaded', function() {
+    sGis.Event.add(document, 'DOMContentLoaded', function() {
         isDOMReady = true;
         for (var i in everGis._onDOMReady) {
             everGis._onDOMReady[i]();
