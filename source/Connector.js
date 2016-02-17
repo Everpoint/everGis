@@ -160,6 +160,8 @@
                         if (self._aborted) return;
                         self._failedNotificationRequests += 1;
                         if (self._failedNotificationRequests > 5) {
+                            self.addListener('connectionlost',function(){});
+                            self.fire('connectionlost');
                             sGis.utils.error('The connection to the server is lost');
                         } else {
                             setTimeout(self.requestNotifications.bind(self), self._failedNotificationRequests * 1000);
