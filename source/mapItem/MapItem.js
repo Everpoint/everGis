@@ -18,7 +18,7 @@
 
         __initialize: function(options) {
             if (options && options.parent) this.parent = options.parent;
-            sGis.utils.init(this, options);
+            sGis.utils.init(this, options, true);
 
             this._id = sGis.utils.getGuid();
             this._suppressed = !!(this._parent && this._parent.isDisplayed);

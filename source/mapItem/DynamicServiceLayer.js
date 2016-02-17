@@ -78,6 +78,9 @@
         layerId: {
             get: function() {
                 return this._layerId;
+            },
+            set: function(id) { // TODO: should not be settable, conflict with sGis.init
+                this._layerId = id;
             }
         },
 
@@ -123,9 +126,12 @@
             }
         },
 
-        parentName: {
+        parentName: { // TODO: should not be settable, conflict with sGis.init
             get: function() {
                 return this._parentName;
+            },
+            set: function(name) {
+                this._parentName = name;
             }
         },
 
