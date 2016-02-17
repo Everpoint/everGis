@@ -134,7 +134,7 @@
                         try {
                             var data = JSON.parse(stringData);
                         } catch (e) {
-                            sGis.utils.message('Connection to the server is lost...');
+                            self.connectionLostError();
                             return;
                         }
                         if (data && data.Notifications) {
@@ -160,14 +160,18 @@
                         if (self._aborted) return;
                         self._failedNotificationRequests += 1;
                         if (self._failedNotificationRequests > 5) {
-                            self.fire('connectionlost');
-                            sGis.utils.error('The connection to the server is lost');
+                            self.connectionLostError();
                         } else {
                             setTimeout(self.requestNotifications.bind(self), self._failedNotificationRequests * 1000);
                         }
                     }
                 });
             this._notificationRequestObject = xhr;
+        },
+
+        connectionLostError: function(){
+            this.fire('connectionLost');
+            sGis.utils.error('The connection to the server is lost');
         },
 
         cancelNotificationRequest: function() {
