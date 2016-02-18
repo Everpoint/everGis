@@ -153,7 +153,7 @@
 
                             self._failedNotificationRequests = 0;
                         } else {
-                            sGis.utils.error('Unexpected notification response from the server: ' + stringData);
+                            self.connectionLostError();
                         }
                     },
                     error: function(stringData, textStatus) {
