@@ -12,7 +12,8 @@
     };
 
     sGis.utils.proto.setProperties(Api.prototype, {
-        adminUrl: null
+        adminUrl: null,
+        url: {default: null}
     });
 
     sGis.utils.proto.setMethods(Api.prototype, {
