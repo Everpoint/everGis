@@ -14,6 +14,10 @@
         load: function(properties) {
             this.__operation(function() {
                 var param = 'uploadSlot=' + properties.fileId + '&type="Всё что угодно"';
+                if (properties.configuration) {
+                    param += '&configuration=' + encodeURIComponent(JSON.stringify(properties.configuration));
+                }
+
 
                 return {
                     operation: 'load',
@@ -27,9 +31,24 @@
 
         import: function(properties) {
             this.__operation(function() {
+                var param = 'storageId=' + properties.storageId + '&attributeMapping=' + encodeURIComponent(JSON.stringify(properties.attributeMapping));
+                if (properties.configuration) {
+                    param += '&configuration=' + encodeURIComponent(JSON.stringify(properties.configuration));
+                }
                 return {
                     operation: 'import',
-                    dataParameters: 'storageId=' + properties.storageId,
+                    dataParameters: param,
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
+        },
+
+        getProgress: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'getProgress',
                     success: properties.success,
                     error: properties.error,
                     requested: properties.requested

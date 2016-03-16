@@ -100,9 +100,9 @@ sGis.spatialProcessor.Controller.prototype = {
         function requestOperation() {
             self._spatialProcessor.removeListener('.' + self.id);
             sGis.utils.ajax({
-                url: self._url + self._id + '/' + parameters.operation + '?' + (parameters.uriParameters || '') + '_sb=' + self._spatialProcessor.sessionId,
+                url: self._url + self._id + '/' + parameters.operation + '?' + (parameters.uriParameters || '') + '_sb=' + self._spatialProcessor.sessionId + '&timeout=20000&ts=' + new Date().getTime(),
                 type: parameters.dataParameters ? 'POST' : 'GET',
-                data: parameters.dataParameters + '&timeout=20000&ts=' + new Date().getTime(),
+                data: parameters.dataParameters,
                 success: function(data) {
                     var response = parseOperationResponse(data);
 

@@ -234,6 +234,10 @@
             };
 
             this._operation('PostGis/PublishData', {success: description.success, error: description.error}, JSON.stringify(props), true);
+        },
+
+        deleteService: function(description) {
+            this._operation('PostGis/DeleteService', { success: description.success, error: description.error, serviceName: description.serviceName }, JSON.stringify({serviceName: description.serviceName}), true);
         }
     });
 
