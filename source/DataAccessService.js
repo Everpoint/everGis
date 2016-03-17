@@ -122,7 +122,22 @@ sGis.spatialProcessor.DataAccessService.prototype = {
                 success: properties.success
             };
         });
-    }
+    },
+
+    copy: function(properties) {
+        var dataParameters = 'id=' + properties.targetStorageId + '&sourceStorage=' + properties.sourceStorageId;
+        if (properties.items) dataParameters += '&items=' + encodeURIComponent(JSON.stringify(properties.items));
+
+        this.__operation(function() {
+            return {
+                operation: 'copy',
+                dataParameters: dataParameters,
+                requested: properties.requested,
+                error: properties.error,
+                success: properties.success
+            };
+        });
+    },
 };
 
 Object.defineProperties(sGis.spatialProcessor.DataAccessService.prototype, {
