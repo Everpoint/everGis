@@ -1,13 +1,16 @@
-(function() {
+sGis.module('spatialProcessor.controller.DefinitionQuery', [
+    'spatialProcessor.Controller'
+], function(Controller) {
+    'use strict';
 
-    sGis.spatialProcessor.controller.DefinitionQuery = function(spatialProcessor, options) {
+    var DefinitionQuery = function(spatialProcessor, options) {
         this.__initialize(spatialProcessor, {}, function() {
             this.initialized = true;
             this.fire('initialize');
         });
     };
 
-    sGis.spatialProcessor.controller.DefinitionQuery.prototype = new sGis.spatialProcessor.Controller({
+    DefinitionQuery.prototype = new sGis.spatialProcessor.Controller({
         _type: 'definitionQuery',
 
         setDefinitionQuery: function(properties) {
@@ -23,4 +26,6 @@
         }
     });
 
-})();
+    return DefinitionQuery;
+    
+});

@@ -1,8 +1,9 @@
-'use strict';
+sGis.module('spatialProcessor.controller.ObjectSelector', [
+    'spatialProcessor.Controller'
+], function(Controller) {
+    'use strict';
 
-(function() {
-
-    sGis.spatialProcessor.controller.ObjectSelector = function(spatialProcessor, options) {
+    var ObjectSelector = function(spatialProcessor, options) {
         this._map = options.map;
         this.__initialize(spatialProcessor, {sync: true}, function() {
             this._setNotificationListener();
@@ -14,7 +15,7 @@
 
     };
 
-    sGis.spatialProcessor.controller.ObjectSelector.prototype = new sGis.spatialProcessor.Controller({
+    ObjectSelector.prototype = new sGis.spatialProcessor.Controller({
         _type: 'maxtroller',
 
         _setNotificationListener: function() {
@@ -118,7 +119,7 @@
         }
     });
 
-    Object.defineProperties(sGis.spatialProcessor.controller.ObjectSelector.prototype, {
+    Object.defineProperties(ObjectSelector.prototype, {
         isActive: {
             get: function() {
                 return this._layer.map === null;
@@ -132,4 +133,6 @@
         }
     });
 
-})();
+    return ObjectSelector;
+    
+});

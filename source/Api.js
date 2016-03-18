@@ -1,4 +1,8 @@
-(function() {
+sGis.module('spatialProcessor.Api', [
+    'utils',
+    'utils.proto'
+], function(utils, proto) {
+    'use strict';
 
     var Api = function(connector, adminUrl) {
         this._connector = connector;
@@ -241,8 +245,6 @@
         }
     });
 
+    return Api;
 
-
-    sGis.spatialProcessor.Api = Api;
-
-})();
+});

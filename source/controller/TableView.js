@@ -1,6 +1,12 @@
-(function() {
+sGis.module('spatialProcessor.controller.TableView', [
+    'utils',
+    'spatialProcessor.Controller',
+    'spatialProcessor.MapServer',
+    'spatialProcessor.parseXML'
+], function(utils, Controller, MapServer, parseXML) {
+    'use strict';
 
-    sGis.spatialProcessor.controller.TableView = function(serverConnector, options) {
+    var TableView = function(serverConnector, options) {
         this._map = options && options.map;
 
         this.__initialize(serverConnector, {}, function() {
@@ -10,7 +16,7 @@
         });
     };
 
-    sGis.spatialProcessor.controller.TableView.prototype = new sGis.spatialProcessor.Controller({
+    TableView.prototype = new sGis.spatialProcessor.Controller({
         _type: 'tableView',
 
         runQuery: function(properties) {
@@ -220,5 +226,13 @@
             });
         }
     });
+
+    return TableView;
+    
+});
+
+
+(function() {
+
 
 })();

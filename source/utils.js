@@ -1,5 +1,7 @@
-'use strict';
-(function() {
+sGis.module('utils.Color', [
+    'utils'
+], function(utils) {
+    'use strict';
 
     sGis.utils.parseXmlJsonNode = function(node) {
         var string = '';
@@ -24,8 +26,6 @@
             console.log(mes);
         }
     };
-
-
 
     sGis.utils.ajax = function(properties) {
         var requestType = properties.type ? properties.type : 'GET';
@@ -64,13 +64,13 @@
         }
     };
 
-    sGis.utils.Color = function(string) {
+    var Color = function(string) {
         this._original = string;
         this._color = string && string.trim() || 'transparent';
         this._setChannels();
     };
 
-    sGis.utils.Color.prototype = {
+    Color.prototype = {
         _setChannels: function() {
             var format = this.format;
             if (format && formats[format]) {
@@ -95,7 +95,7 @@
         return hex.length === 1 ? '0' + hex : hex;
     }
 
-    Object.defineProperties(sGis.utils.Color.prototype, {
+    Object.defineProperties(Color.prototype, {
         original: {
             get: function() {
                 return this._original;
@@ -124,7 +124,7 @@
                     return 'rgb';
                 } else if (this._color.substr(0, 5) === 'rgba(') {
                     return 'rgba';
-                } else if (this._color in sGis.utils.Color.names) {
+                } else if (this._color in Color.names) {
                     return 'name';
                 }
             }
@@ -255,7 +255,7 @@
             return channels;
         },
         name: function(string) {
-            var color = new sGis.utils.Color('#' + sGis.utils.Color.names[string]);
+            var color = new Color('#' + Color.names[string]);
             return color.channels;
         }
     };
@@ -264,7 +264,7 @@
     // Big List of Colors
 // ------------------
 // <http://www.w3.org/TR/css3-color/#svg-color>
-   sGis.utils.Color.names = {
+    Color.names = {
         aliceblue: "f0f8ff",
         antiquewhite: "faebd7",
         aqua: "0ff",
@@ -417,4 +417,6 @@
         transparent: '0000'
     };
 
-})();
+    return Color;
+    
+});

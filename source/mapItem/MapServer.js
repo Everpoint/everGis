@@ -1,8 +1,11 @@
-'use strict';
+sGis.module('mapItem.MapServer', [
+    'MapItem',
+    'mapItem.DynamicServiceLayer',
+    'TileLayer'
+], function(MapItem, DynamicServiceLayer, TileLayer) {
+    'use strict';
 
-(function() {
-
-    sGis.mapItem.MapServer = function(mapServer, options) {
+    var MapServerMapItem = function(mapServer, options) {
         this._layer = mapServer;
         var self = this;
 
@@ -18,7 +21,7 @@
         mapServer.on('mapChange', this.__updateLayerVisibility.bind(this));
     };
 
-    sGis.mapItem.MapServer.prototype = new sGis.MapItem({
+    MapServerMapItem.prototype = new sGis.MapItem({
         isValidChild: function(child) {
             return child instanceof sGis.mapItem.DynamicServiceLayer;
         },
@@ -133,7 +136,7 @@
         }
     });
 
-    Object.defineProperties(sGis.mapItem.MapServer.prototype, {
+    Object.defineProperties(MapServerMapItem.prototype, {
         name: {
             get: function() {
                 return this._name || this.layer.name || this._id;
@@ -251,4 +254,6 @@
         }
     });
 
-})();
+    return MapServerMapItem;
+    
+});

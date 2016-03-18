@@ -1,10 +1,13 @@
-'use strict';
-
-(function() {
+sGis.module('spatialProcessor.DataTree', [
+    'utils',
+    'utils.proto',
+    'IEventHandler'
+], function(utils, proto, IEventHandler) {
+    'use strict';
 
     var instructionLimit = 10000000;
 
-    sGis.spatialProcessor.DataTree = function(id, spatialProcessor, options) {
+    var DataTree = function(id, spatialProcessor, options) {
         this._url = spatialProcessor.url + 'DataTree/' + id + '/';
         this._spatialProcessor = spatialProcessor;
         if (options) this._wrapper = options.wrapper;
@@ -12,7 +15,7 @@
         this.__initialize();
     };
 
-    sGis.spatialProcessor.DataTree.prototype = {
+    DataTree.prototype = {
         __initialize: function() {
             this._instructions = {};
             this._childrenList = {};
@@ -133,7 +136,7 @@
         }
     };
 
-    Object.defineProperties(sGis.spatialProcessor.DataTree.prototype, {
+    Object.defineProperties(DataTree.prototype, {
         id: {
             get: function() {
                 return /DataTree\/(.*)\//.exec(this._url)[1];
@@ -185,7 +188,7 @@
         }
     });
 
-    sGis.utils.proto.setMethods(sGis.spatialProcessor.DataTree.prototype, sGis.IEventHandler);
+    sGis.utils.proto.setMethods(DataTree.prototype, sGis.IEventHandler);
 
     function getDynatreeRow(row, tree) {
         var displayedRow = {title: getRowTitle(row, tree), treeRow: row};
@@ -223,6 +226,13 @@
     function getRow(instruction) {
         return {id: instruction.id.Id, parentId: instruction.pid.Id, previousId: instruction.prid.Id, dataType: instruction.dataType, data: instruction.data, status: instruction.status, children: []};
     }
+
+    return DataTree;
+    
+});
+
+
+(function() {
 
 
 })();

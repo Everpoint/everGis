@@ -1,8 +1,9 @@
-'use strict';
+sGis.module('mapItem.DynamicServiceLayer', [
+    'MapItem'
+], function(MapItem) {
+    'use strict';
 
-(function() {
-
-    sGis.mapItem.DynamicServiceLayer = function(options) {
+    var DynamicServiceLayer = function(options) {
         this.__initialize(options);
 
         if (options && options.children) {
@@ -12,7 +13,7 @@
         }
     };
 
-    sGis.mapItem.DynamicServiceLayer.prototype = new sGis.MapItem({
+    DynamicServiceLayer.prototype = new sGis.MapItem({
         _draggable: false,
         _layerId: null,
         _minScale: 0,
@@ -27,7 +28,7 @@
         //},
 
         isValidChild: function(child) {
-            return child instanceof sGis.mapItem.DynamicServiceLayer;
+            return child instanceof DynamicServiceLayer;
         },
 
         getChildren: function(recurse) {
@@ -68,7 +69,7 @@
         }
     });
 
-    Object.defineProperties(sGis.mapItem.DynamicServiceLayer.prototype, {
+    Object.defineProperties(DynamicServiceLayer.prototype, {
         serverOperations: {
             get: function() {
                 return [{FullName: this._parentName, Identity: this.layerId, Operation: 'lm'}];
@@ -205,5 +206,12 @@
         esriGeometryPolyline: 'polyline',
         esriGeometryPolygon: 'polygon'
     };
+    
+    return DynamicServiceLayer;
+});
+
+
+(function() {
+
 
 })();

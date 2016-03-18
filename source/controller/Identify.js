@@ -1,8 +1,11 @@
-'use strict';
-
-(function() {
-
-    sGis.spatialProcessor.controller.Identify = function(spatialProcessor, options) {
+sGis.module('spatialProcessor.controller.Identify', [
+    'spatialProcessor.Controller',
+    'spatialProcessor.MapServer',
+    'spatialProcessor.DataTree'
+], function(Controller, MapServer, DataTree) {
+    'use strict';
+    
+    var Identify = function(spatialProcessor, options) {
         this._map = options.map;
         this.__initialize(spatialProcessor, {sync: true}, function() {
             this._layer = new sGis.spatialProcessor.MapServer('VisualObjectsRendering/' + this._mapServiceId, this._spatialProcessor, {map: options.map, display: this._display, queryLegend: false});
@@ -11,7 +14,7 @@
         });
     };
 
-    sGis.spatialProcessor.controller.Identify.prototype = new sGis.spatialProcessor.Controller({
+    Identify.prototype = new sGis.spatialProcessor.Controller({
         _type: 'identify',
 
         identify: function(properties) {
@@ -64,7 +67,7 @@
         }
     });
 
-    Object.defineProperties(sGis.spatialProcessor.controller.Identify.prototype, {
+    Object.defineProperties(Identify.prototype, {
         tree: {
             get: function() {
                 return this._tree;
@@ -83,5 +86,7 @@
             }
         }
     });
-
-})();
+    
+    return Identify;
+    
+});

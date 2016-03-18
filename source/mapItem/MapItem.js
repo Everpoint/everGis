@@ -1,16 +1,17 @@
-'use strict';
+sGis.module('MapItem', [
+    'utils',
+    'utils.proto',
+    'IEventHandler'
+], function(utils, proto, IEventHandler) {
+    'use strict';
 
-(function() {
-
-    sGis.mapItem = {};
-
-    sGis.MapItem = function(extention) {
+    var MapItem = function(extention) {
         for (var key in extention) {
             this[key] = extention[key];
         }
     };
 
-    sGis.MapItem.prototype = {
+    MapItem.prototype = {
         _active: true,
         _parent: null,
         _name: null,
@@ -107,7 +108,7 @@
                 if (child.getLayer && child.getLayer()) reorderLayers(child);
                 this.fire('addChild', {child: child});
             } else {
-                sGis.utils.error('sGis.MapItem instance is expected but got ' + child + ' instead');
+                sGis.utils.error('MapItem instance is expected but got ' + child + ' instead');
             }
         },
 
@@ -204,9 +205,9 @@
         }
     };
 
-    sGis.utils.proto.setMethods(sGis.MapItem.prototype, sGis.IEventHandler);
+    sGis.utils.proto.setMethods(MapItem.prototype, sGis.IEventHandler);
 
-    Object.defineProperties(sGis.MapItem.prototype, {
+    Object.defineProperties(MapItem.prototype, {
         id: {
             get: function() {
                 return this._id;
@@ -348,4 +349,6 @@
         return childrenWithLayers;
     }
 
-})();
+    return MapItem;
+    
+});

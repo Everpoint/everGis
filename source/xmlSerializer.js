@@ -1,8 +1,11 @@
-'use strict';
+sGis.module('spatialProcessor.parseXML', [
+    'feature.Point',
+    'feature.Polyline',
+    'feature.Polygon'
+], function() {
+    'use strict';
 
-(function() {
-
-    sGis.spatialProcessor.parseXML = function(xml) {
+    var parseXML = function(xml) {
         var parser = new DOMParser(),
             nodes = parser.parseFromString(xml, 'text/xml'),
             parsed = {};
@@ -298,6 +301,8 @@
     /*
      * SERIALIZER
      */
+
+    if (!sGis.spatialProcessor) sGis.spatialProcessor = {};
 
     sGis.spatialProcessor.serializeGeometry = function(features) {
         var formatedData = getFormatedData(features);
@@ -910,4 +915,6 @@
         return c.toString('hex');
     }
 
-})();
+    return parseXML;
+
+});

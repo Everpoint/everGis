@@ -1,261 +1,270 @@
-(function() {
+sGis.module('spatialProcessor.controller.ClientLayer', [
+    'spatialProcessor.Controller',
+    'spatialProcessor.MapServer',
+    'symbol.point',
+    'symbol.polyline',
+    'symbol.polygon'
+], function(Controller, MapServer, pointSymbols, polylineSymbols, polygonSymbols) {
+    'use strict';
 
-sGis.spatialProcessor.controller.ClientLayer = function(spatialProcessor, options) {
-    this._map = options.map;
-    this._serviceName = options.serviceName;
+    var ClientLayer = function(spatialProcessor, options) {
+        this._map = options.map;
+        this._serviceName = options.serviceName;
 
-    var parameters = {};
-    if (options.serviceName) parameters.service = options.serviceName;
+        var parameters = {};
+        if (options.serviceName) parameters.service = options.serviceName;
 
-    this.__initialize(spatialProcessor, parameters, function() {
-        this._layer = new sGis.spatialProcessor.MapServer('VisualObjectsRendering/' + this._mapServiceId, this._spatialProcessor, { map: options.map, display: this._display });
-        var self = this;
-        
-        this._layer.once('initialize', function() {
-            self.initialized = true;
-            self.fire('initialize');
+        this.__initialize(spatialProcessor, parameters, function() {
+            this._layer = new sGis.spatialProcessor.MapServer('VisualObjectsRendering/' + this._mapServiceId, this._spatialProcessor, { map: options.map, display: this._display });
+            var self = this;
+
+            this._layer.once('initialize', function() {
+                self.initialized = true;
+                self.fire('initialize');
+            });
         });
-    });
-};
+    };
 
-sGis.spatialProcessor.controller.ClientLayer.prototype = new sGis.spatialProcessor.Controller({
-    _type: 'clientLayer',
+    ClientLayer.prototype = new sGis.spatialProcessor.Controller({
+        _type: 'clientLayer',
 
-    loadFile: function(properties) {
-        this.__operation(function() {
-            return {
-                operation: 'bulk',
-                dataParameters: 'uid=6f9d3c5b-fcbb-41f4-ba74-0bf6b575234c&fileName=' + encodeURIComponent(properties.fileName),
-                requested: properties.requested,
-                error: properties.error,
-                success: properties.success
-            };
-        });
-    },
+        loadFile: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'bulk',
+                    dataParameters: 'uid=6f9d3c5b-fcbb-41f4-ba74-0bf6b575234c&fileName=' + encodeURIComponent(properties.fileName),
+                    requested: properties.requested,
+                    error: properties.error,
+                    success: properties.success
+                };
+            });
+        },
 
-    copy: function(properties) {
-        var dataParameters = 'sourceStorage=' + properties.storageId;
-        if (properties.items) dataParameters += '&items=' + encodeURIComponent(JSON.stringify(properties.items));
+        copy: function(properties) {
+            var dataParameters = 'sourceStorage=' + properties.storageId;
+            if (properties.items) dataParameters += '&items=' + encodeURIComponent(JSON.stringify(properties.items));
 
-        this.__operation(function() {
-            return {
-                operation: 'copy',
-                dataParameters: dataParameters,
-                requested: properties.requested,
-                error: properties.error,
-                success: properties.success
-            };
-        });
-    },
+            this.__operation(function() {
+                return {
+                    operation: 'copy',
+                    dataParameters: dataParameters,
+                    requested: properties.requested,
+                    error: properties.error,
+                    success: properties.success
+                };
+            });
+        },
 
-    saveAs: function(properties) {
-        this.__operation(function() {
-            return {
-                operation: 'save',
-                dataParameters: 'uid=6f9d3c5b-fcbb-41f4-ba74-0bf6b575234c&fileName=' + encodeURIComponent(properties.fileName),
-                requested: properties.requested,
-                error: properties.error,
-                success: properties.success
-            };
-        });
-    },
+        saveAs: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'save',
+                    dataParameters: 'uid=6f9d3c5b-fcbb-41f4-ba74-0bf6b575234c&fileName=' + encodeURIComponent(properties.fileName),
+                    requested: properties.requested,
+                    error: properties.error,
+                    success: properties.success
+                };
+            });
+        },
 
-    queryGeometryTypes: function(properties) {
-        this.__operation(function() {
-            return {
-                operation: 'queryGeometryTypes',
-                success: function(data) {
-                    if (properties.success) {
-                        var response = [];
-                        for (var i = 0, len = data.content.length; i < len; i++) {
-                            response.push(geometryTypes[data.content[i]]);
+        queryGeometryTypes: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'queryGeometryTypes',
+                    success: function(data) {
+                        if (properties.success) {
+                            var response = [];
+                            for (var i = 0, len = data.content.length; i < len; i++) {
+                                response.push(geometryTypes[data.content[i]]);
+                            }
+
+                            properties.success(response);
                         }
+                    },
+                    requested: properties.requested,
+                    error: properties.error
+                };
+            });
+        },
 
-                        properties.success(response);
-                    }
-                },
-                requested: properties.requested,
-                error: properties.error
+        queryAttributes: function(properties) {
+            var dataParameters = '';
+            if (properties.geometryType) dataParameters += geometryTypes.indexOf(properties.geometryType) + '&';
+            if (properties.numericOnly) dataParameters += properties.numericOnly + '&';
+            this.__operation(function() {
+                return {
+                    operation: 'queryAttributes',
+                    dataParameters: dataParameters,
+                    success: function(data) {
+                        if (properties.success) properties.success(data.content);
+                    },
+                    requested: properties.requested,
+                    error: properties.error
+                };
+            });
+        },
+
+        getClassifiableProperties: function(properties) {
+            var dataParameters = 'geometryType=' + geometryTypes.indexOf(properties.geometryType);
+            this.__operation(function() {
+                return {
+                    operation: 'getClassifiableProperties',
+                    dataParameters: dataParameters,
+                    success: function(data) {
+                        if (properties.success) properties.success(data.content);
+                    },
+                    requested: properties.requested,
+                    error: properties.error
+                };
+            });
+        },
+
+        getClassifiers: function(properties) {
+            var dataParameters = 'geometryType=' + geometryTypes.indexOf(properties.geometryType) + '&propertyName=' + properties.propertyName;
+            this.__operation(function() {
+                return {
+                    operation: 'getClassifiers',
+                    dataParameters: dataParameters,
+                    success: function(data) {
+                        if (properties.success) properties.success(data.content);
+                    },
+                    requested: properties.requested,
+                    error: properties.error
+                };
+            });
+        },
+
+        buildClassifierTable: function(properties) {
+            var dataParameters = 'geometryType=' + geometryTypes.indexOf(properties.geometryType) + '&settings=' + encodeURIComponent(JSON.stringify(properties.settings));
+            this.__operation(function() {
+                return {
+                    operation: 'buildClassifierTable',
+                    dataParameters: dataParameters,
+                    success: function(data) {
+                        if (properties.success) properties.success(data.content);
+                    },
+                    requested: properties.requested,
+                    error: properties.error
+                };
+            });
+        },
+
+        /*
+         *   {
+         *      tables: {
+         *           point: [table1, table2, ...],
+         *           polyline: [],
+         *           polygon: []
+         *       },
+         *
+         *       defaultSymbols: {
+         *           point: symbol,
+         *           polyline: symbol,
+         *           polygon: symbol
+         *       }
+         *   }
+         *
+         */
+
+        applySymbolizer: function(properties) {
+            var symbolizerOptions = {
+                SettersByAttributes: {},
+                SymbolOverrideDefinitions: [],
+                SerealizedDefaultSymbols: ''
             };
-        });
-    },
 
-    queryAttributes: function(properties) {
-        var dataParameters = '';
-        if (properties.geometryType) dataParameters += geometryTypes.indexOf(properties.geometryType) + '&';
-        if (properties.numericOnly) dataParameters += properties.numericOnly + '&';
-        this.__operation(function() {
-            return {
-                operation: 'queryAttributes',
-                dataParameters: dataParameters,
-                success: function(data) {
-                    if (properties.success) properties.success(data.content);
-                },
-                requested: properties.requested,
-                error: properties.error
-            };
-        });
-    },
+            for (var className in properties.tables) {
+                symbolizerOptions.SettersByAttributes[geometryTypeTranslation[className]] = {};
+                for (var i = 0, len = properties.tables[className].length; i < len; i++) {
+                    var table = properties.tables[className][i];
+                    var attributeName = table[0].AttributeName;
+                    normolizeColor(table);
+                    symbolizerOptions.SettersByAttributes[geometryTypeTranslation[className]][attributeName] = table;
+                }
+            }
 
-    getClassifiableProperties: function(properties) {
-        var dataParameters = 'geometryType=' + geometryTypes.indexOf(properties.geometryType);
-        this.__operation(function() {
-            return {
-                operation: 'getClassifiableProperties',
-                dataParameters: dataParameters,
-                success: function(data) {
-                    if (properties.success) properties.success(data.content);
-                },
-                requested: properties.requested,
-                error: properties.error
-            };
-        });
-    },
+            var symbols = [];
+            var propDefaultSymbols = properties.defaultSymbols || [];
+            for (var i in defaultSymbols) {
+                symbols.push(propDefaultSymbols[i] || defaultSymbols[i]);
+            }
+            symbolizerOptions.SerealizedDefaultSymbols = sGis.spatialProcessor.serializeSymbols(symbols);
 
-    getClassifiers: function(properties) {
-        var dataParameters = 'geometryType=' + geometryTypes.indexOf(properties.geometryType) + '&propertyName=' + properties.propertyName;
-        this.__operation(function() {
-            return {
-                operation: 'getClassifiers',
-                dataParameters: dataParameters,
-                success: function(data) {
-                    if (properties.success) properties.success(data.content);
-                },
-                requested: properties.requested,
-                error: properties.error
-            };
-        });
-    },
+            this.__operation(function() {
+                return {
+                    operation: 'applySymbolizer',
+                    dataParameters: 'symbolizer=' + encodeURIComponent(JSON.stringify(symbolizerOptions)),
+                    success: function(data) {
+                        if (properties.success) properties.success(data);
+                    },
+                    requested: properties.requested,
+                    error: properties.error
+                };
+            });
+        }
+    });
 
-    buildClassifierTable: function(properties) {
-        var dataParameters = 'geometryType=' + geometryTypes.indexOf(properties.geometryType) + '&settings=' + encodeURIComponent(JSON.stringify(properties.settings));
-        this.__operation(function() {
-            return {
-                operation: 'buildClassifierTable',
-                dataParameters: dataParameters,
-                success: function(data) {
-                    if (properties.success) properties.success(data.content);
-                },
-                requested: properties.requested,
-                error: properties.error
-            };
-        });
-    },
+    Object.defineProperties(ClientLayer.prototype, {
+        mapServer: {
+            get: function() {
+                return this._layer;
+            }
+        },
 
-    /*
-    *   {
-    *      tables: {
-    *           point: [table1, table2, ...],
-    *           polyline: [],
-    *           polygon: []
-    *       },
-    *
-    *       defaultSymbols: {
-    *           point: symbol,
-    *           polyline: symbol,
-    *           polygon: symbol
-    *       }
-    *   }
-    *
-    */
+        storageId: {
+            get: function() {
+                return this._storageId;
+            }
+        },
 
-    applySymbolizer: function(properties) {
-        var symbolizerOptions = {
-            SettersByAttributes: {},
-            SymbolOverrideDefinitions: [],
-            SerealizedDefaultSymbols: ''
-        };
-
-        for (var className in properties.tables) {
-            symbolizerOptions.SettersByAttributes[geometryTypeTranslation[className]] = {};
-            for (var i = 0, len = properties.tables[className].length; i < len; i++) {
-                var table = properties.tables[className][i];
-                var attributeName = table[0].AttributeName;
-                normolizeColor(table);
-                symbolizerOptions.SettersByAttributes[geometryTypeTranslation[className]][attributeName] = table;
+        map: {
+            get: function() {
+                return this._map;
+            },
+            set: function(map) {
+                this._map = map;
             }
         }
+    });
 
-        var symbols = [];
-        var propDefaultSymbols = properties.defaultSymbols || [];
-        for (var i in defaultSymbols) {
-            symbols.push(propDefaultSymbols[i] || defaultSymbols[i]);
-        }
-        symbolizerOptions.SerealizedDefaultSymbols = sGis.spatialProcessor.serializeSymbols(symbols);
-
-        this.__operation(function() {
-            return {
-                operation: 'applySymbolizer',
-                dataParameters: 'symbolizer=' + encodeURIComponent(JSON.stringify(symbolizerOptions)),
-                success: function(data) {
-                    if (properties.success) properties.success(data);
-                },
-                requested: properties.requested,
-                error: properties.error
-            };
-        });
-    }
-});
-
-Object.defineProperties(sGis.spatialProcessor.controller.ClientLayer.prototype, {
-    mapServer: {
-        get: function() {
-            return this._layer;
-        }
-    },
-
-    storageId: {
-        get: function() {
-            return this._storageId;
-        }
-    },
-
-    map: {
-        get: function() {
-            return this._map;
-        },
-        set: function(map) {
-            this._map = map;
-        }
-    }
-});
-
-var geometryTypes = [undefined, 'point', 'polyline', 'polygon'];
-var geometryTypeTranslation = {
-    point: 'Point',
-    polyline: 'Line',
-    polygon: 'Polygon'
-};
-
-var defaultSymbols = {
-    point: new sGis.symbol.point.Point({
-        size: 5,
-        color: 'blue'
-    }),
-    polyline: new sGis.symbol.polyline.Simple({
-        strokeWidth: 1,
-        strokeColor: 'red'
-    }),
-    polygon: new sGis.symbol.polygon.Simple({
-        strokeWidth: 1,
-        strokeColor: 'green',
-        fillColor: 'blue'
-    })
-};
-
-function normolizeColor(table) {
-    for (var i = 0, len = table.length; i < len; i++) {
-        if (table[i].PropertyValue.Color) table[i].PropertyValue.Color = hexToRGBA(table[i].PropertyValue.Color);
-    }
-}
-
-function hexToRGBA(hex) {
-    return {
-        A: parseInt(hex.substr(1, 2), 16),
-        R: parseInt(hex.substr(3, 2), 16),
-        G: parseInt(hex.substr(5, 2), 16),
-        B: parseInt(hex.substr(7, 2), 16)
+    var geometryTypes = [undefined, 'point', 'polyline', 'polygon'];
+    var geometryTypeTranslation = {
+        point: 'Point',
+        polyline: 'Line',
+        polygon: 'Polygon'
     };
-}
 
-})();
+    var defaultSymbols = {
+        point: new sGis.symbol.point.Point({
+            size: 5,
+            color: 'blue'
+        }),
+        polyline: new sGis.symbol.polyline.Simple({
+            strokeWidth: 1,
+            strokeColor: 'red'
+        }),
+        polygon: new sGis.symbol.polygon.Simple({
+            strokeWidth: 1,
+            strokeColor: 'green',
+            fillColor: 'blue'
+        })
+    };
+
+    function normolizeColor(table) {
+        for (var i = 0, len = table.length; i < len; i++) {
+            if (table[i].PropertyValue.Color) table[i].PropertyValue.Color = hexToRGBA(table[i].PropertyValue.Color);
+        }
+    }
+
+    function hexToRGBA(hex) {
+        return {
+            A: parseInt(hex.substr(1, 2), 16),
+            R: parseInt(hex.substr(3, 2), 16),
+            G: parseInt(hex.substr(5, 2), 16),
+            B: parseInt(hex.substr(7, 2), 16)
+        };
+    }
+
+    return ClientLayer;
+    
+});

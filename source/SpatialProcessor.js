@@ -1,8 +1,35 @@
-'use strict';
+sGis.module('SpatialProcessor', [
+    'utils',
+    'Point',
+    'Map',
+    'Crs',
+    'controls.BaseLayerSwitch',
+    'spatialProcessor.Connector',
+    'mapItem.Folder',
+    'spatialProcessor.Api',
+    'spatialProcessor.Sfs',
+    'mapItem.MapServer',
+    'spatialProcessor.MapServer',
+    'spatialProcessor.DataAccessService',
+    'spatialProcessor.Template',
+    'utils.proto',
+    'IEventHandler',
+   
+    'spatialProcessor.controller.ClientLayer',
+    'spatialProcessor.controller.DefinitionQuery',
+    'spatialProcessor.controller.DitIntegration',
+    'spatialProcessor.controller.Identify',
+    'spatialProcessor.controller.ImportData',
+    'spatialProcessor.controller.ObjectSelector',
+    'spatialProcessor.controller.Routing',
+    'spatialProcessor.controller.Stats',
+    'spatialProcessor.controller.SuperSearch',
+    'spatialProcessor.controller.TableView'
+], function(utils, Point, Map, Crs, BaseLayerSwitch, Connector, Folder, Api, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, proto, IEventHandler,
+ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelector, Routing, Stats, SuperSearch, TableView) {
+    'use strict';
 
-(function() {
-
-    sGis.SpatialProcessor = function(options) {
+    var SpatialProcessor = function(options) {
         this._rootMapItem = new sGis.mapItem.Folder();
         this._connector = new sGis.spatialProcessor.Connector(options.url, this._rootMapItem, options.password && options.login ? options.login : options.sessionId, options.password);
         this._map = new sGis.Map();
@@ -26,7 +53,7 @@
         }
     };
 
-    sGis.SpatialProcessor.prototype = {
+    SpatialProcessor.prototype = {
         _initialize: function(options) {
             this.api = new sGis.spatialProcessor.Api(this._connector, options.adminUrl);
 
@@ -495,7 +522,7 @@
         }
     }
 
-    Object.defineProperties(sGis.SpatialProcessor.prototype, {
+    Object.defineProperties(SpatialProcessor.prototype, {
         connector: {
             get: function() {
                 return this._connector;
@@ -566,7 +593,7 @@
         }
     });
 
-    sGis.utils.proto.setMethods(sGis.SpatialProcessor.prototype, sGis.IEventHandler);
+    sGis.utils.proto.setMethods(SpatialProcessor.prototype, sGis.IEventHandler);
 
     var controllerList = {
         'identify': sGis.spatialProcessor.controller.Identify,
@@ -581,4 +608,6 @@
         'importData': sGis.spatialProcessor.controller.ImportData
     };
 
-})();
+    return SpatialProcessor;
+    
+});

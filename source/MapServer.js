@@ -1,12 +1,21 @@
-'use strict';
+sGis.module('spatialProcessor.MapServer', [
+    'utils',
+    'utils.proto',
+    'Crs',
+    'Point',
+    'TileLayer',
+    'ESRIDynamicLayer',
+    'DynamicLayer',
+    'Map',
+    'IEventHandler'
+], function(utils, proto, Crs, Point, TileLayer, ESRIDynamicLayer, DynamicLayer, Map, IEventHandler) {
+    'use strict';
 
-(function() {
-
-    sGis.spatialProcessor.MapServer = function(name, serverConnector, options) {
+    var MapServer = function(name, serverConnector, options) {
         this.__initialize(name, serverConnector, options);
     };
 
-    sGis.spatialProcessor.MapServer.prototype = {
+    MapServer.prototype = {
         _map: null,
         _opacity: 1,
         _display: true,
@@ -179,7 +188,7 @@
         return scheme;
     }
 
-    Object.defineProperties(sGis.spatialProcessor.MapServer.prototype, {
+    Object.defineProperties(MapServer.prototype, {
         url: {
             get: function() {
                 return this._url;
@@ -342,6 +351,8 @@
         }
     });
 
-    sGis.utils.proto.setMethods(sGis.spatialProcessor.MapServer.prototype, sGis.IEventHandler);
-
-})();
+    sGis.utils.proto.setMethods(MapServer.prototype, sGis.IEventHandler);
+    
+    return MapServer;
+    
+});

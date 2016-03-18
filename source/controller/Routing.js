@@ -1,5 +1,6 @@
-(function() {
-
+sGis.module('spatialProcessor.controller.Routing', [
+    'spatialProcessor.Controller'
+], function(Controller) {
     'use strict';
 
     var Routing = function(connector, options) {
@@ -35,6 +36,6 @@
         }
     });
 
-    sGis.spatialProcessor.controller.Routing = Routing;
+    return Routing;
 
-})();
+})

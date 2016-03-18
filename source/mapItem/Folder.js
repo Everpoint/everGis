@@ -1,12 +1,13 @@
-'use strict';
+sGis.module('mapItem.Folder', [
+    'MapItem'
+], function(MapItem) {
+    'use strict';
 
-(function() {
-
-    sGis.mapItem.Folder = function(options) {
+    var Folder = function(options) {
         this.__initialize(options);
     };
 
-    sGis.mapItem.Folder.prototype = new sGis.MapItem({
+    Folder.prototype = new sGis.MapItem({
         isValidChild: function(child) {
             return child instanceof sGis.MapItem;
         },
@@ -26,6 +27,7 @@
             }
         }
     });
+    
+    return Folder;
 
-
-})();
+});

@@ -1,6 +1,12 @@
-(function() {
-
-    sGis.spatialProcessor.controller.SuperSearch = function(spatialProcessor, options) {
+sGis.module('spatialProcessor.controller.SuperSearch', [
+    'Crs',
+    'spatialProcessor.MapServer',
+    'spatialProcessor.Controller',
+    'spatialProcessor.DataTree'
+], function(Crs, MapServer, Controller, DataTree) {
+    'use strict';
+    
+    var SuperSearch = function(spatialProcessor, options) {
         if (options.map) {
             this._map = options.map;
         } else if (options.crs) {
@@ -16,7 +22,7 @@
         });
     };
 
-    sGis.spatialProcessor.controller.SuperSearch.prototype = new sGis.spatialProcessor.Controller({
+    SuperSearch.prototype = new sGis.spatialProcessor.Controller({
         _type: 'superSearch',
 
         superSearch: function(properties) {
@@ -101,12 +107,14 @@
         }
     });
 
-    Object.defineProperties(sGis.spatialProcessor.controller.SuperSearch.prototype, {
+    Object.defineProperties(SuperSearch.prototype, {
         tree: {
             get: function() {
                 return this._tree;
             }
         }
     });
-
-})();
+    
+    return SuperSearch;
+    
+});

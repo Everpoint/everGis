@@ -1,15 +1,17 @@
-'use strict';
+sGis.module('spatialProcessor.Sfs', [
+    'utils',
+    'spatialProcessor.Template'
+], function(utils, Template) {
+    'use strict';
 
-(function() {
-
-    sGis.spatialProcessor.Sfs = function(spatialProcessor, serviceName) {
+    var Sfs = function(spatialProcessor, serviceName) {
         if (!(spatialProcessor instanceof sGis.spatialProcessor.Connector)) sGis.utils.error('sGis.spatialProcessor.Connector instance is expected but got ' + spatialProcessor + ' instead');
 
         this._spatialProcessor = spatialProcessor;
         this._serviceName = serviceName;
     };
 
-    sGis.spatialProcessor.Sfs.prototype = {
+    Sfs.prototype = {
         list: function(properties) {
             var successHandler = properties.success;
             properties.success = function(response) {
@@ -118,4 +120,6 @@
         }
     };
 
-})();
+    return Sfs;
+    
+});

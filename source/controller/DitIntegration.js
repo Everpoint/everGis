@@ -1,8 +1,9 @@
-'use strict';
+sGis.module('spatialProcessor.controller.DitIntegration', [
+    'spatialProcessor.Controller'
+], function(Controller) {
+    'use strict';
 
-(function() {
-
-    sGis.spatialProcessor.controller.DitIntegration = function(spatialProcessor, options) {
+    var DitIntegration = function(spatialProcessor, options) {
         this._map = options.map;
 
         var self = this;
@@ -15,7 +16,7 @@
         });
     };
 
-    sGis.spatialProcessor.controller.DitIntegration.prototype = new sGis.spatialProcessor.Controller({
+    DitIntegration.prototype = new sGis.spatialProcessor.Controller({
         _type: 'integrationLayer',
 
         loadLayerData: function(properties) {
@@ -69,7 +70,7 @@
         }
     });
 
-    Object.defineProperties(sGis.spatialProcessor.controller.DitIntegration.prototype, {
+    Object.defineProperties(DitIntegration.prototype, {
         tree: {
             get: function() {
                 return this._tree;
@@ -89,4 +90,6 @@
         }
     });
 
-})();
+    return DitIntegration;
+    
+});

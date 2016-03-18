@@ -1,6 +1,21 @@
-(function() {
+sGis.module('spatialProcessor.Template', [
+    'utils',
+    'feature.Point',
+    'Crs',
+    'feature.Polyline',
+    'feature.Polygon',
+    'geom.Point',
+    'geom.Polyline',
+    'spatialProcessor.parseXML',
+    'symbol.point',
+    'symbol.polyline',
+    'symbol.polygon',
+    'utils.Color',
+    'utils.proto'
+], function(utils, PointF, Crs, Polyline, Polygon, PointG, PolylineG, parseXML, pointSymbols, polylineSymbols, polygonSymbols, Color, proto) {
+    'use strict';
 
-    sGis.spatialProcessor.Template = function(asset, path) {
+    var Template = function(asset, path) {
         this.id = asset.Id || sGis.utils.getGuid();
         this.path = path;
         this.geometryType = asset.ServerBuilder ? asset.GeometryType - 1 : asset.GeometryType;
@@ -13,7 +28,7 @@
         this._asset = asset;
     };
 
-    sGis.spatialProcessor.Template.prototype = {
+    Template.prototype = {
         _setOverrideIcon: function(data) {
             this._overrideIcon = 'data:image/png;base64,' + data;
         },
@@ -116,7 +131,7 @@
         }
     }
 
-    sGis.utils.proto.setProperties(sGis.spatialProcessor.Template.prototype, {
+    sGis.utils.proto.setProperties(Template.prototype, {
         symbol: null,
         id: null,
         path: null,
@@ -126,4 +141,6 @@
 
     var defaultSymbols = [new sGis.symbol.point.Point(), new sGis.symbol.polyline.Simple(), new sGis.symbol.polygon.Simple()];
 
-})();
+    return Template;
+    
+});

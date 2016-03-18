@@ -1,21 +1,23 @@
-﻿'use strict';
+﻿sGis.module('mapItem.ClientLayer', [
+    'utils',
+    'MapItem'
+], function(utils, MapItem) {
+    'use strict';
 
-(function() {
-
-    sGis.mapItem.ClientLayer = function(controller, properties) {
+    var ClientLayer = function(controller, properties) {
         this.controller = controller;
         this.__initialize(properties);
 
         this.controller.mapServer.on('legendUpdate', this._onLegendUpdate.bind(this))
     };
 
-    sGis.mapItem.ClientLayer.prototype = new sGis.MapItem({
+    ClientLayer.prototype = new sGis.MapItem({
         _onLegendUpdate: function() {
             this.fire('legendUpdate');
         }
     });
 
-    Object.defineProperties(sGis.mapItem.ClientLayer.prototype, {
+    Object.defineProperties(ClientLayer.prototype, {
         controller: {
             get: function() {
                 return this._controller;
@@ -93,5 +95,13 @@
             }
         }
     });
+    
+    return ClientLayer;
+    
+});
+
+
+(function() {
+
 
 })();

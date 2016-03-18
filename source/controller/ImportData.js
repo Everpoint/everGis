@@ -1,5 +1,6 @@
-(function() {
-
+sGis.module('spatialProcessor.controller.ImportData', [
+    'spatialProcessor.Controller'
+], function(Controller) {
     'use strict';
 
     var ImportData = function(connector, options) {
@@ -57,6 +58,6 @@
         }
     });
 
-    sGis.spatialProcessor.controller.ImportData = ImportData;
+    return ImportData;
 
-})();
+});
