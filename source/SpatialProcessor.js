@@ -24,7 +24,8 @@ sGis.module('SpatialProcessor', [
     'spatialProcessor.controller.Routing',
     'spatialProcessor.controller.Stats',
     'spatialProcessor.controller.SuperSearch',
-    'spatialProcessor.controller.TableView'
+    'spatialProcessor.controller.TableView',
+    'spatialProcessor.controller.Buffer'
 ], function(utils, Point, Map, Crs, BaseLayerSwitch, Connector, Folder, Api, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, proto, IEventHandler,
 ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelector, Routing, Stats, SuperSearch, TableView) {
     'use strict';
@@ -605,7 +606,8 @@ ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelec
         'objectSelector': sGis.spatialProcessor.controller.ObjectSelector,
         'stats': sGis.spatialProcessor.controller.Stats,
         'routing': sGis.spatialProcessor.controller.Routing,
-        'importData': sGis.spatialProcessor.controller.ImportData
+        'importData': sGis.spatialProcessor.controller.ImportData,
+        'buffer': sGis.spatialProcessor.controller.Buffer
     };
 
     return SpatialProcessor;
