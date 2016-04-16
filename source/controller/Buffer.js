@@ -24,7 +24,7 @@ sGis.module('spatialProcessor.controller.Buffer', [
          * @param {Boolean} properties.unionResults
          * @param {String} properties.storageId
          * @param {Boolean} properties.subtractObject
-         * @param {Number} [properties.processDelay]
+         * @param {Number} [properties.processDelay] - server processes objects in batches of 200. This parameter is a sleep time in ms between batches. Use smaller value for quicker process.
          * @param {String} properties.sr
          * @param {Function} properties.requested
          * @param {Function} properties.success
