@@ -25,7 +25,7 @@ sGis.module('spatialProcessor.controller.Buffer', [
          * @param {String} properties.storageId
          * @param {Boolean} properties.subtractObject
          * @param {Number} [properties.processDelay] - server processes objects in batches of 200. This parameter is a sleep time in ms between batches. Use smaller value for quicker process.
-         * @param {String} properties.sr
+         * @param {sGis.Crs} properties.sr
          * @param {Function} properties.requested
          * @param {Function} properties.success
          * @param {Function} properties.error
@@ -37,7 +37,7 @@ sGis.module('spatialProcessor.controller.Buffer', [
                 params += '&sourceStorage=' + properties.storageId;
                 params += '&subtractObject=' + (properties.subtractObject || false);
                 if (properties.processDelay) params += '&processDelay=' + properties.processDelay;
-                params += '&sr=' + properties.sr || null;
+                if (properties.sr) params += '&sr=' + JSON.stringify(properties.sr.getWkidString());
 
                 params += '&autoUpdate=false';
                 return {
@@ -49,6 +49,8 @@ sGis.module('spatialProcessor.controller.Buffer', [
                 };
             });
         }
+
+        get mapServer() { return this._layer; }
     }
 
     return Buffer;
