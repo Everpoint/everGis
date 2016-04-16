@@ -20,10 +20,11 @@ sGis.module('spatialProcessor.controller.Buffer', [
         /**
          * Calculates the buffers and displays them in the controller mapServer
          * @param {Object} properties
-         * @param {Number[]} properties.distances
+         * @param {Number|String[]} properties.distances
          * @param {Boolean} properties.unionResults
          * @param {String} properties.storageId
          * @param {Boolean} properties.subtractObject
+         * @param {Number} [properties.processDelay]
          * @param {String} properties.sr
          * @param {Function} properties.requested
          * @param {Function} properties.success
@@ -34,7 +35,8 @@ sGis.module('spatialProcessor.controller.Buffer', [
                 var params = 'distances=' + JSON.stringify(properties.distances);
                 params += '&unionResults=' + (properties.unionResults === true);
                 params += '&sourceStorage=' + properties.storageId;
-                params += '&subtractObject=' + (properties.subtractObject === true);
+                params += '&subtractObject=' + (properties.subtractObject || false);
+                if (properties.processDelay) params += '&processDelay=' + properties.processDelay;
                 params += '&sr=' + properties.sr || null;
 
                 params += '&autoUpdate=false';
