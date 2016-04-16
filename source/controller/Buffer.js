@@ -20,7 +20,7 @@ sGis.module('spatialProcessor.controller.Buffer', [
         /**
          * Calculates the buffers and displays them in the controller mapServer
          * @param {Object} properties
-         * @param {Number|String[]} properties.distances
+         * @param {Number|String[]} properties.distances - an array of buffer radiuses or attribute names, which should be used as a value for radius.
          * @param {Boolean} properties.unionResults
          * @param {String} properties.storageId
          * @param {Boolean} properties.subtractObject
