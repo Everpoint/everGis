@@ -43,6 +43,24 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
             });
         },
 
+        selectByStorage: function(properties) {
+            this.__operation(function() {
+                var param = 'geometryStorageId=' + properties.geometryStorageId +
+                        '&res=' + encodeURIComponent(this._map.resolution) +
+                        '&mode=' + (properties.mode ? properties.mode : 0);
+                if (properties.searchStroageIds) param += '&searchStorageIds=' + JSON.stringify(properties.searchStroageIds);
+                var self = this;
+
+                return {
+                    operation: 'selectByStorage',
+                    dataParameters: param,
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
+        },
+
         search: function(properties) {
             var tree;
             this.__operation(function() {
