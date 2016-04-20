@@ -43,12 +43,21 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
             });
         },
 
+        /**
+         * Selection of objects by the geometry in specified storage
+         * @param {Object} properties
+         * @param {String} properties.geometryStorageId - storage id with the geometry to be used for selection
+         * @param {String[]} [properties.searchStorageIds] - the list of storage is, in which search will be performed
+         * @param {Number} [properties.mode} - mode of search. 0 - clear search tree before search, 1 - add to selection, 2 - remove from selection
+         * @param {String} [properties.operation] - "contains" to find only objects, completely contained by search geometry.
+         */
         selectByStorage: function(properties) {
             this.__operation(function() {
                 var param = 'geometryStorageId=' + properties.geometryStorageId +
                         '&res=' + encodeURIComponent(this._map.resolution) +
                         '&mode=' + (properties.mode ? properties.mode : 0);
-                if (properties.searchStroageIds) param += '&searchStorageIds=' + JSON.stringify(properties.searchStroageIds);
+                if (properties.searchStorageIds) param += '&searchStorageIds=' + JSON.stringify(properties.searchStorageIds);
+                if (properties.operation) param += '&operation=' + properties.operation;
                 var self = this;
 
                 return {
@@ -82,7 +91,7 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
 
         pick: function(properties) {
             this.__operation(function() {
-                var param = 'geom=' + encodeURIComponent(JSON.stringify({rings: properties.geometry.coordinates, spatialReference: this._map.crs.getWkidString()})) + //TODO: spatial reference should be fixed
+                var param = 'geom=' + this._serializeGeometry(properties.geometry) +
                         '&res=' + encodeURIComponent(this._map.resolution) +
                         '&sr=' + encodeURIComponent(JSON.stringify(this._map.crs.getWkidString())),
                     self = this;
