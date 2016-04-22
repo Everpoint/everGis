@@ -7,8 +7,9 @@ sGis.module('spatialProcessor.MapServer', [
     'ESRIDynamicLayer',
     'DynamicLayer',
     'Map',
-    'IEventHandler'
-], function(utils, proto, Crs, Point, TileLayer, ESRIDynamicLayer, DynamicLayer, Map, IEventHandler) {
+    'IEventHandler',
+    'TileScheme'
+], function(utils, proto, Crs, Point, TileLayer, ESRIDynamicLayer, DynamicLayer, Map, IEventHandler, TileScheme) {
     'use strict';
 
     var MapServer = function(name, serverConnector, options) {
@@ -110,7 +111,7 @@ sGis.module('spatialProcessor.MapServer', [
                 }
 
                 if (this._serviceInfo.tileInfo) {
-                    properties.tileScheme = getTileScheme(this._serviceInfo);
+                    properties.tileScheme = getTileScheme(this._serviceInfo, properties.crs);
                     if (!properties.crs.from) properties.cycleX = false;
                 }
 
@@ -166,7 +167,7 @@ sGis.module('spatialProcessor.MapServer', [
         }
     };
 
-    function getTileScheme(serviceInfo) {
+    function getTileScheme(serviceInfo, crs) {
         var scheme = {
             tileWidth: serviceInfo.tileInfo.rows,
             tileHeight: serviceInfo.tileInfo.cols,
@@ -175,17 +176,25 @@ sGis.module('spatialProcessor.MapServer', [
                 x: serviceInfo.tileInfo.origin.x,
                 y: serviceInfo.tileInfo.origin.y
             },
-            matrix: {}
+            levels: {}
         };
 
+        var projection = sGis.CRS.wgs84.projectionTo(crs);
+        if (projection && scheme.tileWidth) {
+            var point1 = new sGis.Point(0, -180).projectTo(crs);
+            var point2 = new sGis.Point(0, 180).projectTo(crs);
+            var fullWidth = point2.x - point1.x;
+        }
         for (var i = 0, len = serviceInfo.tileInfo.lods.length; i < len; i++) {
-            scheme.matrix[serviceInfo.tileInfo.lods[i].level] = {
-                resolution: serviceInfo.tileInfo.lods[i].resolution,
-                scale: serviceInfo.tileInfo.lods[i].scale
+            var resolution = serviceInfo.tileInfo.lods[i].resolution;
+            scheme.levels[serviceInfo.tileInfo.lods[i].level] = {
+                resolution: resolution,
+                scale: serviceInfo.tileInfo.lods[i].scale,
+                indexCount: Math.round(fullWidth / resolution / scheme.tileWidth)
             };
         }
 
-        return scheme;
+        return new TileScheme(scheme);
     }
 
     Object.defineProperties(MapServer.prototype, {
