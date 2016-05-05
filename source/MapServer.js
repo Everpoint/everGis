@@ -8,8 +8,9 @@ sGis.module('spatialProcessor.MapServer', [
     'DynamicLayer',
     'Map',
     'IEventHandler',
-    'TileScheme'
-], function(utils, proto, Crs, Point, TileLayer, ESRIDynamicLayer, DynamicLayer, Map, IEventHandler, TileScheme) {
+    'TileScheme',
+    'spatialProcessor.ClusterLayer'
+], function(utils, proto, Crs, Point, TileLayer, ESRIDynamicLayer, DynamicLayer, Map, IEventHandler, TileScheme, ClusterLayer) {
     'use strict';
 
     var MapServer = function(name, serverConnector, options) {
@@ -164,6 +165,10 @@ sGis.module('spatialProcessor.MapServer', [
             if (this._serviceInfo) {
                 this._serverConnector.removeNotificationListner('dynamic layer', this._serviceInfo.fullName);
             }
+        },
+
+        _setClusterLayer: function() {
+            this._clusterLayer = new ClusterLayer(this._url + 'MapServer/', this._serverConnector.sessionId);
         }
     };
 
@@ -356,6 +361,43 @@ sGis.module('spatialProcessor.MapServer', [
             },
             set: function(bool) {
                 this._queryLegend = bool;
+            }
+        },
+
+        showAsClusters: {
+            get: function() {
+                return this._showAsClusters;
+            },
+            set: function(bool) {
+                bool = !!bool;
+                if (this._showAsClusters !== bool) {
+                    if (this._map) {
+                        if (!this._clusterLayer) this._setClusterLayer();
+
+                        if (bool) {
+                            let index = -1;
+                            if (this._layer) {
+                                index = this._map.getLayerIndex(this._layer);
+                                this._map.removeLayer(this._layer);
+                            }
+                            this._map.moveLayerToIndex(this._clusterLayer, index);
+                        } else {
+                            let index = this._map.getLayerIndex(this._clusterLayer);
+                            this._map.removeLayer(this._clusterLayer);
+                            if (this._layer) {
+                                this._map.moveLayerToIndex(this._layer, index);
+                            }
+                        }
+                    }
+
+                    this._showAsClusters = bool;
+                }
+            }
+        },
+
+        clusterLayer: {
+            get: function() {
+                return this._clusterLayer;
             }
         }
     });
