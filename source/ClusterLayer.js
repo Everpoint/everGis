@@ -11,7 +11,8 @@ sGis.module('spatialProcessor.ClusterLayer', [
         sessionId: null,
         clusterSize: 100,
         algorithm: 'grid',
-        delayedUpdate: true
+        delayedUpdate: true,
+        aggregationParameters: []
     };
 
     /**
@@ -93,18 +94,24 @@ sGis.module('spatialProcessor.ClusterLayer', [
                         bbox.p[1].x + '%2C' +
                         bbox.p[1].y +
                     '&algorithm=' + this.algorithm +
-                    '&aggregationParameters=' + '[]' +
+                    '&aggregationParameters=' + encodeURIComponent(JSON.stringify(this.aggregationParameters)) +
                     '&_sb=' + this.sessionId;
         }
 
         _setFeatures(clusters, crs) {
             var features = [];
             clusters.forEach((cluster) => {
-                features.push(new PointF(cluster.Center, {crs: crs, symbol: this._symbol, objectCount: cluster.ObjectCount, aggregation: cluster.Aggregations, bouningPolygon: new Polygon(cluster.BoundingGeometry, {crs: crs} )}));
+                features.push(new PointF(cluster.Center, {crs: crs, symbol: this._symbol, objectCount: cluster.ObjectCount, aggregations: cluster.Aggregations, setNo: cluster.SetNo, bouningPolygon: new Polygon(cluster.BoundingGeometry, {crs: crs} )}));
             });
 
             this._features = features;
             this.fire('propertyChange', 'features');
+        }
+
+        get symbol() { return this._symbol; }
+        set symbol(symbol) {
+            this._symbol = symbol;
+            this._features.forEach((feature) => { feature.symbol = symbol; });
         }
     }
 

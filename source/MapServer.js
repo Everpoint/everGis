@@ -370,7 +370,7 @@ sGis.module('spatialProcessor.MapServer', [
             },
             set: function(bool) {
                 bool = !!bool;
-                if (this._showAsClusters !== bool) {
+                if (this.allowsClustering && this._showAsClusters !== bool) {
                     if (this._map) {
                         if (!this._clusterLayer) this._setClusterLayer();
 
@@ -397,7 +397,14 @@ sGis.module('spatialProcessor.MapServer', [
 
         clusterLayer: {
             get: function() {
+                if (!this._clusterLayer) this._setClusterLayer();
                 return this._clusterLayer;
+            }
+        },
+
+        allowsClustering: {
+            get: function() {
+                return /clusters/.exec(this._serviceInfo.capabilities);
             }
         }
     });
