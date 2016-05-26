@@ -33,9 +33,26 @@ sGis.module('spatialProcessor.controller.Routing', [
                     requested: properties.requested
                 };
             });
+        },
+
+        buildIsochrone: function(properties) {
+            this.__operation(function() {
+                var storageId = 'storageId=' + properties.storageId;
+                var duration = 'duration=' + properties.duration;
+                var solver = 'solver=' + properties.solver;
+
+                var param = [storageId, duration, solver].join('&');
+                return {
+                    operation: 'isochrone',
+                    dataParameters: param,
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
         }
     });
 
     return Routing;
 
-})
+});
