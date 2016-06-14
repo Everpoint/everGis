@@ -37,11 +37,12 @@ sGis.module('spatialProcessor.controller.Routing', [
 
         buildIsochrone: function(properties) {
             this.__operation(function() {
-                var storageId = 'storageId=' + properties.storageId;
                 var duration = 'duration=' + properties.duration;
                 var solver = 'solver=' + properties.solver;
+                var geometry = 'geom=' + this._serializeGeometry(properties.geometry);
+                var resolutionK = 'resolutionK=' + properties.resolutionK;
 
-                var param = [storageId, duration, solver].join('&');
+                var param = [duration, solver, geometry, resolutionK].join('&');
                 return {
                     operation: 'isochrone',
                     dataParameters: param,
