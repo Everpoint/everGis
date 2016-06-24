@@ -71,6 +71,7 @@ sGis.module('spatialProcessor.controller.Routing', [
          * @param {String} properties.solver - name of the route builder backend
          * @param {String} properties.storageId - storage ID with the target geometry
          * @param {Number} [properties.resolutionK] - the resolution coefficient of isochrone. 0.1 would mean, that 20x20 grid will be used, 0.5 -> 4x4.
+         * @param {Boolean} [properties.uniteResults] - whether to unite the isochrones from different objects
          * @param {Function} properties.requested
          * @param {Function} properties.success
          * @param {Function} properties.error
@@ -80,9 +81,11 @@ sGis.module('spatialProcessor.controller.Routing', [
                 var duration = 'duration=' + properties.duration;
                 var solver = 'solver=' + properties.solver;
                 var storageId = 'storageId=' + properties.storageId;
-                var resolutionK = 'resolutionK=' + properties.resolutionK;
 
-                var param = [duration, solver, storageId, resolutionK].join('&');
+                var param = [duration, solver, storageId].join('&');
+
+                if (properties.resolutionK) param += '&resolutionK=' + properties.resolutionK;
+                if (properties.uniteResults) param += '&uniteResults=' + properties.uniteResults;
                 return {
                     operation: 'isochroneByStorage',
                     dataParameters: param,
