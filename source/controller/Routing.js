@@ -35,6 +35,17 @@ sGis.module('spatialProcessor.controller.Routing', [
             });
         },
 
+        /**
+         * Build isochrone from the center of given geometry object
+         * @param {Object} properties
+         * @param {Number} properties.duration - time in seconds for isochrone limit
+         * @param {String} properties.solver - name of the route builder backend
+         * @param {sGis.Feature} properties.geometry - base geometry from which isochrone will be build
+         * @param {Number} [properties.resolutionK] - the resolution coefficient of isochrone. 0.1 would mean, that 20x20 grid will be used, 0.5 -> 4x4.
+         * @param {Function} properties.requested
+         * @param {Function} properties.success
+         * @param {Function} properties.error
+         */
         buildIsochrone: function(properties) {
             this.__operation(function() {
                 var duration = 'duration=' + properties.duration;
@@ -45,6 +56,35 @@ sGis.module('spatialProcessor.controller.Routing', [
                 var param = [duration, solver, geometry, resolutionK].join('&');
                 return {
                     operation: 'isochrone',
+                    dataParameters: param,
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
+        },
+
+        /**
+         * Build isochrone from the center of every object in the given storage
+         * @param {Object} properties
+         * @param {Number} properties.duration - time in seconds for isochrone limit
+         * @param {String} properties.solver - name of the route builder backend
+         * @param {String} properties.storageId - storage ID with the target geometry
+         * @param {Number} [properties.resolutionK] - the resolution coefficient of isochrone. 0.1 would mean, that 20x20 grid will be used, 0.5 -> 4x4.
+         * @param {Function} properties.requested
+         * @param {Function} properties.success
+         * @param {Function} properties.error
+         */
+        buildIsochroneByStorage: function(properties) {
+            this.__operation(function() {
+                var duration = 'duration=' + properties.duration;
+                var solver = 'solver=' + properties.solver;
+                var storageId = 'storageId=' + properties.storageId;
+                var resolutionK = 'resolutionK=' + properties.resolutionK;
+
+                var param = [duration, solver, storageId, resolutionK].join('&');
+                return {
+                    operation: 'isochroneByStorage',
                     dataParameters: param,
                     success: properties.success,
                     error: properties.error,
