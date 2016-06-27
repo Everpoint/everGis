@@ -2,6 +2,7 @@ sGis.module('SpatialProcessor', [
     'utils',
     'Point',
     'Map',
+    'painter.DomPainter',
     'Crs',
     'controls.BaseLayerSwitch',
     'spatialProcessor.Connector',
@@ -26,7 +27,7 @@ sGis.module('SpatialProcessor', [
     'spatialProcessor.controller.SuperSearch',
     'spatialProcessor.controller.TableView',
     'spatialProcessor.controller.Buffer'
-], function(utils, Point, Map, Crs, BaseLayerSwitch, Connector, Folder, Api, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, proto, IEventHandler,
+], function(utils, Point, Map, DomRenderer, Crs, BaseLayerSwitch, Connector, Folder, Api, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, proto, IEventHandler,
 ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelector, Routing, Stats, SuperSearch, TableView) {
     'use strict';
 
@@ -34,6 +35,7 @@ ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelec
         this._rootMapItem = new sGis.mapItem.Folder();
         this._connector = new sGis.spatialProcessor.Connector(options.url, this._rootMapItem, options.password && options.login ? options.login : options.sessionId, options.password);
         this._map = new sGis.Map();
+        this._renderer = new DomRenderer(this._map);
         this._login = options.login;
 
         this._services = {};
@@ -170,7 +172,7 @@ ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelec
                 var x = (service._serviceInfo.initialExtent.xmax + service._serviceInfo.initialExtent.xmin) / 2,
                     y = (service._serviceInfo.initialExtent.ymax + service._serviceInfo.initialExtent.ymin) / 2,
                     position = new sGis.Point(x, y, service.layer.crs),
-                    resolution = (service._serviceInfo.initialExtent.xmax - service._serviceInfo.initialExtent.xmin) / this._map.width * 2;
+                    resolution = (service._serviceInfo.initialExtent.xmax - service._serviceInfo.initialExtent.xmin) / this._painter.width * 2;
 
                 this._map.crs = service.layer.crs;
                 this._map.position = position;
@@ -536,6 +538,12 @@ ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelec
             }
         },
 
+        painter: {
+            get: function() {
+                return this._renderer;
+            }
+        },
+
         service: {
             get: function() {
                 return this._services;
@@ -550,10 +558,10 @@ ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelec
 
         mapWrapper: {
             get: function() {
-                return this._map.wrapper;
+                return this._renderer.wrapper;
             },
             set: function(wrapper) {
-                this._map.wrapper = wrapper;
+                this._renderer.wrapper = wrapper;
             }
         },
 

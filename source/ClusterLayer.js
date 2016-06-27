@@ -123,7 +123,7 @@ sGis.module('spatialProcessor.ClusterLayer', [
 sGis.module('spatialProcessor.ClusterSymbol', [
     'utils',
     'symbol.point',
-    'geom.Arc'
+    'render.Arc'
 ], function(utils, pointSymbols, Arc) {
 
     var symbolDefaults = {

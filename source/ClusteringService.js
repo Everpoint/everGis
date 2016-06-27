@@ -5,7 +5,9 @@ sGis.module('spatialProcessor.ClusteringService', [
     'Map'
 ], function(utils, FeatureLayer, Point, Map) {
     'use strict';
-    
+
+    /* DEPRECATED - WILL NOT WORK BECAUSE OF MAP BBOX */
+
     var ClusteringService = function(serverConnector, name, options) {
         this._serverConnector = serverConnector;
         this._url = serverConnector.url + name + '/';
@@ -63,7 +65,7 @@ sGis.module('spatialProcessor.ClusteringService', [
                             self._layer.add(point);
                         });
 
-                        self._map.redrawLayer(self._layer);
+                        self._layer.redraw();
                     }
                 });
             }
