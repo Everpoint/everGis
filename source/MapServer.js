@@ -75,7 +75,7 @@ sGis.module('spatialProcessor.MapServer', [
                             if (self._queryLegend) self.__requestLegend();
                             self._serverConnector.addNotificationListner('dynamic layer', self._serviceInfo.fullName, function() {
                                 self._layer.forceUpdate();
-                                if (self._map) self._map.redrawLayer(self._layer);
+                                self._layer.redraw();
                             });
                             if (self._queryLegend) self._serverConnector.addNotificationListner('symbols', self._serviceInfo.fullName, self.__requestLegend.bind(self));
                             self._initialized = true;
@@ -103,14 +103,6 @@ sGis.module('spatialProcessor.MapServer', [
             }
 
             if (/\btile\b/.exec(this._serviceInfo.capabilities)) {
-                if (this._map && this._map.layers.length === 0 && this._map.width && properties.crs.description) {
-                    var position = new sGis.Point((this._serviceInfo.initialExtent.xmax + this._serviceInfo.initialExtent.xmin) / 2, (this._serviceInfo.initialExtent.ymax + this._serviceInfo.initialExtent.ymin) / 2, properties.crs),
-                        resolution = (this._serviceInfo.initialExtent.xmax - this._serviceInfo.initialExtent.xmin) / this._map.width * 2;
-
-                    this._map.position = position;
-                    this._map.resolution = resolution || 10;
-                }
-
                 if (this._serviceInfo.tileInfo) {
                     properties.tileScheme = getTileScheme(this._serviceInfo, properties.crs);
                     if (!properties.crs.from) properties.cycleX = false;
@@ -300,13 +292,13 @@ sGis.module('spatialProcessor.MapServer', [
                 if (bool === true) {
                     if (this._layer) {
                         this._layer.show();
-                        if (this._map) this._map.redrawLayer(this._layer);
+                        this._layer.redraw();
                     }
                     this._display = true;
                 } else if (bool === false) {
                     if (this._layer) {
                         this._layer.hide();
-                        if (this._map) this._map.redrawLayer(this._layer);
+                        this._layer.redraw();
                     }
                     this._display = false;
                 } else {
@@ -326,7 +318,7 @@ sGis.module('spatialProcessor.MapServer', [
                     this._layer.showLayers(layerIdList);
                     this.fire('layerVisibilityChange');
                     this._layer.forceUpdate();
-                    if (this._map) this._map.redrawLayer(this._layer);
+                    this._layer.redraw();
                 }
             }
         },

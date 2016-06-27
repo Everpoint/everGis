@@ -1,6 +1,6 @@
 sGis.module('spatialProcessor.Controller', [
     'utils',
-    'utils.Color',
+    'spatialProcessor.utils',
     'feature.Point',
     'feature.Polyline',
     'feature.Polygon',
@@ -10,7 +10,7 @@ sGis.module('spatialProcessor.Controller', [
     'symbol.point',
     'symbol.polyline',
     'symbol.polygon'
-], function(utils, Color, Point, Polyline, Polygon, parseXML, proto, IEventHandler, pointSymbols, polylineSymbols, polygonSymbols) {
+], function(utils, spUtils, Point, Polyline, Polygon, parseXML, proto, IEventHandler, pointSymbols, polylineSymbols, polygonSymbols) {
     'use strict';
 
     var Controller = function(extention) {

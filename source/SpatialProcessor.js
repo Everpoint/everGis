@@ -172,7 +172,7 @@ ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelec
                 var x = (service._serviceInfo.initialExtent.xmax + service._serviceInfo.initialExtent.xmin) / 2,
                     y = (service._serviceInfo.initialExtent.ymax + service._serviceInfo.initialExtent.ymin) / 2,
                     position = new sGis.Point(x, y, service.layer.crs),
-                    resolution = (service._serviceInfo.initialExtent.xmax - service._serviceInfo.initialExtent.xmin) / this._map.width * 2;
+                    resolution = (service._serviceInfo.initialExtent.xmax - service._serviceInfo.initialExtent.xmin) / this._painter.width * 2;
 
                 this._map.crs = service.layer.crs;
                 this._map.position = position;

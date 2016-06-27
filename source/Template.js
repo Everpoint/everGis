@@ -4,8 +4,8 @@ sGis.module('spatialProcessor.Template', [
     'Crs',
     'feature.Polyline',
     'feature.Polygon',
-    'geom.Point',
-    'geom.Polyline',
+    'render.Point',
+    'render.Polyline',
     'spatialProcessor.parseXML',
     'symbol.point',
     'symbol.polyline',
@@ -54,7 +54,7 @@ sGis.module('spatialProcessor.Template', [
                 tempFeature.symbol = this.symbol;
                 var render = tempFeature.render(1, sGis.CRS.plain);
                 if (render && render[0]) {
-                    if (render instanceof sGis.geom.Point || render instanceof sGis.geom.Polyline) {
+                    if (render instanceof sGis.render.Point || render instanceof sGis.render.Polyline) {
                         return render[0].svg;
                     } else {
                         return render[0].node;
