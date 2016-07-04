@@ -7,9 +7,9 @@ sGis.module('spatialProcessor.Template', [
     'render.Point',
     'render.Polyline',
     'spatialProcessor.parseXML',
-    'symbol.point',
-    'symbol.polyline',
-    'symbol.polygon',
+    'symbol.point.Point',
+    'symbol.polyline.Simple',
+    'symbol.polygon.Simple',
     'utils.Color',
     'utils.proto'
 ], function(utils, PointF, Crs, Polyline, Polygon, PointG, PolylineG, parseXML, pointSymbols, polylineSymbols, polygonSymbols, Color, proto) {
@@ -34,6 +34,8 @@ sGis.module('spatialProcessor.Template', [
         },
 
         getImage: function(w, h) {
+            if (!this.symbol) return null;
+
             if (this._overrideIcon) {
                 var image = new Image();
                 image.src = this._overrideIcon;
@@ -42,25 +44,28 @@ sGis.module('spatialProcessor.Template', [
 
             w = w || 30;
             h = h || 30;
-            if (this.symbol) {
-                var tempFeature;
-                if (this.symbol.type === 'point') {
-                    tempFeature = new sGis.feature.Point([0, 0], {crs: sGis.CRS.plain});
-                } else {
-                    var type = this.symbol.type === 'polyline' ? sGis.feature.Polyline : sGis.feature.Polygon;
-                    tempFeature = new type([[-w/2, -h/2], [0, h/2], [w/2, 0]], {crs: sGis.CRS.plain});
-                }
 
-                tempFeature.symbol = this.symbol;
-                var render = tempFeature.render(1, sGis.CRS.plain);
-                if (render && render[0]) {
-                    if (render instanceof sGis.render.Point || render instanceof sGis.render.Polyline) {
-                        return render[0].svg;
-                    } else {
-                        return render[0].node;
-                    }
-                }
+            var pointFeature = new sGis.feature.Point([0,0], {crs: sGis.CRS.plain});
+            var renders = this.symbol.renderFunction(pointFeature, 1, sGis.CRS.plain);
+            if (renders.length === 0) {
+                var poly = new sGis.feature.Polyline([[-w/2, -h/2], [0, h/2], [w/2, 0]], {crs: sGis.CRS.plain});
+                renders = this.symbol.renderFunction(poly, 1, sGis.CRS.plain);
+                if (renders.length === 0) return null;
             }
+
+            if (renders[0].isVector) {
+                var svgRender = new sGis.painter.domPainter.SvgRender(renders[0]);
+                var node;
+                svgRender.getNode((error, rendered) => {
+                    node = rendered;
+                });
+                return node;
+            }
+
+            renders[0].getNode((error, rendered) => {
+                node = rendered;
+            });
+            return node;
         },
 
         _getSymbol: function(visualDefinition) {

@@ -122,9 +122,9 @@ sGis.module('spatialProcessor.ClusterLayer', [
 
 sGis.module('spatialProcessor.ClusterSymbol', [
     'utils',
-    'symbol.point',
+    'symbol.point.Point',
     'render.Arc'
-], function(utils, pointSymbols, Arc) {
+], function(utils, PointSymbol, Arc) {
 
     var symbolDefaults = {
         maxCount: 1024,
@@ -135,7 +135,7 @@ sGis.module('spatialProcessor.ClusterSymbol', [
         haloK: 1.5
     };
 
-    class ClusterSymbol extends pointSymbols.Point {
+    class ClusterSymbol extends PointSymbol {
         constructor() {
             super();
 

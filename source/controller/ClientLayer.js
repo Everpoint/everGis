@@ -1,9 +1,9 @@
 sGis.module('spatialProcessor.controller.ClientLayer', [
     'spatialProcessor.Controller',
     'spatialProcessor.MapServer',
-    'symbol.point',
-    'symbol.polyline',
-    'symbol.polygon'
+    'symbol.point.Point',
+    'symbol.polyline.Simple',
+    'symbol.polygon.Simple'
 ], function(Controller, MapServer, pointSymbols, polylineSymbols, polygonSymbols) {
     'use strict';
 

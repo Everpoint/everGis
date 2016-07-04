@@ -7,9 +7,9 @@ sGis.module('spatialProcessor.Controller', [
     'spatialProcessor.parseXML',
     'utils.proto',
     'IEventHandler',
-    'symbol.point',
-    'symbol.polyline',
-    'symbol.polygon'
+    'symbol.point.Point',
+    'symbol.polyline.Simple',
+    'symbol.polygon.Simple'
 ], function(utils, spUtils, Point, Polyline, Polygon, parseXML, proto, IEventHandler, pointSymbols, polylineSymbols, polygonSymbols) {
     'use strict';
 
