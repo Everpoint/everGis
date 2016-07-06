@@ -294,11 +294,22 @@ sGis.module('spatialProcessor.MapServer', [
                         this._layer.show();
                         this._layer.redraw();
                     }
+
+                    if (this._clusterLayer){
+                        this._clusterLayer.show();
+                        this._clusterLayer.redraw();
+                    }
+
                     this._display = true;
                 } else if (bool === false) {
                     if (this._layer) {
                         this._layer.hide();
                         this._layer.redraw();
+                    }
+
+                    if (this._clusterLayer){
+                        this._clusterLayer.hide();
+                        this._clusterLayer.redraw();
                     }
                     this._display = false;
                 } else {
