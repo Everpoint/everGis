@@ -85,7 +85,7 @@ sGis.module('spatialProcessor.controller.Routing', [
                 var param = [duration, solver, storageId].join('&');
 
                 if (properties.resolutionK) param += '&resolutionK=' + properties.resolutionK;
-                if (properties.uniteResults) param += '&uniteResults=' + properties.uniteResults;
+                if (properties.uniteResults !== undefined) param += '&uniteResults=' + properties.uniteResults;
                 return {
                     operation: 'isochroneByStorage',
                     dataParameters: param,
