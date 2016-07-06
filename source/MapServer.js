@@ -361,6 +361,8 @@ sGis.module('spatialProcessor.MapServer', [
                 return this._showAsClusters;
             },
             set: function(bool) {
+                if (!bool === !this._showAsClusters) return;
+
                 bool = !!bool;
                 if (this.allowsClustering && this._showAsClusters !== bool) {
                     if (this._map) {
