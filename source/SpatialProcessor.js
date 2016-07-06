@@ -171,7 +171,7 @@ ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelec
             if (!service.layer.crs.from) {
                 var x = (service._serviceInfo.initialExtent.xmax + service._serviceInfo.initialExtent.xmin) / 2,
                     y = (service._serviceInfo.initialExtent.ymax + service._serviceInfo.initialExtent.ymin) / 2,
-                    position = new sGis.Point(x, y, service.layer.crs),
+                    position = new sGis.Point([x, y], service.layer.crs),
                     resolution = (service._serviceInfo.initialExtent.xmax - service._serviceInfo.initialExtent.xmin) / this._painter.width * 2;
 
                 this._map.crs = service.layer.crs;
@@ -326,7 +326,7 @@ ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelec
                 success: function(settings) {
                     if (settings.position) {
                         var crs = settings.crs && (settings.crs.wkid === 102113 || settings.crs.wkid === 102100) ? sGis.CRS.webMercator : self._map.crs;
-                        var point = new sGis.Point(settings.position[0], settings.position[1], crs);
+                        var point = new sGis.Point(settings.position, crs);
                         self._map.setPosition(point, settings.resolution);
                         self._mapPositionIsSet = true;
                         self.dataAccessService.clientMapInfo({map: self._map});

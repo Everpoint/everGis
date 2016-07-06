@@ -178,8 +178,8 @@ sGis.module('spatialProcessor.MapServer', [
 
         var projection = sGis.CRS.wgs84.projectionTo(crs);
         if (projection && scheme.tileWidth) {
-            var point1 = new sGis.Point(0, -180).projectTo(crs);
-            var point2 = new sGis.Point(0, 180).projectTo(crs);
+            var point1 = new sGis.Point([0, -180]).projectTo(crs);
+            var point2 = new sGis.Point([0, 180]).projectTo(crs);
             var fullWidth = point2.x - point1.x;
         }
         for (var i = 0, len = serviceInfo.tileInfo.lods.length; i < len; i++) {

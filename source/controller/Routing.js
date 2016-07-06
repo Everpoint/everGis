@@ -60,7 +60,7 @@ sGis.module('spatialProcessor.controller.Routing', [
                     success: properties.success,
                     error: properties.error,
                     requested: properties.requested
-                };
+                }; 
             });
         },
 
