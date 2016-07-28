@@ -113,6 +113,11 @@ sGis.module('spatialProcessor.ClusterLayer', [
             this._symbol = symbol;
             this._features.forEach((feature) => { feature.symbol = symbol; });
         }
+
+        redraw() {
+           delete this._currentBbox;
+           this.fire('propertyChange', 'features');
+        }
     }
 
     utils.extend(ClusterLayer.prototype, defaults);
