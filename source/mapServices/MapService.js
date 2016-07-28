@@ -1,0 +1,60 @@
+sGis.module('spatialProcessor.MapService', [
+    'utils',
+    'CRS'
+], (utils, CRS) => {
+
+    'use strict';
+
+    let submodules = {};
+    
+    class MapService {
+        constructor(connector, name, serviceInfo) {
+            this._connector = connector;
+            this._name = name;
+            this.serviceInfo = serviceInfo;
+        }
+        
+        static initialize(connector, name) {
+            let url = connector.url + name + '/?_sb=' + connector.sessionId;
+            return utils.ajaxp({url: url})
+                .then(([response]) => {
+                    try {
+                        var serviceInfo = utils.parseJSON(response);
+                        if (serviceInfo.capabilities && serviceInfo.capabilities.indexOf('tile') >= 0) {
+                            return new submodules.TileService(connector, name, serviceInfo);
+                        } else {
+                            return new submodules.DataViewService(connector, name, serviceInfo);
+                        }
+                    } catch (e) {
+                        throw new Error('Failed to initialize service ' + name);
+                    }
+                });
+        }
+        
+        static register(name, module) {
+            submodules[name] = module;
+        }
+
+        get url() {
+            return this._connector.url + this._name + '/';
+        }
+        
+        get serviceInfo() { return this._serviceInfo; }
+        set serviceInfo(val) {
+            if (val.spatialReference && val.spatialReference.wkid === 102100 || val.wkid === 102113) {
+                this._crs = CRS.webMercator;
+            } else {
+                this._crs = new sGis.Crs({description: val.spatialReference});
+            }
+            
+            this._serviceInfo = val;
+        }
+        
+        get crs() { return this._crs; }
+        get layer() { return this._layer; }
+        get connector() { return this._connector; }
+    }
+
+    return MapService;
+
+});
