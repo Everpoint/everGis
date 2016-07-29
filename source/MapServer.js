@@ -161,6 +161,7 @@ sGis.module('spatialProcessor.MapServer', [
 
         _setClusterLayer: function() {
             this._clusterLayer = new ClusterLayer(this._url + 'MapServer/', this._serverConnector.sessionId);
+            if (!this.display) this._clusterLayer.hide();
         }
     };
 
