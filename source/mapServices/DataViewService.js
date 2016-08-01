@@ -11,7 +11,7 @@ sGis.module('spatialProcessor.mapService.DataViewService', [
         }
 
         _setLayer() {
-            this._layer = new sGis.ESRIDynamicLayer(this.url, { additionalParameters: '_sb=' + this.connector.sessionId});
+            this._layer = new sGis.ESRIDynamicLayer(this.url, { additionalParameters: '_sb=' + this.connector.sessionId, crs: this.crs });
         }
     }
 

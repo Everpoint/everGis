@@ -17,7 +17,7 @@ sGis.module('spatialProcessor.mapService.TileService', [
                 var tileScheme = getTileScheme(this.serviceInfo.tileInfo, this.crs);
             }
 
-            this._layer = new TileLayer(this.url + 'tile/{z}/{y}/{x}?_sb=' + this.connector.sessionId, { tileScheme: tileScheme });
+            this._layer = new TileLayer(this.url + 'tile/{z}/{y}/{x}?_sb=' + this.connector.sessionId, { tileScheme: tileScheme, crs: this.crs });
         }
     }
 

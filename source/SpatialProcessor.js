@@ -7,6 +7,7 @@ sGis.module('SpatialProcessor', [
     'controls.BaseLayerSwitch',
     'spatialProcessor.Connector',
     'spatialProcessor.MapService',
+    'spatialProcessor.mapService.TileService',
     'mapItem.Folder',
     'spatialProcessor.Api',
     'spatialProcessor.Sfs',
@@ -28,7 +29,7 @@ sGis.module('SpatialProcessor', [
     'spatialProcessor.controller.SuperSearch',
     'spatialProcessor.controller.TableView',
     'spatialProcessor.controller.Buffer'
-], function(utils, Point, Map, DomRenderer, Crs, BaseLayerSwitch, Connector, MapService, Folder, Api, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, proto, IEventHandler,
+], function(utils, Point, Map, DomRenderer, Crs, BaseLayerSwitch, Connector, MapService, TileService, Folder, Api, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, proto, IEventHandler,
 ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelector, Routing, Stats, SuperSearch, TableView) {
     'use strict';
     
@@ -47,7 +48,14 @@ ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelec
         addService(name) {
             MapService.initialize(this._connector, name)
                 .then(service => {
-                    if (service.layer) this._map.addLayer(service.layer);
+                    if (service.layer) {
+                        if (service instanceof TileService) {
+                            this._map.crs = service.layer.crs;
+                            this._map.tileScheme = service.layer.tileScheme;
+                            this._map.adjustResolution();
+                        }
+                        this._map.addLayer(service.layer);
+                    }
                 })
                 .catch(message => {
                     utils.message(message);

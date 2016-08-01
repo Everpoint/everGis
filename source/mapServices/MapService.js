@@ -41,8 +41,8 @@ sGis.module('spatialProcessor.MapService', [
         
         get serviceInfo() { return this._serviceInfo; }
         set serviceInfo(val) {
-            if (val.spatialReference && val.spatialReference.wkid === 102100 || val.wkid === 102113) {
-                this._crs = CRS.webMercator;
+            if (val.spatialReference && crsMapping[val.spatialReference.wkid]) {
+                this._crs = crsMapping[val.spatialReference.wkid];
             } else {
                 this._crs = new sGis.Crs({description: val.spatialReference});
             }
@@ -53,6 +53,12 @@ sGis.module('spatialProcessor.MapService', [
         get crs() { return this._crs; }
         get layer() { return this._layer; }
         get connector() { return this._connector; }
+    }
+    
+    let crsMapping = {
+        '102100': CRS.webMercator,
+        '102113': CRS.webMercator,
+        '667': CRS.ellipticalMercator
     }
 
     return MapService;
