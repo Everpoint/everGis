@@ -10,6 +10,7 @@ sGis.module('SpatialProcessor', [
     'spatialProcessor.mapService.TileService',
     'mapItem.Folder',
     'spatialProcessor.Api',
+    'spatialProcessor.LayerController',
     'spatialProcessor.Sfs',
     'mapItem.MapServer',
     'spatialProcessor.MapServer',
@@ -29,7 +30,7 @@ sGis.module('SpatialProcessor', [
     'spatialProcessor.controller.SuperSearch',
     'spatialProcessor.controller.TableView',
     'spatialProcessor.controller.Buffer'
-], function(utils, Point, Map, DomRenderer, Crs, BaseLayerSwitch, Connector, MapService, TileService, Folder, Api, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, proto, IEventHandler,
+], function(utils, Point, Map, DomRenderer, Crs, BaseLayerSwitch, Connector, MapService, TileService, Folder, Api, LayerController, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, proto, IEventHandler,
 ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelector, Routing, Stats, SuperSearch, TableView) {
     'use strict';
     
@@ -37,29 +38,14 @@ ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelec
         constructor(properties) {
             this._connector = new Connector(properties.url, properties.login, properties.password);
             this._map = new Map();
+            this.api = new Api(this._connector);
             this._painter = new DomRenderer(this._map, {wrapper: properties.mapWrapper});
+            this.layerController = new LayerController(this.map, this.api, this.connector);
             this._login = properties.login;
 
             this._connector.on('sessionInitialized', () => {
-                if (properties.services) properties.services.forEach(name => { this.addService(name); });
+                this.layerController.init(properties.services);
             });
-        }
-
-        addService(name) {
-            MapService.initialize(this._connector, name)
-                .then(service => {
-                    if (service.layer) {
-                        if (service instanceof TileService) {
-                            this._map.crs = service.layer.crs;
-                            this._map.tileScheme = service.layer.tileScheme;
-                            this._map.adjustResolution();
-                        }
-                        this._map.addLayer(service.layer);
-                    }
-                })
-                .catch(message => {
-                    utils.message(message);
-                });
         }
 
         get map() { return this._map; }

@@ -27,18 +27,9 @@ sGis.module('spatialProcessor.Api', [
         },
 
         getServiceCatalog: function(properties) {
-            this._operation('serviceCatalog/list', {
+            return this._operation('serviceCatalog/list', {
                 filter: sGis.utils.isString(properties.filter) ? properties.filter : undefined,
-                jsfilter: properties.filter instanceof Object ? properties.filter : undefined,
-                success: function(response) {
-                    try {
-                        var list = JSON.parse(response);
-                    } catch (e) {
-                        if (properties.error) properties.error(e);
-                    }
-                    if (properties.success) properties.success(list);
-                },
-                error: properties.error
+                jsfilter: properties.filter instanceof Object ? properties.filter : undefined
             });
         },
 
@@ -139,14 +130,18 @@ sGis.module('spatialProcessor.Api', [
         },
 
         _operation: function(name, parameters, data, admin) {
-            sGis.utils.ajax({
-                url: this._getOperationUrl(name, parameters, admin),
-                type: data ? 'POST' : 'GET',
-                data: data,
-                success: parameters.success,
-                error: parameters.error,
-                contentType: admin ? 'application/json' : ''
-            });
+            return sGis.utils.ajaxp({
+                        url: this._getOperationUrl(name, parameters, admin),
+                        type: data ? 'POST' : 'GET',
+                        data: data,
+                        contentType: admin ? 'application/json' : ''
+                    }).then(([response]) => {
+                        try {
+                            return sGis.utils.parseJSON(response);
+                        } catch (e) {
+                            throw Error('cannot parse response')
+                        }
+                    });
         },
 
         _getOperationUrl: function(name, parameters, admin) {
