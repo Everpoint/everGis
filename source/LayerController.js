@@ -21,7 +21,6 @@ sGis.module('spatialProcessor.LayerController', [
             this._api = api;
             this._connector = connector;
             this._layerOrder = [];
-            this.groupLayer = new sGis.LayerGroup();
         }
 
         init (services) {
