@@ -10,7 +10,7 @@ sGis.module('SpatialProcessor', [
     'spatialProcessor.mapService.TileService',
     'mapItem.Folder',
     'spatialProcessor.Api',
-    'spatialProcessor.LayerController',
+    'spatialProcessor.LayerManager',
     'spatialProcessor.Sfs',
     'mapItem.MapServer',
     'spatialProcessor.MapServer',
@@ -30,7 +30,7 @@ sGis.module('SpatialProcessor', [
     'spatialProcessor.controller.SuperSearch',
     'spatialProcessor.controller.TableView',
     'spatialProcessor.controller.Buffer'
-], function(utils, Point, Map, DomRenderer, Crs, BaseLayerSwitch, Connector, MapService, TileService, Folder, Api, LayerController, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, proto, IEventHandler,
+], function(utils, Point, Map, DomRenderer, Crs, BaseLayerSwitch, Connector, MapService, TileService, Folder, Api, LayerManager, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, proto, IEventHandler,
 ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelector, Routing, Stats, SuperSearch, TableView) {
     'use strict';
     
@@ -40,11 +40,11 @@ ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelec
             this._map = new Map();
             this.api = new Api(this._connector);
             this._painter = new DomRenderer(this._map, {wrapper: properties.mapWrapper});
-            this.layerController = new LayerController(this.map, this.api, this.connector);
+            this.layerManager = new LayerManager(this.map, this.api, this.connector);
             this._login = properties.login;
 
-            this._connector.on('sessionInitialized', () => {
-                this.layerController.init(properties.services);
+            this._connector.once('sessionInitialized', () => {
+                this.layerManager.init(properties.services);
             });
         }
 

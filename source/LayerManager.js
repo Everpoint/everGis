@@ -1,15 +1,16 @@
 /**
  * Created by tporyadin on 8/5/2016.
  */
-sGis.module('spatialProcessor.LayerController', [
+sGis.module('spatialProcessor.LayerManager', [
     'utils',
+    'IEventHandler',
     'spatialProcessor.MapService',
     'spatialProcessor.mapService.TileService'
-], function (utils, MapService, TileService) {
+], function (utils, IEventHandler, MapService, TileService) {
     /**
      * @alias sGis.spatialProcessor.LayerController
      */
-    class LayerController {
+    class LayerManager {
         /**
          * @constructor
          * @param {Object} map
@@ -92,5 +93,5 @@ sGis.module('spatialProcessor.LayerController', [
         }
     }
 
-    return LayerController;
+    return LayerManager;
 });
