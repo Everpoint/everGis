@@ -28,8 +28,8 @@ sGis.module('spatialProcessor.Api', [
 
         getServiceCatalog: function(properties) {
             return this._operation('serviceCatalog/list', {
-                filter: sGis.utils.isString(properties.filter) ? properties.filter : undefined,
-                jsfilter: properties.filter instanceof Object ? properties.filter : undefined
+                filter: properties.filter,
+                jsfilter: properties.jsfilter
             });
         },
 

@@ -46,12 +46,15 @@ ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelec
             this._connector.once('sessionInitialized', () => {
                 this.layerManager.init(properties.services);
             });
+
+            this._dataAccessService = new DataAccessService(this._connector, 'DataAccess');
         }
 
         get map() { return this._map; }
         get painter() { return this._painter; }
         get login() { return this._login; }
         get connector() { return this._connector; }
+        get dataAccessService() { return this._dataAccessService; }
     }
     
     // var SpatialProcessor = function(options) {

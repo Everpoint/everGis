@@ -53,13 +53,14 @@ sGis.module('spatialProcessor.MapService', [
         get crs() { return this._crs; }
         get layer() { return this._layer; }
         get connector() { return this._connector; }
+        get name() { return this._name; }
     }
     
     let crsMapping = {
         '102100': CRS.webMercator,
         '102113': CRS.webMercator,
         '667': CRS.ellipticalMercator
-    }
+    };
 
     return MapService;
 

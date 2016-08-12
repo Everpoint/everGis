@@ -13,6 +13,10 @@ sGis.module('spatialProcessor.mapService.DataViewService', [
         _setLayer() {
             this._layer = new sGis.ESRIDynamicLayer(this.url, { additionalParameters: '_sb=' + this.connector.sessionId, crs: this.crs });
         }
+
+        get dataSource() {
+            return this._serviceInfo.dataSourceServiceName;
+        }
     }
 
     MapService.register('DataViewService', DataViewService);
