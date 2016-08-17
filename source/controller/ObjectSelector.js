@@ -1,13 +1,13 @@
 sGis.module('spatialProcessor.controller.ObjectSelector', [
-    'spatialProcessor.Controller'
-], function(Controller) {
+    'spatialProcessor.Controller',
+    'spatialProcessor.ControllerManager'
+], function(Controller, ControllerManager) {
     'use strict';
 
     var ObjectSelector = function(spatialProcessor, options) {
         this._map = options.map;
         this.__initialize(spatialProcessor, {sync: true}, function() {
             this._setNotificationListener();
-            this._layer = new sGis.spatialProcessor.MapServer('VisualObjectsRendering/' + this._mapServiceId, this._spatialProcessor, {map: options.map, display: this._display, queryLegend: false});
             this.initialized = true;
             this.fire('initialize');
         });
@@ -16,7 +16,7 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
     };
 
     ObjectSelector.prototype = new sGis.spatialProcessor.Controller({
-        _type: 'maxtroller',
+        _type: 'objectSelector',
 
         _setNotificationListener: function() {
             var self = this;
@@ -30,11 +30,12 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
                 var param = 'geom=' + encodeURIComponent(JSON.stringify({rings: properties.geometry.coordinates, spatialReference: this._map.crs.getWkidString()})) + //TODO: spatial reference should be fixed
                         '&res=' + encodeURIComponent(this._map.resolution) +
                         '&mode=' + (properties.mode ? properties.mode : 0) +
+                        '&services=' + encodeURIComponent(JSON.stringify(properties.services)) +
                         '&sr=' + encodeURIComponent(JSON.stringify(this._map.crs.getWkidString())),
                     self = this;
 
                 return {
-                    operation: 'maxidentify',
+                    operation: 'select',
                     dataParameters: param,
                     success: properties.success,
                     error: properties.error,
@@ -159,6 +160,8 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
             }
         }
     });
+    
+    ControllerManager.registerController('objectSelector', ObjectSelector);
 
     return ObjectSelector;
     

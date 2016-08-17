@@ -43,6 +43,8 @@ sGis.module('spatialProcessor.MapService', [
         set serviceInfo(val) {
             if (val.spatialReference && crsMapping[val.spatialReference.wkid]) {
                 this._crs = crsMapping[val.spatialReference.wkid];
+            } else if (val.spatialReference && val.spatialReference.wkid === 0) {
+                this._crs = null;
             } else {
                 this._crs = new sGis.Crs({description: val.spatialReference});
             }
@@ -54,7 +56,15 @@ sGis.module('spatialProcessor.MapService', [
         get layer() { return this._layer; }
         get connector() { return this._connector; }
         get name() { return this._name; }
+        
+        get isDisplayed() { return this._isDisplayed; }
+        set isDisplayed(bool) { 
+            this._isDisplayed = bool;
+            if (this.layer) this.layer.isDisplayed = bool;
+        }
     }
+
+    MapService.prototype._isDisplayed = true;
     
     let crsMapping = {
         '102100': CRS.webMercator,

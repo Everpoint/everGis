@@ -16,22 +16,9 @@ sGis.module('SpatialProcessor', [
     'spatialProcessor.MapServer',
     'spatialProcessor.DataAccessService',
     'spatialProcessor.Template',
-    'utils.proto',
     'IEventHandler',
-   
-    'spatialProcessor.controller.ClientLayer',
-    'spatialProcessor.controller.DefinitionQuery',
-    'spatialProcessor.controller.DitIntegration',
-    'spatialProcessor.controller.Identify',
-    'spatialProcessor.controller.ImportData',
-    'spatialProcessor.controller.ObjectSelector',
-    'spatialProcessor.controller.Routing',
-    'spatialProcessor.controller.Stats',
-    'spatialProcessor.controller.SuperSearch',
-    'spatialProcessor.controller.TableView',
-    'spatialProcessor.controller.Buffer'
-], function(utils, Point, Map, DomRenderer, Crs, BaseLayerSwitch, Connector, MapService, TileService, Folder, Api, LayerManager, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, proto, IEventHandler,
-ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelector, Routing, Stats, SuperSearch, TableView) {
+    'spatialProcessor.ControllerManager'
+], function(utils, Point, Map, DomRenderer, Crs, BaseLayerSwitch, Connector, MapService, TileService, Folder, Api, LayerManager, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, IEventHandler, ControllerManager) {
     'use strict';
     
     class SpatialProcessor {
@@ -41,6 +28,7 @@ ClientLayer, DefinitionQueyry, DitIntegration, Identify, ImportData, ObjectSelec
             this.api = new Api(this._connector);
             this._painter = new DomRenderer(this._map, {wrapper: properties.mapWrapper});
             this.layerManager = new LayerManager(this.map, this.api, this.connector);
+            this.controllerManager = new ControllerManager(this.connector, this.map);
             this._login = properties.login;
 
             this._connector.once('sessionInitialized', () => {

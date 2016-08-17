@@ -5,8 +5,9 @@ sGis.module('spatialProcessor.LayerManager', [
     'utils',
     'IEventHandler',
     'spatialProcessor.MapService',
-    'spatialProcessor.mapService.TileService'
-], function (utils, IEventHandler, MapService, TileService) {
+    'spatialProcessor.mapService.TileService',
+    'LayerGroup'
+], function (utils, IEventHandler, MapService, TileService, LayerGroup) {
     /**
      * @alias sGis.spatialProcessor.LayerController
      */
@@ -22,10 +23,13 @@ sGis.module('spatialProcessor.LayerManager', [
             this._api = api;
             this._connector = connector;
             this._layerOrder = [];
+            this._services = {};
         }
 
         init (services) {
             //this._baseMapControl = new sGis.controls.BaseLayerSwitch(this.painter);
+            this._layerGroup = new LayerGroup();
+            this._map.addLayer(this._layerGroup);
 
             this.loadFromSettings(services);
             this.loadBasemapList();
@@ -58,7 +62,8 @@ sGis.module('spatialProcessor.LayerManager', [
                             this._map.tileScheme = service.layer.tileScheme;
                             this._map.adjustResolution();
                         }
-                        this._map.insertLayer(service.layer, index);
+                        this._layerGroup.insertLayer(service.layer, index);
+                        this._services[name] = service;
                     }
                 })
                 .catch(message => {
@@ -72,7 +77,7 @@ sGis.module('spatialProcessor.LayerManager', [
 
             this._layerOrder = [...l.slice(0, index), ...l.slice(index+1)];
 
-            this._map.removeLayer(layer);
+            this._layerGroup.removeLayer(layer);
         }
 
         moveService (layer, direction) {
@@ -90,6 +95,10 @@ sGis.module('spatialProcessor.LayerManager', [
             this._map.insertLayer(service.layer, newIndex);
 
             return newIndex;
+        }
+
+        getActiveLayerList () {
+            return this._layerOrder.filter(name => this._services[name].isDisplayed && this._services[name].layer);
         }
     }
 
