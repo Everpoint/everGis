@@ -73,13 +73,14 @@ sGis.module('spatialProcessor.LayerManager', [
         }
 
         loadService (name) {
+            const realIndex = this._layers.getIndex(name);
             MapService.initialize(this._connector, name)
             .then(service => {
                 if (service.layer) {
                     if (service instanceof TileService) {
+                        this._layers.removeId(name);
                         this.addBasemap(service);
                     } else {
-                        const realIndex = this._layers.getIndex(name);
                         this.addService(service, realIndex);
                     }
                 }
