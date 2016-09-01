@@ -100,6 +100,10 @@ sGis.module('spatialProcessor.LayerManager', [
         getActiveLayerList () {
             return this._layerOrder.filter(name => this._services[name].isDisplayed && this._services[name].layer);
         }
+        
+        getLayer(name) {
+            return this._services[name];
+        }
     }
 
     return LayerManager;
