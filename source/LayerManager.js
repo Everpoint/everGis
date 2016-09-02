@@ -72,7 +72,7 @@ sGis.module('spatialProcessor.LayerManager', [
         }
 
         addService (service, realIndex) {
-            const index = this._layers.getCurrentIndex(realIndex, name);
+            const index = this._layers.getCurrentIndex(realIndex, service.name);
             this._services[service.name] = service;
 
             this._layerGroup.insertLayer(service.layer, index);
