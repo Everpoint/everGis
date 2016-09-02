@@ -27,7 +27,7 @@ sGis.module('SpatialProcessor', [
             this._map = new Map();
             this.api = new Api(this._connector);
             this._painter = new DomRenderer(this._map, {wrapper: properties.mapWrapper});
-            this.layerManager = new LayerManager(this.map, this.api, this.connector);
+            this.layerManager = new LayerManager(this.connector, this.map, this.api, this._painter);
             this.controllerManager = new ControllerManager(this.connector, this.map);
             this._login = properties.login;
 
