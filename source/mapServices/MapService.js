@@ -11,6 +11,7 @@ sGis.module('spatialProcessor.MapService', [
         constructor(connector, name, serviceInfo) {
             this._connector = connector;
             this._name = name;
+            this._meta = {};
             this.serviceInfo = serviceInfo;
         }
         
@@ -98,6 +99,20 @@ sGis.module('spatialProcessor.MapService', [
         _requestLegend() {
             return utils.ajaxp({url: this.url + 'legend?_sb=' + this._connector.sessionId});
         }
+
+        get attributesDefinition() {
+            return this.serviceInfo && this.serviceInfo.attributesDefinition;
+        }
+        
+        setMeta(key, value) {
+            this._meta[key] = value;
+        }
+        
+        getMeta(key) {
+            return this._meta[key];
+        }
+
+        get geometryType() { return this.serviceInfo.geometryType; }
     }
 
     MapService.prototype._isDisplayed = true;
