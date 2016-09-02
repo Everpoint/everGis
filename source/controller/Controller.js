@@ -73,7 +73,7 @@ sGis.module('spatialProcessor.Controller', [
                     var response = JSON.parse(data);
                     self._id = response.ServiceId;
                     if (response.DataViewServiceName) {
-                        self._layerName = 'ControllerService/' + response.DataViewServiceName;
+                        self._layerName = response.DataViewServiceName;
                         self._service = MapService.initialize(self._spatialProcessor, self._layerName)
                             .then(service => {
                                 if (self._map) self._map.addLayer(service.layer);
@@ -154,18 +154,18 @@ sGis.module('spatialProcessor.Controller', [
                 var self = this;
                 if (properties.geometry) {
                     data = JSON.stringify({rings: properties.geometry.coordinates, spatialReference: properties.geometry.crs.getWkidString()});
-                } else if (properties.storageId) {
-                    data = JSON.stringify(sGis.utils.isArray(properties.storageId) ? properties.storageId : [properties.storageId]);
+                } else if (properties.objectIds) {
+                    data = JSON.stringify(properties.objectIds);
                 } else {
                     sGis.utils.error('Lacking the query data');
                 }
                 data = encodeURIComponent(data);
 
-                if (properties.layerStorageId) data += '&id=' + encodeURIComponent(properties.layerStorageId);
+                if (properties.serviceName) data += '&serviceName=' + encodeURIComponent(properties.serviceName);
 
                 return {
-                    operation: 'query',
-                    dataParameters: 'data=' + data + '&geometryVersion=2',
+                    operation: 'queryById',
+                    dataParameters: 'serviceName=' + properties.serviceName + '&objectIds=' + JSON.stringify(properties.objectIds),
                     requested: properties.requested,
                     error: properties.error,
                     success: !properties.success ? undefined : function(response) {
@@ -193,7 +193,7 @@ sGis.module('spatialProcessor.Controller', [
             var edit = {added: properties.added, updated: properties.updated, deleted: properties.deleted},
                 xmlString = encodeURIComponent('<?xml version="1.0" encoding="utf-8"?>' + sGis.spatialProcessor.serializeGeometryEdit(edit, false, properties.ignoreSymbol));
 
-            if (properties.layerStorageId) xmlString += '&id=' + encodeURIComponent(properties.layerStorageId);
+            xmlString += '&serviceName=' + encodeURIComponent(properties.serviceName);
             this.__operation(function() {
                 return {
                     operation: 'edit',
@@ -375,8 +375,11 @@ sGis.module('spatialProcessor.Controller', [
                         crs = new sGis.Crs({description: serverCrs});
                     }
 
+                    var idAttribute = response.attributesDefinitions[object.attributesDefinition]._identity;
+                    var id = parseInt(object.attributes[idAttribute].value);
+
                     if (geometry.type === 'polygon') {
-                        var feature = new sGis.feature.Polygon(points, {id: i, attributes: attributes, crs: crs, color: color, width: object.visualDefinition.strokeThickness});
+                        var feature = new sGis.feature.Polygon(points, {id: id, attributes: attributes, crs: crs, color: color, width: object.visualDefinition.strokeThickness});
                         if (fillColor && fillColor.brush) {
                             feature.symbol = new sGis.symbol.polygon.BrushFill({
                                 strokeWidth: parseFloat(object.visualDefinition.strokeThickness),
@@ -393,7 +396,7 @@ sGis.module('spatialProcessor.Controller', [
                             };
                         }
                     } else if (geometry.type === 'polyline') {
-                        feature = new sGis.feature.Polyline(points, {id: i, attributes: attributes, crs: crs, strokeColor: color, strokeWidth: parseFloat(object.visualDefinition.strokeThickness)});
+                        feature = new sGis.feature.Polyline(points, {id: id, attributes: attributes, crs: crs, strokeColor: color, strokeWidth: parseFloat(object.visualDefinition.strokeThickness)});
                     } else if (geometry.type === 'point' || geometry.type === 'multipoint') {
                         var symbol;
 
@@ -422,7 +425,7 @@ sGis.module('spatialProcessor.Controller', [
 
                         var featureClass = geometry.type === 'point' ? sGis.feature.Point : sGis.feature.MultiPoint;
                         if (geometry.type === 'multipoint') points = points[0];
-                        feature = new featureClass(points, {id: i, attributes: attributes, crs: crs, symbol: symbol});
+                        feature = new featureClass(points, {id: id, attributes: attributes, crs: crs, symbol: symbol});
                     }
                 }
 

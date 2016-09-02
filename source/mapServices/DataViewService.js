@@ -1,6 +1,7 @@
 sGis.module('spatialProcessor.mapService.DataViewService', [
+    'DynamicLayer',
     'spatialProcessor.MapService'
-], (MapService) => {
+], (DynamicLayer, MapService) => {
 
     'use strict';
 
@@ -11,11 +12,32 @@ sGis.module('spatialProcessor.mapService.DataViewService', [
         }
 
         _setLayer() {
-            this._layer = new sGis.ESRIDynamicLayer(this.url, { additionalParameters: '_sb=' + this.connector.sessionId, crs: this.crs, isDisplayed: this.isDisplayed });
+            this._layer = new DynamicLayer(this.getImageUrl.bind(this), { crs: this.crs, isDisplayed: this.isDisplayed });
         }
 
         get dataSource() {
             return this._serviceInfo.dataSourceServiceName;
+        }
+        
+        get isEditable() { return this.dataSource !== undefined; }
+
+        getImageUrl(bbox, resolution) {
+            var imgWidth = Math.round((bbox.xMax - bbox.xMin) / resolution);
+            var imgHeight = Math.round((bbox.yMax - bbox.yMin) / resolution);
+            var sr = encodeURIComponent(bbox.crs.wkid || JSON.stringify(bbox.crs.description));
+
+            return this.url + 'export?' +
+                'dpi=96&' +
+                'transparent=true&' +
+                'bbox=' +
+                bbox.xMin + '%2C' +
+                bbox.yMin + '%2C' +
+                bbox.xMax + '%2C' +
+                bbox.yMax + '&' +
+                'bboxSR=' + sr + '&' +
+                'imageSR=' + sr + '&' +
+                'size=' + imgWidth + '%2C' + imgHeight + '&' +
+                'f=image&_sb=' + this.connector.sessionId;
         }
     }
 

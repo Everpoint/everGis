@@ -20,11 +20,17 @@ sGis.module('spatialProcessor.MapService', [
                 .then(([response]) => {
                     try {
                         var serviceInfo = utils.parseJSON(response);
+                        let layer;
+
                         if (serviceInfo.capabilities && serviceInfo.capabilities.indexOf('tile') >= 0) {
-                            return new submodules.TileService(connector, name, serviceInfo);
+                            layer = new submodules.TileService(connector, name, serviceInfo);
                         } else {
-                            return new submodules.DataViewService(connector, name, serviceInfo);
+                            layer = new submodules.DataViewService(connector, name, serviceInfo);
                         }
+
+                        layer._subscribeForNotifications();
+
+                        return layer;
                     } catch (e) {
                         throw new Error('Failed to initialize service ' + name);
                     }
@@ -33,6 +39,20 @@ sGis.module('spatialProcessor.MapService', [
         
         static register(name, module) {
             submodules[name] = module;
+        }
+
+        _subscribeForNotifications() {
+            utils.ajaxp({url: this.url + 'subscribe?_sb=' + this._connector.sessionId})
+                .then(() => {
+                    this._connector.addNotificationListner('dynamic layer', this._name, this._redraw.bind(this));
+                });
+        }
+
+        _redraw() {
+            if (this._layer) {
+                this._layer.forceUpdate();
+                this._layer.redraw();
+            }
         }
 
         get url() {
@@ -61,6 +81,22 @@ sGis.module('spatialProcessor.MapService', [
         set isDisplayed(bool) { 
             this._isDisplayed = bool;
             if (this.layer) this.layer.isDisplayed = bool;
+        }
+
+        get hasLegend() { return this.serviceInfo && this.serviceInfo.capabilities.indexOf('legend') >= 0; }
+
+        updateLegend() {
+            if (this.hasLegend) return this._requestLegend().then(legend => {
+                this.legend = legend;
+            });
+
+            return new Promise((resolve, reject) => {
+                reject("The service does not support legend rendering.");
+            });
+        }
+
+        _requestLegend() {
+            return utils.ajaxp({url: this.url + 'legend?_sb=' + this._connector.sessionId});
         }
     }
 

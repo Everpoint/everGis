@@ -56,6 +56,7 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
             this.__operation(function() {
                 var param = 'geometryStorageId=' + properties.geometryStorageId +
                         '&res=' + encodeURIComponent(this._map.resolution) +
+                        '&services=' + encodeURIComponent(JSON.stringify(properties.services)) +
                         '&mode=' + (properties.mode ? properties.mode : 0);
                 if (properties.searchStorageIds) param += '&searchStorageIds=' + JSON.stringify(properties.searchStorageIds);
                 if (properties.operation) param += '&operation=' + properties.operation;
@@ -72,16 +73,12 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
         },
 
         search: function(properties) {
-            var tree;
             this.__operation(function() {
-                var param = 'query=' + encodeURIComponent(properties.string),
-                    self = this;
-
-                param += '&sr=' + encodeURIComponent(JSON.stringify(this._map ? this._map.crs.getWkidString() : this._crs.getWkidString()));
-                if (properties.storageIds) param += '&searchType=parametrizedSearch&mapItemIds=' + encodeURIComponent(JSON.stringify(properties.storageIds));
+                var param = 'query=' + encodeURIComponent(properties.string) +
+                    '&services=' + encodeURIComponent(JSON.stringify(properties.services));
 
                 return {
-                    operation: 'maxsearch',
+                    operation: 'search',
                     dataParameters: param,
                     success: properties.success,
                     error: properties.error,
@@ -94,6 +91,7 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
             this.__operation(function() {
                 var param = 'geom=' + this._serializeGeometry(properties.geometry) +
                         '&res=' + encodeURIComponent(this._map.resolution) +
+                        '&services=' + encodeURIComponent(JSON.stringify(properties.services)) +
                         '&sr=' + encodeURIComponent(JSON.stringify(this._map.crs.getWkidString())),
                     self = this;
 
@@ -111,7 +109,7 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
 
         pickById: function(properties) {
             this.__operation(function() {
-                var param = 'ids=' + encodeURIComponent(JSON.stringify([{StorageId: properties.storageId, ObjectIds: properties.objectIds}]));
+                var param = 'ids=' + encodeURIComponent(JSON.stringify([{ServiceName: properties.serviceName, ObjectIds: properties.objectIds}]));
 
                 var self = this;
                 return {
@@ -120,18 +118,6 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
                     success: !properties.success ? undefined : function(response) {
                         properties.success(self._createFeatures(response, properties.crs || properties.geometry && properties.geometry.crs || self._map && self._map.crs));
                     },
-                    error: properties.error,
-                    requested: properties.requested
-                };
-            });
-        },
-
-        highlight: function(properties) {
-            this.__operation(function() {
-                return {
-                    operation: 'highlight2',
-                    dataParameters: 'ids=' + JSON.stringify(properties.ids) + '&reset=' + properties.reset,
-                    success: properties.success,
                     error: properties.error,
                     requested: properties.requested
                 };

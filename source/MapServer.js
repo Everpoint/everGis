@@ -4,13 +4,12 @@ sGis.module('spatialProcessor.MapServer', [
     'Crs',
     'Point',
     'TileLayer',
-    'ESRIDynamicLayer',
     'DynamicLayer',
     'Map',
     'IEventHandler',
     'TileScheme',
     'spatialProcessor.ClusterLayer'
-], function(utils, proto, Crs, Point, TileLayer, ESRIDynamicLayer, DynamicLayer, Map, IEventHandler, TileScheme, ClusterLayer) {
+], function(utils, proto, Crs, Point, TileLayer, DynamicLayer, Map, IEventHandler, TileScheme, ClusterLayer) {
     'use strict';
 
     var MapServer = function(name, serverConnector, options) {
