@@ -1,25 +1,28 @@
 sGis.module('spatialProcessor.Connector', [
     'utils',
     'utils.proto',
-    'IEventHandler',
+    'EventHandler',
     'MapItem'
-], function(utils, proto, IEventHandler, MapItem) {
+], function(utils, proto, EventHandler, MapItem) {
     'use strict';
 
-    var Connector = function(url, login, password) {
-        // if (!sGis.utils.isString(url) || !sGis.utils.isString(login) || !(rootMapItem instanceof sGis.MapItem)) sGis.utils.error('Incorrect parameters for Spatial Processor initialization');
+    class Connector extends EventHandler {
+        constructor (url, login, password) {
+            super();
+            // if (!sGis.utils.isString(url) || !sGis.utils.isString(login) || !(rootMapItem instanceof sGis.MapItem)) sGis.utils.error('Incorrect parameters for Spatial Processor initialization');
 
-        this._url = url;
-        this._notificationListners = {};
-        this._objectSelectorListeners = [];
-        this._operationList = {};
-        // this._rootMapItem = rootMapItem;
-        this._failedNotificationRequests = 0;
+            this._url = url;
+            this._notificationListners = {};
+            this._objectSelectorListeners = [];
+            this._operationList = {};
+            // this._rootMapItem = rootMapItem;
+            this._failedNotificationRequests = 0;
 
-        this.initializeSession(login, password);
-    };
+            this.initializeSession(login, password);
+        }
+    }
 
-    Connector.prototype = {
+    let ext = {
         _synchronizationTimer: null,
 
         apiLoginUrl: '%sp%Strategis.JsClient/ApiLogin.aspx',
@@ -38,7 +41,7 @@ sGis.module('spatialProcessor.Connector', [
         },
 
         removeObjectSelectorListener: function(f) {
-            var index = this._objectSelectorListeners.indexOf(f);
+            var index = ths._objectSelectorListeners.indexOf(f);
             if (index !== -1) this._objectSelectorListeners.splice(index, 1);
         },
 
@@ -244,7 +247,7 @@ sGis.module('spatialProcessor.Connector', [
         }
     });
 
-    sGis.utils.proto.setMethods(Connector.prototype, sGis.IEventHandler);
+    utils.extend(Connector.prototype, ext);
 
     sGis.spatialProcessor.processNotification = {
         'dynamic layer': function(connector, data, type) {

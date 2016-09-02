@@ -93,7 +93,7 @@ sGis.module('spatialProcessor.DataAccessService', [
             this.__operation(function() {
                 return {
                     operation: 'selectScalarValue',
-                    dataParameters: 'storageId=' + properties.storageId + '&query=' + properties.query,
+                    dataParameters: 'serviceName=' + properties.serviceName + '&query=' + properties.query,
                     requested: properties.requested,
                     error: properties.error,
                     success: properties.success

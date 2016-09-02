@@ -16,9 +16,9 @@ sGis.module('SpatialProcessor', [
     'spatialProcessor.MapServer',
     'spatialProcessor.DataAccessService',
     'spatialProcessor.Template',
-    'IEventHandler',
+    'EventHandler',
     'spatialProcessor.ControllerManager'
-], function(utils, Point, Map, DomRenderer, Crs, BaseLayerSwitch, Connector, MapService, TileService, Folder, Api, LayerManager, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, IEventHandler, ControllerManager) {
+], function(utils, Point, Map, DomRenderer, Crs, BaseLayerSwitch, Connector, MapService, TileService, Folder, Api, LayerManager, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, EventHandler, ControllerManager) {
     'use strict';
     
     class SpatialProcessor {

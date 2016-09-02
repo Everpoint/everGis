@@ -1,8 +1,8 @@
 sGis.module('MapItem', [
     'utils',
     'utils.proto',
-    'IEventHandler'
-], function(utils, proto, IEventHandler) {
+    'EventHandler'
+], function(utils, proto, EventHandler) {
     'use strict';
 
     var MapItem = function(extention) {
@@ -205,7 +205,7 @@ sGis.module('MapItem', [
         }
     };
 
-    sGis.utils.proto.setMethods(MapItem.prototype, sGis.IEventHandler);
+    sGis.utils.proto.setMethods(MapItem.prototype, sGis.EventHandler.prototype);
 
     Object.defineProperties(MapItem.prototype, {
         id: {

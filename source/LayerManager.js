@@ -3,19 +3,35 @@
  */
 sGis.module('spatialProcessor.LayerManager', [
     'utils',
-    'IEventHandler',
+    'EventHandler',
     'spatialProcessor.OrderManager',
     'spatialProcessor.MapService',
     'spatialProcessor.mapService.TileService',
     'LayerGroup'
-], function (utils, IEventHandler, OrderManager, MapService, TileService, LayerGroup) {
+], function (utils, EventHandler, OrderManager, MapService, TileService, LayerGroup) {
 
     const ActiveBasemapSymbol = Symbol("Basemap");
 
     /**
      * @alias sGis.spatialProcessor.LayerManager
      */
-    class LayerManager {
+    class LayerManager extends EventHandler {
+        /**
+         * @constructor
+         * @param {Object} map
+         * @param {Object} api
+         * @param {Object} connector
+         */
+        constructor (connector, map, api, painter) {
+            super();
+            this._map = map;
+            this._api = api;
+            this._connector = connector;
+            this._painter = painter;
+            this._layers = new OrderManager();
+            this._services = {};
+        }
+
         /**
          * Services
          * @returns {Array.<Object>} Ordered array of init services
@@ -24,21 +40,6 @@ sGis.module('spatialProcessor.LayerManager', [
             return [this._services[ActiveBasemapSymbol]].concat(
                 this._layers.ids.map(id=>this._services[id])
             ).filter(service=>!!service);
-        }
-
-        /**
-         * @constructor
-         * @param {Object} map
-         * @param {Object} api
-         * @param {Object} connector
-         */
-        constructor (connector, map, api, painter) {
-            this._map = map;
-            this._api = api;
-            this._connector = connector;
-            this._painter = painter;
-            this._layers = new OrderManager();
-            this._services = {};
         }
 
         /**
@@ -166,8 +167,6 @@ sGis.module('spatialProcessor.LayerManager', [
             return this.services.filter(service => service.isDisplayed && service.layer);
         }
     }
-
-    utils.extend(LayerManager.prototype, IEventHandler);
 
     return LayerManager;
 });

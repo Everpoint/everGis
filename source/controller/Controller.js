@@ -6,21 +6,24 @@ sGis.module('spatialProcessor.Controller', [
     'feature.Polygon',
     'spatialProcessor.parseXML',
     'utils.proto',
-    'IEventHandler',
+    'EventHandler',
     'symbol.point.Point',
     'symbol.polyline.Simple',
     'symbol.polygon.Simple',
     'spatialProcessor.MapService'
-], function(utils, spUtils, Point, Polyline, Polygon, parseXML, proto, IEventHandler, pointSymbols, polylineSymbols, polygonSymbols, MapService) {
+], function(utils, spUtils, Point, Polyline, Polygon, parseXML, proto, EventHandler, pointSymbols, polylineSymbols, polygonSymbols, MapService) {
     'use strict';
 
-    var Controller = function(extention) {
-        for (var key in extention) {
-            this[key] = extention[key];
+    class Controller extends EventHandler {
+        constructor (extension) {
+            super();
+            for (var key in extension) {
+                this[key] = extension[key];
+            }
         }
-    };
+    }
 
-    Controller.prototype = {
+    let ext = {
         _display: true,
 
         show: function() {
@@ -349,7 +352,7 @@ sGis.module('spatialProcessor.Controller', [
         }
     };
 
-    sGis.utils.proto.setMethods(Controller.prototype, sGis.IEventHandler);
+    utils.extend(Controller.prototype, ext);
 
     function createFeatures(response, mapCrs) {
         var features = [];

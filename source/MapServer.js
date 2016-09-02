@@ -6,10 +6,10 @@ sGis.module('spatialProcessor.MapServer', [
     'TileLayer',
     'DynamicLayer',
     'Map',
-    'IEventHandler',
+    'EventHandler',
     'TileScheme',
     'spatialProcessor.ClusterLayer'
-], function(utils, proto, Crs, Point, TileLayer, DynamicLayer, Map, IEventHandler, TileScheme, ClusterLayer) {
+], function(utils, proto, Crs, Point, TileLayer, DynamicLayer, Map, EventHandler, TileScheme, ClusterLayer) {
     'use strict';
 
     var MapServer = function(name, serverConnector, options) {
@@ -413,7 +413,7 @@ sGis.module('spatialProcessor.MapServer', [
         }
     });
 
-    sGis.utils.proto.setMethods(MapServer.prototype, sGis.IEventHandler);
+    sGis.utils.proto.setMethods(MapServer.prototype, sGis.EventHandler.prototype);
     
     return MapServer;
     

@@ -1,8 +1,8 @@
 sGis.module('spatialProcessor.DataTree', [
     'utils',
     'utils.proto',
-    'IEventHandler'
-], function(utils, proto, IEventHandler) {
+    'EventHandler'
+], function(utils, proto, EventHandler) {
     'use strict';
 
     var instructionLimit = 10000000;
@@ -188,7 +188,7 @@ sGis.module('spatialProcessor.DataTree', [
         }
     });
 
-    sGis.utils.proto.setMethods(DataTree.prototype, sGis.IEventHandler);
+    sGis.utils.proto.setMethods(DataTree.prototype, sGis.EventHandler.prototype);
 
     function getDynatreeRow(row, tree) {
         var displayedRow = {title: getRowTitle(row, tree), treeRow: row};
