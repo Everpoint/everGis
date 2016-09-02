@@ -1,6 +1,7 @@
 sGis.module('spatialProcessor.mapService.DataViewService', [
+    'DynamicLayer',
     'spatialProcessor.MapService'
-], (MapService) => {
+], (DynamicLayer, MapService) => {
 
     'use strict';
 
@@ -11,7 +12,7 @@ sGis.module('spatialProcessor.mapService.DataViewService', [
         }
 
         _setLayer() {
-            this._layer = new sGis.DynamicLayer(this.getImageUrl.bind(this), { crs: this.crs, isDisplayed: this.isDisplayed });
+            this._layer = new DynamicLayer(this.getImageUrl.bind(this), { crs: this.crs, isDisplayed: this.isDisplayed });
         }
 
         get dataSource() {

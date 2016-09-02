@@ -163,11 +163,7 @@ sGis.module('spatialProcessor.LayerManager', [
          * @returns {Array.<Object>} visible layers
          */
         getDisplayedServiceList () {
-            return this.services.filter(service => service.isDisplayed && services.layer);
-        }
-        
-        getLayer(name) {
-            return this._services[name];
+            return this.services.filter(service => service.isDisplayed && service.layer);
         }
     }
 
