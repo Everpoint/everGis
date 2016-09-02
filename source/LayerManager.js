@@ -10,8 +10,6 @@ sGis.module('spatialProcessor.LayerManager', [
     'LayerGroup'
 ], function (utils, IEventHandler, OrderManager, MapService, TileService, LayerGroup) {
 
-    const ActiveBasemapSymbol = Symbol("Basemap");
-
     /**
      * @alias sGis.spatialProcessor.LayerManager
      */
@@ -21,9 +19,9 @@ sGis.module('spatialProcessor.LayerManager', [
          * @returns {Array.<Object>} Ordered array of init services
          */
         get services() {
-            return [this._services[ActiveBasemapSymbol]].concat(
-                this._layers.ids.map(id=>this._services[id])
-            ).filter(service=>!!service);
+            return this._layers.ids
+                .map(id=>this._services[id])
+                .filter(service=>!!service);
         }
 
         /**
@@ -52,7 +50,6 @@ sGis.module('spatialProcessor.LayerManager', [
             this._map.addLayer(this._layerGroup);
 
             this.loadFromSettings(services);
-            this.loadBasemapList();
         }
 
         loadFromSettings (services) {
@@ -61,32 +58,16 @@ sGis.module('spatialProcessor.LayerManager', [
             });
         }
 
-        loadBasemapList () {
-            return this._api.getServiceCatalog({
-                jsfilter: [{"PropertyPath":["Basemap"], "Value":true}],
-            }).then(basemaps=>{
-                this.fire("loadBasemaps", { basemaps });
-                return basemaps;
-            }).catch(message => {
-                utils.error(message);
-            });
-        }
-
         loadService (name) {
             const realIndex = this._layers.getIndex(name);
             MapService.initialize(this._connector, name)
             .then(service => {
                 if (service.layer) {
-                    if (service instanceof TileService) {
-                        this._layers.removeId(name);
-                        this.addBasemap(service);
-                    } else {
-                        this.addService(service, realIndex);
-                    }
+                    this.addService(service, realIndex);
                 }
             })
             .catch(message => {
-                utils.message(message);
+                utils.error(message);
             });
         }
 
@@ -126,27 +107,7 @@ sGis.module('spatialProcessor.LayerManager', [
                 const {isDisplayed} = this._services[name];
                 this.fire('serviceToggle', {service: this._services[name]});
                 return this._services[name].isDisplayed = isDisplayed !== true;
-            } else if (this._services[ActiveBasemapSymbol] &&
-                this._services[ActiveBasemapSymbol].name === name) {
-                return this.toggleBasemap(this._services[ActiveBasemapSymbol]);
             }
-        }
-
-        addBasemap (basemap) {
-            if (!this._services[ActiveBasemapSymbol]) {
-                this._map.crs = basemap.layer.crs;
-                this._map.tileScheme = basemap.layer.tileScheme;
-                this._map.adjustResolution();
-            } else {
-                this._basemapGroup.removeLayer(this._services[ActiveBasemapSymbol].layer);
-            }
-            this._services[ActiveBasemapSymbol] = basemap;
-            this._basemapGroup.insertLayer(basemap.layer, 0);
-            this.fire('serviceAdd', { basemap });
-        }
-
-        toggleBasemap (basemap) {
-            return basemap.isDisplayed = basemap.isDisplayed !== true;
         }
 
         /**
