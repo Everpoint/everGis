@@ -35,9 +35,9 @@ sGis.module('spatialProcessor.LayerManager', [
          * @returns {Array.<Object>} Ordered array of init services
          */
         get services() {
-            return [this._services[ActiveBasemapSymbol]].concat(
-                this._layers.ids.map(id=>this._services[id])
-            ).filter(service=>!!service);
+            return this._layers.ids
+                .map(id=>this._services[id])
+                .filter(service=>!!service);
         }
 
         /**
