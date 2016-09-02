@@ -18,7 +18,7 @@ sGis.module('spatialProcessor.LayerManager', [
          * Services
          * @returns {Array.<Object>} Ordered array of init services
          */
-        get services() {
+        get services () {
             return this._layers.ids
                 .map(id=>this._services[id])
                 .filter(service=>!!service);
@@ -60,15 +60,15 @@ sGis.module('spatialProcessor.LayerManager', [
 
         loadService (name) {
             const realIndex = this._layers.getIndex(name);
-            MapService.initialize(this._connector, name)
-            .then(service => {
-                if (service.layer) {
-                    this.addService(service, realIndex);
-                }
-            })
-            .catch(message => {
-                utils.error(message);
-            });
+            return MapService.initialize(this._connector, name)
+                .then(service => {
+                    if (service.layer) {
+                        this.addService(service, realIndex);
+                    }
+                })
+                .catch(message => {
+                    utils.error(message);
+                });
         }
 
         addService (service, realIndex) {
@@ -115,7 +115,7 @@ sGis.module('spatialProcessor.LayerManager', [
          * @param name {String} service name
          * @returns {Object} service
          */
-        getService(name) {
+        getService (name) {
             return this._services[name];
         }
 
