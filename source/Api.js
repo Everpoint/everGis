@@ -163,6 +163,13 @@ sGis.module('spatialProcessor.Api', [
             return (admin ? this.adminUrl : this._url) + name + '?' + textParam + (this._connector.sessionId ? '&_sb=' + this._connector.sessionId : '');
         },
 
+        setDataFilter: function(serviceName, filterDescription) {
+            return this._operation('storage/meta/set', {
+                type: 'dataFilter',
+                serviceName: serviceName
+            }, filterDescription);
+        },
+
         symbolize: function(options) {
             this._operation('storage/meta/set', {
                 storageId: options.storageId,
