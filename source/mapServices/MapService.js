@@ -1,14 +1,16 @@
 sGis.module('spatialProcessor.MapService', [
     'utils',
-    'CRS'
-], (utils, CRS) => {
+    'CRS',
+    'EventHandler'
+], (utils, CRS, EventHandler) => {
 
     'use strict';
 
     let submodules = {};
     
-    class MapService {
+    class MapService extends EventHandler {
         constructor(connector, name, serviceInfo) {
+            super();
             this._connector = connector;
             this._name = name;
             this._meta = {};
@@ -79,9 +81,12 @@ sGis.module('spatialProcessor.MapService', [
         get name() { return this._name; }
         
         get isDisplayed() { return this._isDisplayed; }
-        set isDisplayed(bool) { 
-            this._isDisplayed = bool;
-            if (this.layer) this.layer.isDisplayed = bool;
+        set isDisplayed(bool) {
+            if (this._isDisplayed !== bool) {
+                this._isDisplayed = bool;
+                if (this.layer) this.layer.isDisplayed = bool;
+                this.fire('visibilityChange');
+            }
         }
 
         get hasLegend() { return this.serviceInfo && this.serviceInfo.capabilities.indexOf('legend') >= 0; }
