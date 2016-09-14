@@ -264,7 +264,7 @@ sGis.module('SpatialProcessor', [
     //             var mapServer = this._baseMapConfig[i].mapItem.mapServer;
     //             if (mapServer.initialized) {
     //                 if (mapServer.serviceInfo.tileInfo && this._baseMapControl.getLayerIndex(mapServer.layer) === -1) {
-    //                     this._baseMapControl.addLayer(mapServer.layer, this._baseMapConfig[i].imageUrl);
+    //
     //                     if (!this._baseMapControl.activeLayer || mapServer.serviceName === this._preferredBaseMap) {
     //                         this._baseMapControl.activeLayer = mapServer.layer;
     //                         this.fire('serviceAdd', { service: mapServer.name });

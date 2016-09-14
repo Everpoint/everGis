@@ -34,10 +34,26 @@ sGis.module('spatialProcessor.LayerManager', [
          * Services
          * @returns {Array.<Object>} Ordered array of init services
          */
-        get services() {
+        get services () {
             return this._layers.ids
                 .map(id=>this._services[id])
                 .filter(service=>!!service);
+        }
+
+        /**
+         * Basemap group
+         * @return {Object} sGis.LayerGroup
+         */
+        get basemaps () {
+           return this._basemapGroup;
+        }
+
+        /**
+         * Layer group
+         * @return {Object} sGis.LayerGroup
+         */
+        get layers () {
+            return this._layerGroup;
         }
 
         /**
@@ -63,6 +79,11 @@ sGis.module('spatialProcessor.LayerManager', [
             const realIndex = this._layers.getIndex(name);
             return MapService.initialize(this._connector, name)
                 .then(service => {
+                    if (service instanceof TileService && !this._map.tileScheme){
+                        this._map.crs = service.layer.crs;
+                        this._map.tileScheme = service.layer.tileScheme;
+                        this._map.adjustResolution();
+                    }
                     if (service.layer) {
                         this.addService(service, realIndex);
                     }
@@ -70,6 +91,24 @@ sGis.module('spatialProcessor.LayerManager', [
                 .catch(message => {
                     utils.error(message);
                 });
+        }
+
+        loadBasemap (name) {
+            return MapService.initialize(this._connector, name)
+                .then(({layer, name}) => {
+                    if (layer) {
+                        this.setBasemap(layer);
+                        return {layer, name}
+                    }
+                })
+                .catch(message => {
+                    utils.error(message);
+                });
+        }
+
+        setBasemap (basemap) {
+            this.basemaps.layers = [];
+            this.basemaps.addLayer(basemap);
         }
 
         addService (service, realIndex) {
