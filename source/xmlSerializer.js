@@ -653,11 +653,11 @@ sGis.module('spatialProcessor.parseXML', [
 
     function getGeometryNode(feature, xml) {
         var node = xml.createElement('Geometry');
-        var type = feature instanceof sGis.feature.MultiPoint ? 'MultiPoint' : geometryTypes[feature.type];
+        var type = getGeometryType(feature);
         setNodeAttributes(node, {Type: type});
 
         var geometryJSON = {
-            type: feature instanceof sGis.feature.MultiPoint ? 'multipoint' : feature.type,
+            type: getCoordinatesType(feature),
             sr: feature.crs.getWkidString()
         };
 
@@ -667,7 +667,7 @@ sGis.module('spatialProcessor.parseXML', [
         } else if (feature instanceof sGis.feature.MultiPoint) {
             geometryJSON.v = [feature.coordinates];
         } else {
-            geometryJSON.v = feature.coordinates;
+            geometryJSON.v = feature.rings;
         }
 
         var text = JSON.stringify(geometryJSON),
@@ -676,11 +676,19 @@ sGis.module('spatialProcessor.parseXML', [
         return node;
     }
 
-    var geometryTypes = {
-        point: 'Point',
-        polyline: 'Line',
-        polygon: 'Poly'
-    };
+    function getGeometryType(feature) {
+        if (feature instanceof sGis.feature.MultiPoint) return 'MultiPoint';
+        if (feature instanceof sGis.feature.Point) return 'Point';
+        if (feature instanceof sGis.feature.Polyline) return 'Line';
+        if (feature instanceof sGis.feature.Polygon) return 'Poly';
+    }
+
+    function getCoordinatesType(feature) {
+        if (feature instanceof sGis.feature.MultiPoint) return 'multipoint';
+        if (feature instanceof sGis.feature.Point) return 'point';
+        if (feature instanceof sGis.feature.Polyline) return 'polyline';
+        if (feature instanceof sGis.feature.Polygon) return 'polygon';
+    }
 
     function getAttributesNode(visualObject, xml) {
         var node = xml.createElement('Attributes');
