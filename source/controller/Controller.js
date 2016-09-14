@@ -392,14 +392,15 @@ sGis.module('spatialProcessor.Controller', [
                                 fillBackground: parseColor(fillColor.background)
                             });
                         } else {
-                            feature.style = {
+                            feature.symbol = new sGis.symbol.polygon.Simple({
                                 strokeWidth: parseFloat(object.visualDefinition.strokeThickness),
                                 strokeColor: color,
                                 fillColor: fillColor ? parseColor(fillColor) : 'transparent'
-                            };
+                            });
                         }
                     } else if (geometry.type === 'polyline') {
-                        feature = new sGis.feature.Polyline(points, {id: id, attributes: attributes, crs: crs, strokeColor: color, strokeWidth: parseFloat(object.visualDefinition.strokeThickness)});
+                        let symbol = new sGis.symbol.polygon.Simple({ strokeColor: color, strokeWidth: parseFloat(object.visualDefinition.strokeThickness)});
+                        feature = new sGis.feature.Polyline(points, {id: id, attributes: attributes, crs: crs, symbol: symbol });
                     } else if (geometry.type === 'point' || geometry.type === 'multipoint') {
                         var symbol;
 
