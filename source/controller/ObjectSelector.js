@@ -54,13 +54,11 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
          */
         selectByStorage: function(properties) {
             this.__operation(function() {
-                var param = 'geometryStorageId=' + properties.geometryStorageId +
+                var param = 'geometryService=' + properties.geometryService +
                         '&res=' + encodeURIComponent(this._map.resolution) +
                         '&services=' + encodeURIComponent(JSON.stringify(properties.services)) +
                         '&mode=' + (properties.mode ? properties.mode : 0);
-                if (properties.searchStorageIds) param += '&searchStorageIds=' + JSON.stringify(properties.searchStorageIds);
                 if (properties.operation) param += '&operation=' + properties.operation;
-                var self = this;
 
                 return {
                     operation: 'selectByStorage',
