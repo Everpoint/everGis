@@ -225,18 +225,18 @@ sGis.module('spatialProcessor.Api', [
 
         publishLayer: function(description) {
             var props = {
-                AttributeDefinition: description.attributeDefinition,
                 Style: description.style,
-                Srid: description.srid,
-                EnableIntegration: description.enableIntegration,
-                IntegrationField: description.integrationField,
-                IntegrationFieldExt: description.integrationFieldExt,
                 Description: description.description,
-                GeometryTypeJson: description.geometryType,
                 Alias: description.alias,
                 Name: description.name,
                 IsShared: description.isShared,
-                Preview: description.preview
+                Preview: description.preview,
+                DataSourceServiceName: description.dataSourceServiceName,
+                CreateDataSource: true,
+
+                GeometryType: description.geometryType,
+                AttributeDefinition: description.attributeDefinition,
+                Srid: description.srid,
             };
 
             this._operation('PostGis/PublishData', {success: description.success, error: description.error}, JSON.stringify(props), true);
