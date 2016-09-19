@@ -9,7 +9,6 @@ sGis.module('SpatialProcessor', [
     'spatialProcessor.MapService',
     'spatialProcessor.mapService.TileService',
     'mapItem.Folder',
-    'spatialProcessor.Api',
     'spatialProcessor.LayerManager',
     'spatialProcessor.Sfs',
     'mapItem.MapServer',
@@ -18,14 +17,14 @@ sGis.module('SpatialProcessor', [
     'spatialProcessor.Template',
     'EventHandler',
     'spatialProcessor.ControllerManager'
-], function(utils, Point, Map, DomRenderer, Crs, BaseLayerSwitch, Connector, MapService, TileService, Folder, Api, LayerManager, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, EventHandler, ControllerManager) {
+], function(utils, Point, Map, DomRenderer, Crs, BaseLayerSwitch, Connector, MapService, TileService, Folder, LayerManager, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, EventHandler, ControllerManager) {
     'use strict';
     
     class SpatialProcessor {
         constructor(properties) {
             this._connector = new Connector(properties.url, properties.login, properties.password);
             this._map = new Map();
-            this.api = new Api(this._connector);
+            this.api = this._connector.api;
             this._painter = new DomRenderer(this._map, {wrapper: properties.mapWrapper});
             this.layerManager = new LayerManager(this.connector, this.map, this.api, this._painter);
             this.controllerManager = new ControllerManager(this.connector, this.map);

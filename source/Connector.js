@@ -2,8 +2,9 @@ sGis.module('spatialProcessor.Connector', [
     'utils',
     'utils.proto',
     'EventHandler',
+    'spatialProcessor.Api',
     'MapItem'
-], function(utils, proto, EventHandler, MapItem) {
+], function(utils, proto, EventHandler, Api, MapItem) {
     'use strict';
 
     class Connector extends EventHandler {
@@ -19,6 +20,8 @@ sGis.module('spatialProcessor.Connector', [
             this._failedNotificationRequests = 0;
 
             this.initializeSession(login, password);
+            
+            this.api = new Api(this);
         }
     }
 

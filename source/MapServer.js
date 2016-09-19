@@ -381,15 +381,15 @@ sGis.module('spatialProcessor.MapServer', [
                         if (bool) {
                             let index = -1;
                             if (this._layer) {
-                                index = this._map.getLayerIndex(this._layer);
+                                index = this._map.indexOf(this._layer);
                                 this._map.removeLayer(this._layer);
                             }
-                            this._map.moveLayerToIndex(this._clusterLayer, index);
+                            this._map.insertLayer(this._clusterLayer, index);
                         } else {
-                            let index = this._map.getLayerIndex(this._clusterLayer);
+                            let index = this._map.indexOf(this._clusterLayer);
                             this._map.removeLayer(this._clusterLayer);
                             if (this._layer) {
-                                this._map.moveLayerToIndex(this._layer, index);
+                                this._map.insertLayer(this._layer, index);
                             }
                         }
                     }

@@ -85,7 +85,7 @@ sGis.module('spatialProcessor.ClusteringService', [
                     if (this._layer) this._map.removeLayer(this._layer);
                 }
 
-                if (this._layer && map.getLayerIndex(this._layer === -1)) map.addLayer(this._layer);
+                if (this._layer && map.indexOf(this._layer === -1)) map.addLayer(this._layer);
 
                 var self = this;
                 map.addListener('bboxChangeEnd.sGis-clusteringService-' + this._id, function() {
@@ -106,7 +106,7 @@ sGis.module('spatialProcessor.ClusteringService', [
                     if (this._layer) {
                         this._map.removeLayer(this._layer);
                     }
-                    if (this._map.getLayerIndex(layer) === -1) {
+                    if (this._map.indexOf(layer) === -1) {
                         this._map.addLayer(layer);
                     }
                 }

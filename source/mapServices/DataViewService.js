@@ -39,6 +39,13 @@ sGis.module('spatialProcessor.mapService.DataViewService', [
                 'size=' + imgWidth + '%2C' + imgHeight + '&' +
                 'f=image&_sb=' + this.connector.sessionId;
         }
+        
+        get customFilter() { return this._customFilter; }
+
+        setCustomFilter(filter) {
+            this._customFilter = filter;
+            return this.connector.api.setDataFilter(this.name, JSON.stringify(filter));
+        }
     }
 
     MapService.register('DataViewService', DataViewService);
