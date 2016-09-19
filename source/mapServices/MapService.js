@@ -93,7 +93,11 @@ sGis.module('spatialProcessor.MapService', [
 
         updateLegend() {
             if (this.hasLegend) return this._requestLegend().then(legend => {
-                this.legend = legend;
+                try {
+                    this.legend = utils.parseJSON(legend);
+                } catch (e) {
+                    this.legend = [];
+                }
             });
 
             return new Promise((resolve, reject) => {
