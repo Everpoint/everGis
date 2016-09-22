@@ -26,11 +26,8 @@ sGis.module('spatialProcessor.mapService.TileService', [
             tileWidth: tileInfo.rows,
             tileHeight: tileInfo.cols,
             dpi: tileInfo.dpi,
-            origin: {
-                x: tileInfo.origin.x,
-                y: tileInfo.origin.y
-            },
-            levels: {}
+            origin: [tileInfo.origin.x, tileInfo.origin.y],
+            levels: []
         };
 
         var projection = sGis.CRS.wgs84.projectionTo(crs);
@@ -41,10 +38,11 @@ sGis.module('spatialProcessor.mapService.TileService', [
         }
         for (var i = 0, len = tileInfo.lods.length; i < len; i++) {
             var resolution = tileInfo.lods[i].resolution;
-            scheme.levels[tileInfo.lods[i].level] = {
+            scheme.levels[i] = {
                 resolution: resolution,
                 scale: tileInfo.lods[i].scale,
-                indexCount: Math.round(fullWidth / resolution / scheme.tileWidth)
+                indexCount: Math.round(fullWidth / resolution / scheme.tileWidth),
+                zIndex: tileInfo.lods[i].level
             };
         }
 

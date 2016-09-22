@@ -172,7 +172,7 @@ sGis.module('spatialProcessor.MapServer', [
                 x: serviceInfo.tileInfo.origin.x,
                 y: serviceInfo.tileInfo.origin.y
             },
-            levels: {}
+            levels: []
         };
 
         var projection = sGis.CRS.wgs84.projectionTo(crs);
@@ -183,10 +183,11 @@ sGis.module('spatialProcessor.MapServer', [
         }
         for (var i = 0, len = serviceInfo.tileInfo.lods.length; i < len; i++) {
             var resolution = serviceInfo.tileInfo.lods[i].resolution;
-            scheme.levels[serviceInfo.tileInfo.lods[i].level] = {
+            scheme.levels[i] = {
                 resolution: resolution,
                 scale: serviceInfo.tileInfo.lods[i].scale,
-                indexCount: Math.round(fullWidth / resolution / scheme.tileWidth)
+                indexCount: Math.round(fullWidth / resolution / scheme.tileWidth),
+                zIndex: serviceInfo.tileInfo.lods[i].level
             };
         }
 
