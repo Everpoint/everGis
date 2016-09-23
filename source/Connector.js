@@ -52,14 +52,14 @@ sGis.module('spatialProcessor.Connector', [
             var self = this;
             if (password) {
                 var spUrl = this._url.substr(-4, 4) === 'IIS/' ? this._url.substr(0, this._url.length - 4) : this._url,
-                    url = this.apiLoginUrl.replace(/%sp%/, spUrl) + '?authId=855102B4-0CF7-4F59-A4AF-29C4AEE1A537&userName=' + login + '&password=' + encodeURIComponent(password) + '&ts=' + new Date().getTime();
+                    url = this.apiLoginUrl.replace(/%sp%/, spUrl) + '?userName=' + login + '&password=' + encodeURIComponent(password) + '&ts=' + new Date().getTime();
                 sGis.utils.ajax({
                     url: url,
                     success: function(data, textStatus) {
                         if (data === '') {
                             sGis.utils.message('Could not get session ID');
                         } else {
-                            var id = JSON.parse(data).token;
+                            var id = JSON.parse(data);
 
                             if (sGis.utils.isString(id)) {
                                 initialize(id);

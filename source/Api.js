@@ -160,7 +160,12 @@ sGis.module('spatialProcessor.Api', [
 
             textParam = textParam.substr(1);
 
-            return (admin ? this.adminUrl : this._url) + name + '?' + textParam + (this._connector.sessionId ? '&_sb=' + this._connector.sessionId : '');
+            if (this._connector.sessionId) {
+                if (textParam.length > 0) textParam += '&';
+                textParam += '_sb=' + this._connector.sessionId;
+            }
+
+            return (admin ? this.adminUrl : this._url) + name + '?' + textParam;
         },
 
         setDataFilter: function(serviceName, filterDescription) {
@@ -236,10 +241,10 @@ sGis.module('spatialProcessor.Api', [
 
                 GeometryType: description.geometryType,
                 AttributeDefinition: description.attributeDefinition,
-                Srid: description.srid,
+                Srid: description.srid
             };
 
-            this._operation('PostGis/PublishData', {success: description.success, error: description.error}, JSON.stringify(props), true);
+            this._operation('admin/configuration/Create', {success: description.success, error: description.error}, JSON.stringify(props));
         },
 
         deleteService: function(description) {
