@@ -98,6 +98,7 @@ sGis.module('spatialProcessor.MapService', [
                 } catch (e) {
                     this.legend = [];
                 }
+                this.fire('legendUpdate');
             });
 
             return new Promise((resolve, reject) => {
