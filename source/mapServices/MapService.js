@@ -79,6 +79,7 @@ sGis.module('spatialProcessor.MapService', [
         get layer() { return this._layer; }
         get connector() { return this._connector; }
         get name() { return this._name; }
+        get alias() { return this.serviceInfo && this.serviceInfo.alias; }
         
         get isDisplayed() { return this._isDisplayed; }
         set isDisplayed(bool) {
