@@ -244,7 +244,7 @@ sGis.module('spatialProcessor.Api', [
                 Srid: description.srid
             };
 
-            this._operation('admin/configuration/Create', {success: description.success, error: description.error}, JSON.stringify(props));
+            return this._operation('admin/configuration/Create', {}, JSON.stringify(props));
         },
 
         deleteService: function(description) {

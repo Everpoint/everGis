@@ -102,9 +102,14 @@ sGis.module('spatialProcessor.Controller', [
 
         __operation: function(f) {
             var self = this;
+            let dataParameters;
             if (this._id) {
                 var parameters = f.call(this);
 
+                dataParameters = parameters.dataParameters;
+                if (!utils.isString(dataParameters)) {
+                    dataParameters = Object.keys(dataParameters).filter(key => dataParameters[key] !== undefined).map(key => key + '=' + dataParameters[key]).join('&');
+                }
                 if (this._spatialProcessor.synchronized) {
                     requestOperation();
                 } else {
@@ -113,13 +118,14 @@ sGis.module('spatialProcessor.Controller', [
             } else {
                 this._operationQueue.push(f);
             }
+            
 
             function requestOperation() {
                 self._spatialProcessor.removeListener('.' + self.id);
                 sGis.utils.ajax({
                     url: self._url + self._id + '/' + parameters.operation + '?' + (parameters.uriParameters || '') + '_sb=' + self._spatialProcessor.sessionId + '&timeout=20000&ts=' + new Date().getTime(),
-                    type: parameters.dataParameters ? 'POST' : 'GET',
-                    data: parameters.dataParameters,
+                    type: dataParameters ? 'POST' : 'GET',
+                    data: dataParameters,
                     success: function(data) {
                         var response = parseOperationResponse(data);
 
