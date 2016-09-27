@@ -107,7 +107,7 @@ sGis.module('spatialProcessor.Controller', [
                 var parameters = f.call(this);
 
                 dataParameters = parameters.dataParameters;
-                if (!utils.isString(dataParameters)) {
+                if (dataParameters && !utils.isString(dataParameters)) {
                     dataParameters = Object.keys(dataParameters).filter(key => dataParameters[key] !== undefined).map(key => key + '=' + dataParameters[key]).join('&');
                 }
                 if (this._spatialProcessor.synchronized) {
