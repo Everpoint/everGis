@@ -237,14 +237,23 @@ sGis.module('spatialProcessor.parseXML', [
 
             if (!parsed.attributesDefinitions[parentObject.attributesDefinition]) debugger;
 
-            var attributeDefinition = parsed.attributesDefinitions[parentObject.attributesDefinition];
+            var attributeDefinition = parsed.attributesDefinitions[parentObject.attributesDefinition][nodeAttributes.Name];
+            if (!attributeDefinition) return;
+
+            let value;
+            if (attributeDefinition.type === 'System.DateTime' && nodeAttributes.Value) {
+                value = new Date(parseInt(nodeAttributes.Value));
+                if (isNaN(value.getTime())) value = null;
+            } else {
+                value = nodeAttributes.Value;
+            }
 
             parentObject.attributes[nodeAttributes.Name] = {
-                title: attributeDefinition[nodeAttributes.Name] && attributeDefinition[nodeAttributes.Name].alias || nodeAttributes.Name,
-                value: nodeAttributes.Value,
-                type: attributeDefinition[nodeAttributes.Name] && attributeDefinition[nodeAttributes.Name].type || nodeAttributes.Name,
-                size: attributeDefinition[nodeAttributes.Name] && attributeDefinition[nodeAttributes.Name].size || 0,
-                domain: attributeDefinition[nodeAttributes.Name] && attributeDefinition[nodeAttributes.Name].domain
+                title: attributeDefinition.alias || nodeAttributes.Name,
+                value: value,
+                type: attributeDefinition.type,
+                size: attributeDefinition.size || 0,
+                domain: attributeDefinition.domain
             };
         },
 
