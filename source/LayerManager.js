@@ -10,6 +10,8 @@ sGis.module('spatialProcessor.LayerManager', [
     'LayerGroup'
 ], function (utils, EventHandler, OrderManager, MapService, TileService, LayerGroup) {
 
+    let ns = '.layerManager';
+
     /**
      * @alias sGis.spatialProcessor.LayerManager
      */
@@ -19,6 +21,7 @@ sGis.module('spatialProcessor.LayerManager', [
          * @param {Object} map
          * @param {Object} api
          * @param {Object} connector
+         * @param painter
          */
         constructor (connector, map, api, painter) {
             super();
@@ -114,6 +117,7 @@ sGis.module('spatialProcessor.LayerManager', [
         addService (service, realIndex) {
             const index = this._layers.getCurrentIndex(realIndex, service.name);
             this._services[service.name] = service;
+            service.on('layerChange' + ns, this._onServiceLayerChange.bind(this, service));
 
             this._layerGroup.insertLayer(service.layer, index);
 
@@ -125,6 +129,7 @@ sGis.module('spatialProcessor.LayerManager', [
             if (!layer){
                 return;
             }
+            this._services[name].off('layerChange' + ns);
 
             this._layerGroup.removeLayer(layer);
             const index = this._layers.removeId(name);
@@ -132,6 +137,15 @@ sGis.module('spatialProcessor.LayerManager', [
 
             this.fire('serviceRemove', index);
             return index;
+        }
+
+        _onServiceLayerChange(service, sGisEvent) {
+            let layer = service.layer;
+            let prevLayer = sGisEvent.prevLayer;
+
+            let index = this._layerGroup.indexOf(prevLayer);
+            this._layerGroup.removeLayer(prevLayer);
+            this._layerGroup.insertLayer(layer, index);
         }
 
         moveService (name, direction) {

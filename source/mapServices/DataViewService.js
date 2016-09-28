@@ -1,7 +1,8 @@
 sGis.module('spatialProcessor.mapService.DataViewService', [
     'DynamicLayer',
-    'spatialProcessor.MapService'
-], (DynamicLayer, MapService) => {
+    'spatialProcessor.MapService',
+    'spatialProcessor.ClusterLayer'
+], (DynamicLayer, MapService, ClusterLayer) => {
 
     'use strict';
 
@@ -46,7 +47,33 @@ sGis.module('spatialProcessor.mapService.DataViewService', [
             this._customFilter = filter;
             return this.connector.api.setDataFilter(this.name, JSON.stringify(filter));
         }
+        
+        get allowsClustering() { return true; }
+        
+        get showAsClusters() { return this._showAsClusters; }
+        set showAsClusters(bool) {
+            bool = !!bool;
+            if (bool === this._showAsClusters) return;
+            
+            this.clusterLayer.isDisplayed = this.dynamicLayer.isDisplayed = this._isDisplayed;
+            this._showAsClusters = bool;
+            this.fire('layerChange', { prevLayer: bool ? this.dynamicLayer : this.clusterLayer });
+        }
+        
+        get clusterLayer() {
+            if (!this._clusterLayer) this._setClusterLayer();
+            return this._clusterLayer;
+        }
+        
+        get layer() { return this._showAsClusters ? this.clusterLayer : this.dynamicLayer; }
+        get dynamicLayer() { return this._layer; }
+        
+        _setClusterLayer() {
+            this._clusterLayer = new ClusterLayer(this.url, this.connector.sessionId);
+        }
     }
+    
+    DataViewService.prototype._showAsClusters = false;
 
     MapService.register('DataViewService', DataViewService);
 
