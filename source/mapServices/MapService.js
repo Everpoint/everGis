@@ -124,6 +124,8 @@ sGis.module('spatialProcessor.MapService', [
         }
 
         get geometryType() { return this.serviceInfo.geometryType; }
+
+        get permissions() { return this.serviceInfo.permissions; }
     }
 
     MapService.prototype._isDisplayed = true;

@@ -248,7 +248,7 @@ sGis.module('spatialProcessor.Api', [
         },
 
         deleteService: function(description) {
-            this._operation('PostGis/DeleteService', { success: description.success, error: description.error, serviceName: description.serviceName }, JSON.stringify({serviceName: description.serviceName}), true);
+            return this._operation('admin/configuration/Delete', { success: description.success, error: description.error, serviceName: description.serviceName }, JSON.stringify([description.serviceName]));
         }
     });
 
