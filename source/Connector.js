@@ -62,6 +62,13 @@ sGis.module('spatialProcessor.Connector', [
                             var id = JSON.parse(data);
 
                             if (sGis.utils.isString(id)) {
+                                try {
+                                    let error = JSON.parse(id);
+                                    if (error) return sGis.utils.message('Could not get session ID');
+                                } catch(e) {
+
+                                }
+
                                 initialize(id);
 
                                 self.fire('sessionInitialized');

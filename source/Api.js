@@ -240,7 +240,7 @@ sGis.module('spatialProcessor.Api', [
                 CreateDataSource: true,
 
                 GeometryType: description.geometryType,
-                AttributeDefinition: description.attributeDefinition,
+                AttributesDefinition: description.attributeDefinition,
                 Srid: description.srid
             };
 
