@@ -1,6 +1,7 @@
 sGis.module('spatialProcessor.controller.Routing', [
-    'spatialProcessor.Controller'
-], function(Controller) {
+    'spatialProcessor.Controller',
+    'spatialProcessor.ControllerManager'
+], function(Controller, ControllerManager) {
     'use strict';
 
     var Routing = function(connector, options) {
@@ -98,6 +99,8 @@ sGis.module('spatialProcessor.controller.Routing', [
             });
         }
     });
+
+    ControllerManager.registerController('routing', Routing);
 
     return Routing;
 
