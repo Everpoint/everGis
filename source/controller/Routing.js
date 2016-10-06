@@ -7,7 +7,6 @@ sGis.module('spatialProcessor.controller.Routing', [
     var Routing = function(connector, options) {
         this._map = options.map;
         this.__initialize(connector, {sync: true}, function() {
-            this._layer = new sGis.spatialProcessor.MapServer('VisualObjectsRendering/' + this._mapServiceId, connector, {map: options.map, display: this._display, queryLegend: false});
             this.initialized = true;
             this.fire('initialize');
         });
