@@ -225,13 +225,15 @@ sGis.module('spatialProcessor.Controller', [
                 geomDescription.paths = properties.object.coordinates;
             }
 
+            var attributes = properties.attributes ? '&attributes=' + JSON.stringify(properties.attributes) : '';
+
             var geometryString = encodeURIComponent(JSON.stringify(geomDescription)),
                 self = this;
 
             self.__operation(function() {
                 return {
                     operation: 'createVisualObject',
-                    dataParameters: 'geometry=' + geometryString + '&dataSourceService=' + properties.dataSourceService,
+                    dataParameters: 'geometry=' + geometryString + '&dataSourceService=' + properties.dataSourceService + attributes,
                     requested: properties.requested,
                     error: properties.error,
                     success: properties.deserializeResponse ? properties.success : function(response) { //TODO: this option must be eliminated in the new release of the library, left for compatibility

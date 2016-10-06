@@ -43,6 +43,11 @@ sGis.module('spatialProcessor.mapService.DataViewService', [
         
         get customFilter() { return this._customFilter; }
 
+        get filter() { return this.customFilter || this.serviceInfo.filter; }
+        set filter(filter) {
+            this.setCustomFilter(filter);
+        }
+
         setCustomFilter(filter) {
             this._customFilter = filter;
             return this.connector.api.setDataFilter(this.name, JSON.stringify(filter));
