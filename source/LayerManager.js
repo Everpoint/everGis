@@ -98,20 +98,14 @@ sGis.module('spatialProcessor.LayerManager', [
 
         loadBasemap (name) {
             return MapService.initialize(this._connector, name)
-                .then(({layer, name}) => {
-                    if (layer) {
-                        this.setBasemap(layer);
-                        return {layer, name}
-                    }
-                })
                 .catch(message => {
                     utils.error(message);
                 });
         }
 
-        setBasemap (basemap) {
+        setBasemap (service) {
             this.basemaps.layers = [];
-            this.basemaps.addLayer(basemap);
+            this.basemaps.addLayer(service.layer);
         }
 
         addService (service, realIndex) {

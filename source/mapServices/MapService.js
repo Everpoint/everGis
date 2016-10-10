@@ -69,7 +69,7 @@ sGis.module('spatialProcessor.MapService', [
             } else if (val.spatialReference && val.spatialReference.wkid === 0) {
                 this._crs = null;
             } else {
-                this._crs = new sGis.Crs({description: val.spatialReference});
+                this._crs = new sGis.Crs(val.spatialReference);
             }
             
             this._serviceInfo = val;

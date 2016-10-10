@@ -1,8 +1,9 @@
 sGis.module('spatialProcessor.mapService.TileService', [
     'spatialProcessor.MapService',
     'TileLayer',
-    'TileScheme'
-], (MapService, TileLayer, TileScheme) => {
+    'TileScheme',
+    'Bbox'
+], (MapService, TileLayer, TileScheme, Bbox) => {
 
     'use strict';
 
@@ -17,8 +18,21 @@ sGis.module('spatialProcessor.mapService.TileService', [
                 var tileScheme = getTileScheme(this.serviceInfo.tileInfo, this.crs);
             }
 
+            this._tileScheme = tileScheme;
             this._layer = new TileLayer(this.url + 'tile/{z}/{y}/{x}?_sb=' + this.connector.sessionId, { tileScheme: tileScheme, crs: this.crs, isDisplayed: this.isDisplayed });
         }
+
+        get fullExtent() {
+            if (!this.serviceInfo.fullExtent) return null;
+            return new Bbox([this.serviceInfo.fullExtent.xmin, this.serviceInfo.fullExtent.ymin], [this.serviceInfo.fullExtent.xmax, this.serviceInfo.fullExtent.ymax], this.crs);
+        }
+
+        get initialExtent() {
+            if (!this.serviceInfo.initialExtent) return null;
+            return new Bbox([this.serviceInfo.initialExtent.xmin, this.serviceInfo.initialExtent.ymin], [this.serviceInfo.initialExtent.xmax, this.serviceInfo.initialExtent.ymax], this.crs);
+        }
+
+        get tileScheme() { return this._tileScheme; }
     }
 
     function getTileScheme(tileInfo, crs) {

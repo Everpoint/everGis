@@ -178,7 +178,7 @@ sGis.module('spatialProcessor.Controller', [
                     requested: properties.requested,
                     error: properties.error,
                     success: !properties.success ? undefined : function(response) {
-                        properties.success(createFeatures(response, properties.crs || properties.geometry && properties.geometry.crs || self._map && self._map.crs));
+                        properties.success(createFeatures(response));
                     }
                 };
             });
@@ -362,7 +362,7 @@ sGis.module('spatialProcessor.Controller', [
 
     utils.extend(Controller.prototype, ext);
 
-    function createFeatures(response, mapCrs) {
+    function createFeatures(response) {
         var features = [];
         if (response.objects) {
             for (var i in response.objects) {
@@ -375,15 +375,15 @@ sGis.module('spatialProcessor.Controller', [
                         color = object.visualDefinition.stroke ? parseColor(object.visualDefinition.stroke) : undefined,
                         fillColor = object.visualDefinition.fill ? object.visualDefinition.fill : undefined;
 
-                    var serverCrs = object.geometry.data.crs || mapCrs.getWkidString();
+                    var serverCrs = object.geometry.data.crs;
                     var crs;
 
                     if (serverCrs.wkid === 102100 || serverCrs.wkid === 102113) {
                         crs = sGis.CRS.webMercator;
-                    } else if (mapCrs.description === serverCrs) {
-                        crs = mapCrs;
+                    } else if (serverCrs.wkid === 77) {
+                        crs = new sGis.Crs({ wkid: 77 });
                     } else {
-                        crs = new sGis.Crs({description: serverCrs});
+                        crs = new sGis.Crs(serverCrs);
                     }
 
                     var idAttribute = response.attributesDefinitions[object.attributesDefinition]._identity;
