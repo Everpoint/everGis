@@ -253,7 +253,52 @@ sGis.module('spatialProcessor.Api', [
 
         deleteServices: function(description) {
             return this._operation('admin/configuration/Delete', {}, JSON.stringify(description.names));
+        },
+
+        /**
+         * @param {Object} options
+         * @param {String} options.serviceName - name of the service to update
+         * @param {String} [options.description] - new description of the service
+         * @param {String} [options.alias] - new alias of the service
+         * @param {Boolean} [options.isShared]
+         * @param {Object} [options.attributesDefinition]
+         * @returns {*}
+         */
+        changeDataSourceConfiguration: function(options) {
+            var props = {
+                Description: options.description,
+                Alias: options.alias,
+                IsShared: options.isShared,
+                AttributesDefinition: options.attributesDefinition
+            };
+
+            return this._operation('admin/configuration/Update', { name: options.serviceName }, JSON.stringify(props));
+        },
+
+        /**
+         * @param {Object} options
+         * @param {String} options.serviceName - name of the service to update
+         * @param {String} [options.description] - new description of the service
+         * @param {String} [options.alias] - new alias of the service
+         * @param {Boolean} [options.isShared]
+         * @param {Object} [options.filter]
+         * @param {String} [options.preview]
+         * @param {String} [options.dataSourceServiceName]
+         * @returns {*}
+         */
+        changeDataViewConfiguration: function(options) {
+            var props = {
+                Description: options.description,
+                Alias: options.alias,
+                IsShared: options.isShared,
+                Filter: options.filter,
+                Preview: options.preview,
+                DataSourceServiceName: description.dataSourceServiceName
+            };
+
+            return this._operation('admin/configuration/Update', { name: options.serviceName }, JSON.stringify(props));
         }
+
     });
 
     return Api;
