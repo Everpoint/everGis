@@ -125,20 +125,34 @@ sGis.module('spatialProcessor.DataAccessService', [
             });
         },
 
-        copy: function(properties) {
-            var dataParameters = 'id=' + properties.targetStorageId + '&sourceStorage=' + properties.sourceStorageId;
-            if (properties.items) dataParameters += '&items=' + encodeURIComponent(JSON.stringify(properties.items));
+        /**
+         * Copies objects from one service to another
+         * @param {String} sourceServiceName
+         * @param {String} targetServiceName
+         * @param {Number[]} [objectIds=null] - object ids to be copied. If not specified, all objects will be copied.
+         * @param {Function} requested
+         * @param {Function} success
+         * @param {Function} error
+         */
+        copy: function({ sourceServiceName, targetServiceName, objectIds = null, requested, success, error}) {
+            let dataParameters = {
+                sourceServiceName: sourceServiceName,
+                targetServiceName: targetServiceName,
+                objectIds: objectIds ? JSON.stringify(objectIds) : null
+            };
+
+            let paramString = Object.keys(dataParameters).filter(key => dataParameters[key]).map(key => `${key}=${dataParameters[key]}`).join('&');
 
             this.__operation(function() {
                 return {
                     operation: 'copy',
-                    dataParameters: dataParameters,
-                    requested: properties.requested,
-                    error: properties.error,
-                    success: properties.success
+                    dataParameters: paramString,
+                    requested: requested,
+                    error: error,
+                    success: success
                 };
             });
-        },
+        }
     };
     
     return DataAccessService;
