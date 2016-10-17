@@ -128,6 +128,10 @@ sGis.module('spatialProcessor.Api', [
         downloadFile: function(url) {
             this._frame.src = url;
         },
+        
+        operation: function(name, parameters, data) {
+            return this._operation(name, parameters, data);
+        },
 
         _operation: function(name, parameters, data, admin) {
             return sGis.utils.ajaxp({
@@ -137,10 +141,13 @@ sGis.module('spatialProcessor.Api', [
                         contentType: admin ? 'application/json' : ''
                     }).then(([response]) => {
                         try {
-                            return sGis.utils.parseJSON(response);
+                            var data = sGis.utils.parseJSON(response);
                         } catch (e) {
                             throw Error('cannot parse response')
                         }
+
+                        if (data.Error) throw Error(JSON.stringify(data.Error));
+                        return data;
                     });
         },
 
@@ -299,6 +306,7 @@ sGis.module('spatialProcessor.Api', [
             return this._operation('admin/configuration/Update', { name: options.serviceName }, JSON.stringify(props));
         }
 
+        
     });
 
     return Api;

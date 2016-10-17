@@ -16,8 +16,9 @@ sGis.module('SpatialProcessor', [
     'spatialProcessor.DataAccessService',
     'spatialProcessor.Template',
     'EventHandler',
-    'spatialProcessor.ControllerManager'
-], function(utils, Point, Map, DomRenderer, Crs, BaseLayerSwitch, Connector, MapService, TileService, Folder, LayerManager, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, EventHandler, ControllerManager) {
+    'spatialProcessor.ControllerManager',
+    'spatialProcessor.Project'
+], function(utils, Point, Map, DomRenderer, Crs, BaseLayerSwitch, Connector, MapService, TileService, Folder, LayerManager, Sfs, MapServerMapItem, MapServer, DataAccessService, Template, EventHandler, ControllerManager, Project) {
     'use strict';
     
     class SpatialProcessor {
@@ -32,9 +33,18 @@ sGis.module('SpatialProcessor', [
 
             this._connector.once('sessionInitialized', () => {
                 this.layerManager.init(properties.services);
+
+                this.project = new Project(this.api);
+                this.project.setContext('map', this._map);
+                this.project.setContext('layerManager', this.layerManager);
+
+                if (properties.projectName) {
+                    this.project.load(properties.projectName);
+                }
             });
 
             this._dataAccessService = new DataAccessService(this._connector, 'DataAccess');
+
         }
 
         get map() { return this._map; }
@@ -43,6 +53,16 @@ sGis.module('SpatialProcessor', [
         get connector() { return this._connector; }
         get dataAccessService() { return this._dataAccessService; }
     }
+
+    Project.registerCustomDataItem('map', ({map}) => {
+        if (!map) return;
+        return { position: map.position.position, resolution: map.resolution, crsCode: MapService.serializeCrs(map.crs) };
+    }, ({position, resolution, crsCode}, {map}) => {
+        if (!map) return;
+        if (crsCode) map.crs = MapService.parseCrs(crsCode);
+        if (position) map.position = new Point(position, map.crs);
+        if (resolution) map.resolution = resolution;
+    });
     
     // var SpatialProcessor = function(options) {
     //     this._rootMapItem = new sGis.mapItem.Folder();

@@ -7,8 +7,9 @@ sGis.module('spatialProcessor.LayerManager', [
     'spatialProcessor.OrderManager',
     'spatialProcessor.MapService',
     'spatialProcessor.mapService.TileService',
-    'LayerGroup'
-], function (utils, EventHandler, OrderManager, MapService, TileService, LayerGroup) {
+    'LayerGroup',
+    'spatialProcessor.Project'
+], function (utils, EventHandler, OrderManager, MapService, TileService, LayerGroup, Project) {
 
     let ns = '.layerManager';
 
@@ -63,7 +64,7 @@ sGis.module('spatialProcessor.LayerManager', [
          *
          * @param services {Array} array of service names from settings
          */
-        init (services) {
+        init (services = []) {
             this._basemapGroup = new LayerGroup();
             this._layerGroup = new LayerGroup();
             this._map.addLayer(this._basemapGroup);
@@ -90,6 +91,8 @@ sGis.module('spatialProcessor.LayerManager', [
                     if (service.layer) {
                         this.addService(service, realIndex);
                     }
+
+                    return service;
                 })
                 .catch(message => {
                     utils.error(message);
@@ -106,6 +109,7 @@ sGis.module('spatialProcessor.LayerManager', [
         setBasemap (service) {
             this.basemaps.layers = [];
             this.basemaps.addLayer(service.layer);
+            this.activeBasemap = service;
         }
 
         addService (service, realIndex) {
@@ -176,5 +180,40 @@ sGis.module('spatialProcessor.LayerManager', [
         }
     }
 
+    Project.registerCustomDataItem('services', ({ layerManager }) => {
+        if (!layerManager) return;
+        return layerManager.services.map(service => {
+            return {
+                serviceName: service.name,
+                opacity: service.layer && service.layer.opacity,
+                resolutionLimits: service.layer && service.layer.resolutionLimits,
+                isDisplayed: service.isDisplayed,
+                filter: service.customFilter,
+                meta: service.meta
+            };
+        });
+    }, (services, { layerManager }) => {
+        if (!layerManager || !services) return;
+
+        services.forEach(serviceDesc => {
+            let service = layerManager.getService(serviceDesc.serviceName);
+            if (service) return restoreServiceParameters(service, serviceDesc);
+            layerManager.loadService(serviceDesc.serviceName)
+                .then(service => {
+                    restoreServiceParameters(service, serviceDesc);
+                });
+        });
+    });
+
+    function restoreServiceParameters(service, desc) {
+        if (desc.opacity !== undefined) service.layer.opacity = desc.opacity;
+        if (desc.resolutionLimits) service.layer.resolutionLimits = desc.resolutionLimits;
+        if (desc.isDisplayed !== undefined) service.isDisplayed = desc.isDisplayed;
+        if (desc.filter && service.setCustomFilter) service.setCustomFilter(desc.filter);
+        if (desc.meta) service.meta = desc.meta;
+    }
+
+
     return LayerManager;
+
 });

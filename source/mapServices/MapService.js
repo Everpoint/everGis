@@ -25,6 +25,8 @@ sGis.module('spatialProcessor.MapService', [
                         var serviceInfo = utils.parseJSON(response);
                         let layer;
 
+                        if (serviceInfo.error) throw new Error();
+
                         if (serviceInfo.capabilities && serviceInfo.capabilities.indexOf('tile') >= 0) {
                             layer = new submodules.TileService(connector, name, serviceInfo);
                         } else {
@@ -64,14 +66,7 @@ sGis.module('spatialProcessor.MapService', [
         
         get serviceInfo() { return this._serviceInfo; }
         set serviceInfo(val) {
-            if (val.spatialReference && crsMapping[val.spatialReference.wkid]) {
-                this._crs = crsMapping[val.spatialReference.wkid];
-            } else if (val.spatialReference && val.spatialReference.wkid === 0) {
-                this._crs = null;
-            } else {
-                this._crs = new sGis.Crs(val.spatialReference);
-            }
-            
+            this._crs = MapService.parseCrs(val.spatialReference);
             this._serviceInfo = val;
         }
         
@@ -123,10 +118,35 @@ sGis.module('spatialProcessor.MapService', [
         getMeta(key) {
             return this._meta[key];
         }
+        
+        get meta() { return this._meta; }
+        set meta(meta) { this._meta = meta; }
 
         get geometryType() { return this.serviceInfo.geometryType; }
 
         get permissions() { return this.serviceInfo.permissions; }
+        
+        static parseCrs(desc) {
+            if (desc && crsMapping[desc]) {
+                return crsMapping[desc];
+            } else if (desc && desc.wkid && crsMapping[desc.wkid]) {
+                return crsMapping[desc.wkid];
+            } else if (desc && desc.wkid === 0) {
+                return null;
+            } else {
+                return new sGis.Crs(desc);
+            }
+        }
+        
+        static serializeCrs(crs) {
+            let keys = Object.keys(crsMapping);
+            for (let i = 0; i < keys.length; i++) {
+                let key = keys[i];
+                if (crsMapping[key].equals(crs)) return key;
+            }
+            
+            return crs.description;
+        }
     }
 
     MapService.prototype._isDisplayed = true;
