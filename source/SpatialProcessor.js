@@ -23,7 +23,12 @@ sGis.module('SpatialProcessor', [
     
     class SpatialProcessor {
         constructor(properties) {
-            this._connector = new Connector(properties.url, properties.login, properties.password);
+            if (properties.sessionId) {
+                this._connector = new Connector(properties.url, properties.sessionId);
+            } else {
+                this._connector = new Connector(properties.url, properties.login, properties.password);
+            }
+
             this._map = new Map();
             this.api = this._connector.api;
             this._painter = new DomRenderer(this._map, {wrapper: properties.mapWrapper});
