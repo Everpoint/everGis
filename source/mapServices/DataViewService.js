@@ -20,7 +20,8 @@ sGis.module('spatialProcessor.mapService.DataViewService', [
             return this._serviceInfo.dataSourceServiceName;
         }
         
-        get isEditable() { return this.dataSource !== undefined; }
+        get isEditable() { return !!this.dataSource; }
+        get isFilterable() { return !!this.dataSource; }
 
         getImageUrl(bbox, resolution) {
             var imgWidth = Math.round((bbox.xMax - bbox.xMin) / resolution);

@@ -1,8 +1,9 @@
 sGis.module('spatialProcessor.MapService', [
     'utils',
     'CRS',
-    'EventHandler'
-], (utils, CRS, EventHandler) => {
+    'EventHandler',
+    'Bbox'
+], (utils, CRS, EventHandler, Bbox) => {
 
     'use strict';
 
@@ -146,6 +147,16 @@ sGis.module('spatialProcessor.MapService', [
             }
             
             return crs.description;
+        }
+
+        get fullExtent() {
+            if (!this.serviceInfo.fullExtent) return null;
+            return new Bbox([this.serviceInfo.fullExtent.xmin, this.serviceInfo.fullExtent.ymin], [this.serviceInfo.fullExtent.xmax, this.serviceInfo.fullExtent.ymax], this.crs);
+        }
+
+        get initialExtent() {
+            if (!this.serviceInfo.initialExtent) return null;
+            return new Bbox([this.serviceInfo.initialExtent.xmin, this.serviceInfo.initialExtent.ymin], [this.serviceInfo.initialExtent.xmax, this.serviceInfo.initialExtent.ymax], this.crs);
         }
     }
 

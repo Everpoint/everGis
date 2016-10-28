@@ -23,7 +23,12 @@ sGis.module('SpatialProcessor', [
     
     class SpatialProcessor {
         constructor(properties) {
-            this._connector = new Connector(properties.url, properties.login, properties.password);
+            if (properties.sessionId) {
+                this._connector = new Connector(properties.url, properties.sessionId);
+            } else {
+                this._connector = new Connector(properties.url, properties.login, properties.password);
+            }
+
             this._map = new Map();
             this.api = this._connector.api;
             this._painter = new DomRenderer(this._map, {wrapper: properties.mapWrapper});
@@ -31,20 +36,26 @@ sGis.module('SpatialProcessor', [
             this.controllerManager = new ControllerManager(this.connector, this.map);
             this._login = properties.login;
 
-            this._connector.once('sessionInitialized', () => {
-                this.layerManager.init(properties.services);
+            this.project = new Project(this.api);
 
-                this.project = new Project(this.api);
-                this.project.setContext('map', this._map);
-                this.project.setContext('layerManager', this.layerManager);
-
-                if (properties.projectName) {
-                    this.project.load(properties.projectName);
-                }
-            });
+            if (this._connector.sessionId) {
+                this._init(properties);
+            } else {
+                this._connector.once('sessionInitialized', this._init.bind(this, properties));
+            }
 
             this._dataAccessService = new DataAccessService(this._connector, 'DataAccess');
+        }
 
+        _init(properties) {
+            this.layerManager.init(properties.services);
+
+            this.project.setContext('map', this._map);
+            this.project.setContext('layerManager', this.layerManager);
+
+            if (properties.projectName) {
+                this.project.load(properties.projectName);
+            }
         }
 
         get map() { return this._map; }

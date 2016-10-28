@@ -300,7 +300,7 @@ sGis.module('spatialProcessor.Api', [
                 IsShared: options.isShared,
                 Filter: options.filter,
                 Preview: options.preview,
-                DataSourceServiceName: description.dataSourceServiceName
+                DataSourceServiceName: options.dataSourceServiceName
             };
 
             return this._operation('admin/configuration/Update', { name: options.serviceName }, JSON.stringify(props));

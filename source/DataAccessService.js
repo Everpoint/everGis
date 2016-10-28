@@ -152,6 +152,37 @@ sGis.module('spatialProcessor.DataAccessService', [
                     success: success
                 };
             });
+        },
+
+        /**
+         * Requests data aggregation
+         * @param {String} geometrySourceServiceName - name of data view service that contains source geometry. The objects of this service will be copied to the target service with aggregated attributes.
+         * @param {String} dataSourceServiceName - name of data view service that contains aggregation data.
+         * @param {String} targetServiceName - name of data view service where new features will be saved.
+         * @param {Object[]} aggregations - aggregation parameters given in format [{ targetAttributeName: 'min', aggregationQuery: 'min("gid")' }, ...]
+         * @param {Function} requested
+         * @param {Function} success
+         * @param {Function} error
+         */
+        aggregate: function({ geometrySourceServiceName, dataSourceServiceName, targetServiceName, aggregations, requested, success, error }) {
+            let dataParameters = {
+                geometrySourceServiceName: geometrySourceServiceName,
+                dataSourceServiceName: dataSourceServiceName,
+                targetServiceName: targetServiceName,
+                aggregations: JSON.stringify(aggregations)
+            };
+
+            let paramString = Object.keys(dataParameters).filter(key => dataParameters[key]).map(key => `${key}=${dataParameters[key]}`).join('&');
+
+            this.__operation(function() {
+                return {
+                    operation: 'aggregate',
+                    dataParameters: paramString,
+                    requested: requested,
+                    error: error,
+                    success: success
+                };
+            });
         }
     };
     
