@@ -304,6 +304,21 @@ sGis.module('spatialProcessor.Api', [
             };
 
             return this._operation('admin/configuration/Update', { name: options.serviceName }, JSON.stringify(props));
+        },
+
+        getObjects ({serviceName, startIndex, count, getAttributes, getGeometry, srid, condition, orderBy}) {
+            const params = {
+                serviceName,
+                startIndex,
+                count,
+                getAttributes,
+                getGeometry,
+                srid,
+                condition,
+                orderBy
+            };
+
+            return this._operation('data/get', params);
         }
 
         
