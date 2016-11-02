@@ -252,9 +252,11 @@ sGis.module('spatialProcessor.Controller', [
                     dataParameters: 'geometry=' + geometryString + '&dataSourceService=' + properties.dataSourceService + attributes,
                     requested: properties.requested,
                     error: properties.error,
-                    success: properties.deserializeResponse ? properties.success : function(response) { //TODO: this option must be eliminated in the new release of the library, left for compatibility
-                        if (properties.success) {
-                            properties.success(createFeatures(response, properties.crs || properties.object && properties.object.crs || self._map && self._map.crs));
+                    success: (response) => {
+                        if (response.content && response.content.Result === 'success') {
+                            if (properties.success) properties.success(parseInt(response.content.Id));
+                        } else {
+                            if (properties.error) properties.error(response);
                         }
                     }
                 };
