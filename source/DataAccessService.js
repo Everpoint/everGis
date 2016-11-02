@@ -23,6 +23,7 @@ sGis.module('spatialProcessor.DataAccessService', [
     DataAccessService.prototype = {
         __operation: sGis.spatialProcessor.Controller.prototype.__operation,
         query: sGis.spatialProcessor.Controller.prototype.query,
+        queryByGeometry: sGis.spatialProcessor.Controller.prototype.queryByGeometry,
         save: sGis.spatialProcessor.Controller.prototype.save,
         createObject: sGis.spatialProcessor.Controller.prototype.createObject,
         autoComplete: sGis.spatialProcessor.Controller.prototype.autoComplete,

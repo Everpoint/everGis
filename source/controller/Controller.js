@@ -184,6 +184,22 @@ sGis.module('spatialProcessor.Controller', [
             });
         },
 
+        queryByGeometry: function(properties) {
+            this.__operation(function() {
+                var data = JSON.stringify({rings: properties.geometry.coordinates, spatialReference: properties.geometry.crs.getWkidString()});
+
+                return {
+                    operation: 'queryByGeometry',
+                    dataParameters: 'serviceName=' + properties.serviceName + '&geometry=' + data,
+                    requested: properties.requested,
+                    error: properties.error,
+                    success: !properties.success ? undefined : function(response) {
+                        properties.success(createFeatures(response));
+                    }
+                };
+            });
+        },
+
         clear: function(properties) {
             properties = properties || {};
             this.__operation(function() {
