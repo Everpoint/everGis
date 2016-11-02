@@ -51,6 +51,7 @@ sGis.module('spatialProcessor.MapService', [
             utils.ajaxp({url: this.url + 'subscribe?_sb=' + this._connector.sessionId})
                 .then(() => {
                     this._connector.addNotificationListner('dynamic layer', this._name, this._redraw.bind(this));
+                    this._connector.addNotificationListner('symbols', this._name, this.updateLegend.bind(this));
                 });
         }
 
