@@ -251,15 +251,15 @@ sGis.module('spatialProcessor.Api', [
                 Srid: description.srid
             };
 
-            return this._operation('admin/configuration/Create', {}, JSON.stringify(props));
+            return this._operation('admin/Services/Create', {}, JSON.stringify(props));
         },
 
         deleteService: function(description) {
-            return this._operation('admin/configuration/Delete', { success: description.success, error: description.error, serviceName: description.serviceName }, JSON.stringify([description.serviceName]));
+            return this._operation('admin/Services/Delete', { success: description.success, error: description.error, serviceName: description.serviceName }, JSON.stringify([description.serviceName]));
         },
 
         deleteServices: function(description) {
-            return this._operation('admin/configuration/Delete', {}, JSON.stringify(description.names));
+            return this._operation('admin/Services/Delete', {}, JSON.stringify(description.names));
         },
 
         /**
@@ -279,7 +279,7 @@ sGis.module('spatialProcessor.Api', [
                 AttributesDefinition: options.attributesDefinition
             };
 
-            return this._operation('admin/configuration/Update', { name: options.serviceName }, JSON.stringify(props));
+            return this._operation('admin/Services/Update', { name: options.serviceName }, JSON.stringify(props));
         },
 
         /**
@@ -303,7 +303,7 @@ sGis.module('spatialProcessor.Api', [
                 DataSourceServiceName: options.dataSourceServiceName
             };
 
-            return this._operation('admin/configuration/Update', { name: options.serviceName }, JSON.stringify(props));
+            return this._operation('admin/Services/Update', { name: options.serviceName }, JSON.stringify(props));
         }
 
         

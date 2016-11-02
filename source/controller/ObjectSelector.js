@@ -105,19 +105,23 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
             });
         },
 
-        pickById: function(properties) {
+        pickById: function({ ids, serviceName, mode = undefined, success, error, requested }) {
             this.__operation(function() {
-                var param = 'ids=' + encodeURIComponent(JSON.stringify([{ServiceName: properties.serviceName, ObjectIds: properties.objectIds}]));
+                let params = {
+                    ids: JSON.stringify([{ServiceName: serviceName, ObjectIds: ids }]),
+                    mode: mode
+                };
 
-                var self = this;
+                let param = Object.keys(params).filter(key => params[key] !== undefined).map(key => `${key}=${params[key]}`).join('&');
+
                 return {
                     operation: 'pickById',
                     dataParameters: param,
-                    success: !properties.success ? undefined : function(response) {
-                        properties.success(self._createFeatures(response, properties.crs || properties.geometry && properties.geometry.crs || self._map && self._map.crs));
+                    success: !success ? undefined : (response) => {
+                        success(this._createFeatures(response, this._map && this._map.crs));
                     },
-                    error: properties.error,
-                    requested: properties.requested
+                    error: error,
+                    requested: requested
                 };
             });
         },
