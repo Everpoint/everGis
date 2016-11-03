@@ -291,6 +291,7 @@ sGis.module('spatialProcessor.Api', [
          * @param {Object} [options.filter]
          * @param {String} [options.preview]
          * @param {String} [options.dataSourceServiceName]
+         * @param {String} [options.attributesDefinition]
          * @returns {*}
          */
         changeDataViewConfiguration: function(options) {
@@ -300,7 +301,8 @@ sGis.module('spatialProcessor.Api', [
                 IsShared: options.isShared,
                 Filter: options.filter,
                 Preview: options.preview,
-                DataSourceServiceName: options.dataSourceServiceName
+                DataSourceServiceName: options.dataSourceServiceName,
+                AttributesDefinition: options.attributesDefinition
             };
 
             return this._operation('admin/Services/Update', { name: options.serviceName }, JSON.stringify(props));
