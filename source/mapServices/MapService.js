@@ -151,6 +151,8 @@ sGis.module('spatialProcessor.MapService', [
         }
 
         get fullExtent() {
+            if (this._fullExtent) return this._fullExtent;
+
             if (!this.serviceInfo.fullExtent) return null;
             return new Bbox([this.serviceInfo.fullExtent.xmin, this.serviceInfo.fullExtent.ymin], [this.serviceInfo.fullExtent.xmax, this.serviceInfo.fullExtent.ymax], this.crs);
         }
@@ -158,6 +160,22 @@ sGis.module('spatialProcessor.MapService', [
         get initialExtent() {
             if (!this.serviceInfo.initialExtent) return null;
             return new Bbox([this.serviceInfo.initialExtent.xmin, this.serviceInfo.initialExtent.ymin], [this.serviceInfo.initialExtent.xmax, this.serviceInfo.initialExtent.ymax], this.crs);
+        }
+
+        updateExtent() {
+            if (this.serviceInfo.capabilities.indexOf('extent') >= 0) {
+                return utils.ajaxp({ url: this.url + 'extent?_sb=' + this._connector.sessionId })
+                    .then(response => {
+                        try {
+                            let ext = JSON.parse(response[0]);
+                            this._fullExtent = new Bbox([ext.XMin, ext.YMin], [ext.XMax, ext.YMax], this.crs);
+                        } catch (e) {}
+                    });
+            }
+            
+            let p = new Promise();
+            Promise.resolve(p);
+            return p;
         }
     }
 
