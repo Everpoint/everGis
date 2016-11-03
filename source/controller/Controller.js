@@ -286,42 +286,50 @@ sGis.module('spatialProcessor.Controller', [
             });
         },
 
-        reshape: function(properties) {
-            var coordinates = properties.line.coordinates;
-            var crs = properties.line.crs;
-            var dataParameters = 'a=' + encodeURIComponent(JSON.stringify([{paths: coordinates, spatialReference: crs.getWkidString()}])) + '&b=i' + encodeURIComponent(JSON.stringify(properties.ids)) + '&geometryVersion=2';
+        reshape: function({ serviceName, line, ids, success, error, requested }) {
+            let coordinates = line.rings;
+            let crs = line.crs;
 
-            if (properties.layerStorageId) dataParameters += '&id=' + encodeURIComponent(properties.layerStorageId.replace(/-/g, ''));
+            let params = {
+                serviceName: serviceName,
+                line: JSON.stringify([{paths: coordinates, spatialReference: crs.getWkidString()}]),
+                ids: JSON.stringify(ids)
+            };
+
+            let paramString = Object.keys(params).map(key => `${key}=${params[key]}`).join('&');
 
             this.__operation(function() {
                 return {
                     operation: 'reshape',
-                    dataParameters: dataParameters,
-                    requested: properties.requested,
-                    error: properties.error,
-                    success: properties.success
+                    dataParameters: paramString,
+                    requested: requested,
+                    error: error,
+                    success: success
                 };
             });
-
         },
 
-        cut: function(properties) {
-            var coordinates = properties.line.coordinates;
-            var crs = properties.line.crs;
-            var dataParameters = 'a=' + encodeURIComponent(JSON.stringify([{paths: coordinates, spatialReference: crs.getWkidString()}])) + '&b=i' + encodeURIComponent(JSON.stringify(properties.ids)) + '&geometryVersion=2';
+        cut: function({ serviceName, line, ids, success, error, requested }) {
+            let coordinates = line.rings;
+            let crs = line.crs;
 
-            if (properties.layerStorageId) dataParameters += '&id=' + encodeURIComponent(properties.layerStorageId.replace(/-/g, ''));
+            let params = {
+                serviceName: serviceName,
+                line: JSON.stringify([{paths: coordinates, spatialReference: crs.getWkidString()}]),
+                ids: JSON.stringify(ids)
+            };
+
+            let paramString = Object.keys(params).map(key => `${key}=${params[key]}`).join('&');
 
             this.__operation(function() {
                 return {
                     operation: 'cut',
-                    dataParameters: dataParameters,
-                    requested: properties.requested,
-                    error: properties.error,
-                    success: properties.success
+                    dataParameters: paramString,
+                    requested: requested,
+                    error: error,
+                    success: success
                 };
             });
-
         },
 
         extent: function(properties) {
