@@ -73,24 +73,39 @@ sGis.module('spatialProcessor.Controller', [
                 type: 'POST',
                 data: request,
                 success: function(data, textStatus) {
-                    var response = JSON.parse(data);
-                    self._id = response.ServiceId;
-                    if (response.DataViewServiceName) {
-                        self._layerName = response.DataViewServiceName;
-                        self._service = MapService.initialize(self._spatialProcessor, self._layerName)
-                            .then(service => {
-                                if (self._map) self._map.addLayer(service.layer);
-                            });
-                    }
+                    try {
+                        var response = JSON.parse(data);
 
-                    if (callback) callback.call(self);
-                    for (var i in self._operationQueue) {
-                        self.__operation(self._operationQueue[i]);
+                        if (!response.ServiceId) return self._failInitialization();
+
+                        self._id = response.ServiceId;
+                        if (response.DataViewServiceName) {
+                            self._layerName = response.DataViewServiceName;
+                            self._service = MapService.initialize(self._spatialProcessor, self._layerName)
+                                .then(service => {
+                                    if (self._map) self._map.addLayer(service.layer);
+                                });
+                        }
+
+                        if (callback) callback.call(self);
+                        for (var i in self._operationQueue) {
+                            self.__operation(self._operationQueue[i]);
+                        }
+                    } catch (e) {
+                        self._failInitialization();
                     }
                 },
                 error: function() {
-                    sGis.utils.message('Could not create controller');
+                    self._failInitialization();
                 }
+            });
+        },
+
+        _failInitialization() {
+            sGis.utils.message('Could not create controller ' + this._type);
+            this._failed = true;
+            this._operationQueue.forEach(operation => {
+                this.__operation(operation);
             });
         },
 
@@ -101,6 +116,12 @@ sGis.module('spatialProcessor.Controller', [
         },
 
         __operation: function(f) {
+            if (this._failed) {
+                let params = f.call(this);
+                if (params.error) params.error("Controller failed to initialize");
+                return;
+            }
+
             var self = this;
             let dataParameters;
             if (this._id) {
