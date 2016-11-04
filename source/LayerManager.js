@@ -110,6 +110,8 @@ sGis.module('spatialProcessor.LayerManager', [
             this.basemaps.layers = [];
             this.basemaps.addLayer(service.layer);
             this.activeBasemap = service;
+
+            this.fire('baseMapChanged');
         }
 
         addService (service, realIndex) {
