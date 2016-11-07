@@ -64,21 +64,17 @@ sGis.module('spatialProcessor.OrderManager', [], function () {
          */
         moveId(id, direction) {
             const {ids, currIds} = this;
-            const currIndex = ids.indexOf(id);
-            const newIndex = currIndex + direction;
+            let from = this.ids.indexOf(id);
+            let to = from + direction;
 
-            if (newIndex < 0 || newIndex >= ids.length) {
-                return currIndex;
+            if (to < 0 || to >= ids.length) {
+                return from;
             }
 
-            const movedId = ids[newIndex];
+            this._ids = sGis.utils.arrayMove(ids, from, to);
+            this._currIds = sGis.utils.arrayMove(currIds, from, to);
 
-            ids[currIndex] = movedId;
-            ids[newIndex] = id;
-            currIds[currIndex] = movedId;
-            currIds[newIndex] = id;
-
-            return newIndex;
+            return to;
         }
 
         /**

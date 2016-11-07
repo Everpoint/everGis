@@ -124,7 +124,7 @@ sGis.module('spatialProcessor.LayerManager', [
             this.fire('serviceAdd', {service, index: realIndex});
         }
 
-        removeService (name) {
+        removeService (name, isSilent) {
             const { layer } = this._services[name];
             if (!layer){
                 return;
@@ -135,7 +135,7 @@ sGis.module('spatialProcessor.LayerManager', [
             const index = this._layers.removeId(name);
             delete this._services[name];
 
-            this.fire('serviceRemove', index);
+            !isSilent && this.fire('serviceRemove', index);
             return index;
         }
 
@@ -154,6 +154,16 @@ sGis.module('spatialProcessor.LayerManager', [
             this._layerGroup.insertLayer(service.layer, newIndex);
             this.fire('serviceMove', {service, index: newIndex});
             return newIndex;
+        }
+
+        updateService (name) {
+            const count = this._layers.ids.length;
+            const index = (this.removeService(name, true) + 1) - count;
+
+            this.loadService(name)
+                .then(()=>{
+                    this.moveService(name, index);
+                });
         }
 
         toggleService (name) {
