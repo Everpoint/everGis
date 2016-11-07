@@ -74,6 +74,9 @@ sGis.module('SpatialProcessor', [
         if (position) map.position = new Point(position, map.crs);
         if (resolution) map.resolution = resolution;
     });
+
+    SpatialProcessor.version = "version";
+    SpatialProcessor.releaseDate = "date";
     
     // var SpatialProcessor = function(options) {
     //     this._rootMapItem = new sGis.mapItem.Folder();
