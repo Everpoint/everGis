@@ -459,7 +459,7 @@ sGis.module('spatialProcessor.Controller', [
                             });
                         }
                     } else if (geometry.type === 'polyline') {
-                        let symbol = new sGis.symbol.polygon.Simple({ strokeColor: color, strokeWidth: parseFloat(object.visualDefinition.strokeThickness)});
+                        let symbol = new sGis.symbol.polyline.Simple({ strokeColor: color, strokeWidth: parseFloat(object.visualDefinition.strokeThickness)});
                         feature = new sGis.feature.Polyline(points, {id: id, attributes: attributes, crs: crs, symbol: symbol });
                     } else if (geometry.type === 'point' || geometry.type === 'multipoint') {
                         var symbol;
