@@ -321,9 +321,15 @@ sGis.module('spatialProcessor.Api', [
             };
 
             return this._operation('data/get', params);
-        }
+        },
 
-        
+        getFunctionList: function({ targetServiceName }) {
+            return this._operation('functions/list', { targetServiceName });
+        },
+
+        validateExpression: function({ targetServiceName, expression, resultType }) {
+            return this._operation('functions/validateExpression', { targetServiceName, expression, resultType });
+        }
     });
 
     return Api;

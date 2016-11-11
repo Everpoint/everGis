@@ -184,6 +184,21 @@ sGis.module('spatialProcessor.DataAccessService', [
                     success: success
                 };
             });
+        },
+
+        batchEdit: function({ serviceName, attribute, expression, condition, requested, success, error }) {
+            let dataParameters = { serviceName, attribute, expression: encodeURIComponent(expression), condition };
+            let paramString = Object.keys(dataParameters).filter(key => dataParameters[key]).map(key => `${key}=${dataParameters[key]}`).join('&');
+
+            this.__operation(function() {
+                return {
+                    operation: 'batchFuncEdit',
+                    dataParameters: paramString,
+                    requested: requested,
+                    error: error,
+                    success: success
+                };
+            });
         }
     };
     
