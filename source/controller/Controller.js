@@ -270,7 +270,7 @@ sGis.module('spatialProcessor.Controller', [
             self.__operation(function() {
                 return {
                     operation: 'createVisualObject',
-                    dataParameters: 'geometry=' + geometryString + '&dataSourceService=' + properties.dataSourceService + attributes,
+                    dataParameters: 'geometry=' + geometryString + '&serviceName=' + properties.serviceName + attributes,
                     requested: properties.requested,
                     error: properties.error,
                     success: (response) => {
