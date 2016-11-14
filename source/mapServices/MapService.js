@@ -168,7 +168,7 @@ sGis.module('spatialProcessor.MapService', [
                     .then(response => {
                         try {
                             let ext = JSON.parse(response[0]);
-                            this._fullExtent = new Bbox([ext.XMin, ext.YMin], [ext.XMax, ext.YMax], this.crs);
+                            if (ext.XMin !== undefined) this._fullExtent = new Bbox([ext.XMin, ext.YMin], [ext.XMax, ext.YMax], this.crs);
                         } catch (e) {}
                     });
             }
