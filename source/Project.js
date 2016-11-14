@@ -48,6 +48,10 @@ sGis.module('spatialProcessor.Project', [
             if (dataRegister[key]) dataRegister[key].apply(this._data[key], this._context);
         }
 
+        getStoredValue(key) {
+            return this._data[key];
+        }
+
         update() {
             this._data = {};
             Object.keys(dataRegister).forEach(key => {
