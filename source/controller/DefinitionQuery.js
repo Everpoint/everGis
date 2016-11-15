@@ -23,6 +23,18 @@ sGis.module('spatialProcessor.controller.DefinitionQuery', [
                     requested: properties.requested
                 };
             });
+        },
+
+        getAttributes: function(properties) {
+            this.__operation(function() {
+                return {
+                    operation: 'getAttributes',
+                    dataParameters: 'storageId=' + properties.storageId,
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
         }
     });
 

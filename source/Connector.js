@@ -1,25 +1,31 @@
 sGis.module('spatialProcessor.Connector', [
     'utils',
     'utils.proto',
-    'IEventHandler',
+    'EventHandler',
+    'spatialProcessor.Api',
     'MapItem'
-], function(utils, proto, IEventHandler, MapItem) {
+], function(utils, proto, EventHandler, Api, MapItem) {
     'use strict';
 
-    var Connector = function(url, rootMapItem, login, password) {
-        if (!sGis.utils.isString(url) || !sGis.utils.isString(login) || !(rootMapItem instanceof sGis.MapItem)) sGis.utils.error('Incorrect parameters for Spatial Processor initialization');
+    class Connector extends EventHandler {
+        constructor (url, login, password) {
+            super();
+            // if (!sGis.utils.isString(url) || !sGis.utils.isString(login) || !(rootMapItem instanceof sGis.MapItem)) sGis.utils.error('Incorrect parameters for Spatial Processor initialization');
 
-        this._url = url;
-        this._notificationListners = {};
-        this._objectSelectorListeners = [];
-        this._operationList = {};
-        this._rootMapItem = rootMapItem;
-        this._failedNotificationRequests = 0;
+            this._url = url;
+            this._notificationListners = {};
+            this._objectSelectorListeners = [];
+            this._operationList = {};
+            // this._rootMapItem = rootMapItem;
+            this._failedNotificationRequests = 0;
 
-        this.initializeSession(login, password);
-    };
+            this.initializeSession(login, password);
+            
+            this.api = new Api(this);
+        }
+    }
 
-    Connector.prototype = {
+    let ext = {
         _synchronizationTimer: null,
 
         apiLoginUrl: '%sp%Strategis.JsClient/ApiLogin.aspx',
@@ -38,7 +44,7 @@ sGis.module('spatialProcessor.Connector', [
         },
 
         removeObjectSelectorListener: function(f) {
-            var index = this._objectSelectorListeners.indexOf(f);
+            var index = ths._objectSelectorListeners.indexOf(f);
             if (index !== -1) this._objectSelectorListeners.splice(index, 1);
         },
 
@@ -46,16 +52,23 @@ sGis.module('spatialProcessor.Connector', [
             var self = this;
             if (password) {
                 var spUrl = this._url.substr(-4, 4) === 'IIS/' ? this._url.substr(0, this._url.length - 4) : this._url,
-                    url = this.apiLoginUrl.replace(/%sp%/, spUrl) + '?authId=855102B4-0CF7-4F59-A4AF-29C4AEE1A537&userName=' + login + '&password=' + encodeURIComponent(password) + '&ts=' + new Date().getTime();
+                    url = this.apiLoginUrl.replace(/%sp%/, spUrl) + '?userName=' + login + '&password=' + encodeURIComponent(password) + '&ts=' + new Date().getTime();
                 sGis.utils.ajax({
                     url: url,
                     success: function(data, textStatus) {
                         if (data === '') {
                             sGis.utils.message('Could not get session ID');
                         } else {
-                            var id = JSON.parse(data).token;
+                            var id = JSON.parse(data);
 
                             if (sGis.utils.isString(id)) {
+                                try {
+                                    let error = JSON.parse(id);
+                                    if (error) return sGis.utils.message('Could not get session ID');
+                                } catch(e) {
+
+                                }
+
                                 initialize(id);
 
                                 self.fire('sessionInitialized');
@@ -76,7 +89,7 @@ sGis.module('spatialProcessor.Connector', [
             function initialize(id) {
                 setListners(self, self._rootMapItem);
                 self._sessionId = encodeURIComponent(id);
-                self.synchronize();
+                // self.synchronize();
                 self.requestNotifications();
 
                 escapePrintMethod(self);
@@ -84,48 +97,48 @@ sGis.module('spatialProcessor.Connector', [
         },
 
         synchronize: function() {
-            var self = this;
-            this._synchronized = false;
-            if (this._synchronizationTimer === undefined) {
-
-                var mapItems = this._rootMapItem.getChildren(true),
-                    structure = {Structure: []};
-
-                for (var i in mapItems) {
-                    structure.Structure.push(getMapItemDescription(mapItems[i], false));
-                }
-
-                structure.Structure.push(getMapItemDescription(this._rootMapItem, true));
-
-                var self = this,
-                    data = 'f=json&data=' + encodeURIComponent(JSON.stringify(structure));
-
-
-                sGis.utils.ajax({
-                    type: 'POST',
-                    url: this._url + 'MapItemStates/?_sb=' + this._sessionId,
-                    data: data,
-                    success: function(data) {
-                        if (data !== 'true') {
-                            self._synchronized = false;
-                        } else {
-                            if (!self._synchronizationTimer) {
-                                self._synchronized = true;
-                                self.fire('synchronize');
-                            }
-                        }
-                    },
-                    error: function() {
-                        debugger;
-                    }
-                });
-                this._synchronizationTimer = null;
-            } else if (this._synchronizationTimer === null) {
-                this._synchronizationTimer = setTimeout(function() {
-                    self._synchronizationTimer = undefined;
-                    self.synchronize();
-                }, 500);
-            }
+            // var self = this;
+            // this._synchronized = false;
+            // if (this._synchronizationTimer === undefined) {
+            //
+            //     var mapItems = this._rootMapItem.getChildren(true),
+            //         structure = {Structure: []};
+            //
+            //     for (var i in mapItems) {
+            //         structure.Structure.push(getMapItemDescription(mapItems[i], false));
+            //     }
+            //
+            //     structure.Structure.push(getMapItemDescription(this._rootMapItem, true));
+            //
+            //     var self = this,
+            //         data = 'f=json&data=' + encodeURIComponent(JSON.stringify(structure));
+            //
+            //
+            //     sGis.utils.ajax({
+            //         type: 'POST',
+            //         url: this._url + 'MapItemStates/?_sb=' + this._sessionId,
+            //         data: data,
+            //         success: function(data) {
+            //             if (data !== 'true') {
+            //                 self._synchronized = false;
+            //             } else {
+            //                 if (!self._synchronizationTimer) {
+            //                     self._synchronized = true;
+            //                     self.fire('synchronize');
+            //                 }
+            //             }
+            //         },
+            //         error: function() {
+            //             debugger;
+            //         }
+            //     });
+            //     this._synchronizationTimer = null;
+            // } else if (this._synchronizationTimer === null) {
+            //     this._synchronizationTimer = setTimeout(function() {
+            //         self._synchronizationTimer = undefined;
+            //         self.synchronize();
+            //     }, 500);
+            // }
         },
 
         requestNotifications: function() {
@@ -148,11 +161,11 @@ sGis.module('spatialProcessor.Connector', [
                                     sGis.utils.message(data.Notifications[i].tag);
                                 }
                             }
-                            if (self._synchronized !== false) {
+                            // if (self._synchronized !== false) {
                                 self.requestNotifications();
-                            } else {
-                                self.addListener('synchronize.self', function() {self.removeListener('.self'); self.requestNotifications();});
-                            }
+                            // } else {
+                            //     self.addListener('synchronize.self', function() {self.removeListener('.self'); self.requestNotifications();});
+                            // }
 
                             self._failedNotificationRequests = 0;
                         } else {
@@ -233,7 +246,7 @@ sGis.module('spatialProcessor.Connector', [
 
         synchronized: {
             get: function() {
-                return this._synchronized;
+                return true;
             }
         },
 
@@ -244,7 +257,7 @@ sGis.module('spatialProcessor.Connector', [
         }
     });
 
-    sGis.utils.proto.setMethods(Connector.prototype, sGis.IEventHandler);
+    utils.extend(Connector.prototype, ext);
 
     sGis.spatialProcessor.processNotification = {
         'dynamic layer': function(connector, data, type) {
@@ -277,34 +290,34 @@ sGis.module('spatialProcessor.Connector', [
     };
 
     function setListners(connector, mapItem) {
-        var handler = function() { connector.synchronize(); };
-        var childAddHandler = function(sGisEvent) {
-            setListners(connector, sGisEvent.child);
-            connector.synchronize();
-        };
-        var childRemoveHandler = function(sGisEvent) {
-            sGisEvent.child.removeListener('.sGis-connector');
-            connector.synchronize();
-        };
-
-        if (!mapItem.hasListener('addChild', childAddHandler)) {
-            mapItem.addListeners({
-                'addChild.sGis-connector': childAddHandler,
-                'removeChild.sGis-connector': childRemoveHandler,
-                'propertyChange.sGis-connector': handler,
-                'childOrderChange.sGis-connector': handler,
-                'serviceInfoUpate.sGis-connector': handler,
-                'activate.sGis-connector': handler,
-                'deactivate.sGis-connector': handler
-            });
-        }
-
-        var children = mapItem.children;
-        if (children) {
-            for (var i = 0, len = children.length; i < len; i++) {
-                setListners(connector, children[i]);
-            }
-        }
+        // var handler = function() { connector.synchronize(); };
+        // var childAddHandler = function(sGisEvent) {
+        //     setListners(connector, sGisEvent.child);
+        //     connector.synchronize();
+        // };
+        // var childRemoveHandler = function(sGisEvent) {
+        //     sGisEvent.child.removeListener('.sGis-connector');
+        //     connector.synchronize();
+        // };
+        //
+        // if (!mapItem.hasListener('addChild', childAddHandler)) {
+        //     mapItem.addListeners({
+        //         'addChild.sGis-connector': childAddHandler,
+        //         'removeChild.sGis-connector': childRemoveHandler,
+        //         'propertyChange.sGis-connector': handler,
+        //         'childOrderChange.sGis-connector': handler,
+        //         'serviceInfoUpate.sGis-connector': handler,
+        //         'activate.sGis-connector': handler,
+        //         'deactivate.sGis-connector': handler
+        //     });
+        // }
+        //
+        // var children = mapItem.children;
+        // if (children) {
+        //     for (var i = 0, len = children.length; i < len; i++) {
+        //         setListners(connector, children[i]);
+        //     }
+        // }
     }
 
     function getMapItemDescription(mapItem, isRoot) {

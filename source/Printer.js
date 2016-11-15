@@ -19,9 +19,9 @@ sGis.module('spatialProcessor.Printer', [
         }
     };
 
-    var Printer = function(sp, properties) {
-        this._serverConnector = sp.connector;
-        this._sp = sp;
+    var Printer = function(map, connector) {
+        this._serverConnector = connector;
+        this._map = map;
     };
 
     Printer.prototype = {
@@ -78,12 +78,12 @@ sGis.module('spatialProcessor.Printer', [
             var description = {
                 ServiceStateDefinition: [],
                 MapCenter: {
-                    X: properties.position ? properties.position.x : this._sp.map.position.x,
-                    Y: properties.position ? properties.position.y :this._sp.map.position.y
+                    X: properties.position ? properties.position.x : this._map.position.x,
+                    Y: properties.position ? properties.position.y :this._map.position.y
                 },
-                SpatialReference: this._sp.map.crs.getWkidString(),
+                SpatialReference: this._map.crs.getWkidString(),
                 Dpi: properties.dpi || defaults.dpi,
-                Resolution: properties.resolution || this._sp.map.resolution,
+                Resolution: properties.resolution || this._map.resolution,
                 PaperSize: {
                     Width: properties.paperSize && properties.paperSize.width || defaults.paperSize.width,
                     Height: properties.paperSize && properties.paperSize.height || defaults.paperSize.height
@@ -102,39 +102,24 @@ sGis.module('spatialProcessor.Printer', [
                 description.Parameters = description.Parameters.concat(properties.template.BindingGroups[i].Parameters);
             }
 
-            var layers = this._sp.map.layers,
-                servicesWithLegend = [];
-            for (var i = 0, len = layers.length; i < len; i++) {
-                if (layers[i].mapServer) {
-                    if (layers[i].isDisplayed && layers[i].mapServer.mapItem && layers[i].mapServer.mapItem.legend && layers[i].mapServer.mapItem.legend.length > 0) servicesWithLegend.push(layers[i].mapServer.mapItem);
-                    description.ServiceStateDefinition.push({
-                        UniqueName: layers[i].mapServer.fullName || layers[i].mapServer.id,
-                        Opactiy: layers[i].opacity,
-                        IsVisible: layers[i].isDisplayed,
-                        Title: layers[i].mapServer.Name,
-                        CustomParameters: {},
-                        Layers: [{ LayerId: -1, LegendItemId: -1, Children: [] }]
-                    });
-
-                    var subLayersInfo = layers[i].mapServer.mapItem && layers[i].mapServer.mapItem.getChildren(true) || [],
-                        activeLayers = layers[i].mapServer.mapItem && layers[i].mapServer.mapItem.getActiveChildren(true) || [];
-
-                    for (var j = 0, length = subLayersInfo.length; j < length; j++) {
-                        description.ServiceStateDefinition[description.ServiceStateDefinition.length - 1].Layers.push({
-                            LayerId: subLayersInfo[j].layerId,
-                            Opactiy: 1,
-                            IsVisible: activeLayers.indexOf(subLayersInfo[j]) !== -1,
-                            Title: subLayersInfo[j].name
-                        });
-                    }
-                }
+            var services = properties.services;
+            for (var i = 0, len = services.length; i < len; i++) {
+                let service = services[i];
+                description.ServiceStateDefinition.push({
+                    UniqueName: service.name || service.id,
+                    Opactiy: service.layer.opacity,
+                    IsVisible: service.isDisplayed,
+                    Title: service.Name,
+                    CustomParameters: {},
+                    Layers: [{ LayerId: -1, LegendItemId: -1, Children: [] }]
+                });
             }
 
-            description.Legend = {
-                LayerId: -1,
-                LegendItemId: -1,
-                Children: getLayerTree(servicesWithLegend)
-            };
+            // description.Legend = {
+            //     LayerId: -1,
+            //     LegendItemId: -1,
+            //     Children: getLayerTree(servicesWithLegend)
+            // };
 
             sGis.utils.ajax({
                 url: this._serverConnector.url + 'export/store/?_sb=' + this._serverConnector.sessionId,

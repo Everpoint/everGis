@@ -30,8 +30,7 @@ sGis.module('spatialProcessor.ClusterLayer', [
         }
 
         getFeatures(bbox, resolution) {
-            if (!this._display) return [];
-            if (this.resolutionLimits[0] >= 0 && resolution < this.resolutionLimits[0] || this.resolutionLimits[1] > 0 && resolution > this.resolutionLimits[1]) return [];
+            if (!this.checkVisibility(resolution)) return [];
 
             this._update(bbox, resolution);
 

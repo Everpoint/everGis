@@ -27,18 +27,9 @@ sGis.module('spatialProcessor.Api', [
         },
 
         getServiceCatalog: function(properties) {
-            this._operation('serviceCatalog/list', {
-                filter: sGis.utils.isString(properties.filter) ? properties.filter : undefined,
-                jsfilter: properties.filter instanceof Object ? properties.filter : undefined,
-                success: function(response) {
-                    try {
-                        var list = JSON.parse(response);
-                    } catch (e) {
-                        if (properties.error) properties.error(e);
-                    }
-                    if (properties.success) properties.success(list);
-                },
-                error: properties.error
+            return this._operation('serviceCatalog/list', {
+                filter: properties.filter,
+                jsfilter: properties.jsfilter
             });
         },
 
@@ -137,16 +128,27 @@ sGis.module('spatialProcessor.Api', [
         downloadFile: function(url) {
             this._frame.src = url;
         },
+        
+        operation: function(name, parameters, data) {
+            return this._operation(name, parameters, data);
+        },
 
         _operation: function(name, parameters, data, admin) {
-            sGis.utils.ajax({
-                url: this._getOperationUrl(name, parameters, admin),
-                type: data ? 'POST' : 'GET',
-                data: data,
-                success: parameters.success,
-                error: parameters.error,
-                contentType: admin ? 'application/json' : ''
-            });
+            return sGis.utils.ajaxp({
+                        url: this._getOperationUrl(name, parameters, admin),
+                        type: data ? 'POST' : 'GET',
+                        data: data,
+                        contentType: admin ? 'application/json' : ''
+                    }).then(([response]) => {
+                        try {
+                            var data = sGis.utils.parseJSON(response);
+                        } catch (e) {
+                            throw Error('cannot parse response')
+                        }
+
+                        if (data.Error) throw Error(JSON.stringify(data.Error));
+                        return data;
+                    });
         },
 
         _getOperationUrl: function(name, parameters, admin) {
@@ -165,7 +167,19 @@ sGis.module('spatialProcessor.Api', [
 
             textParam = textParam.substr(1);
 
-            return (admin ? this.adminUrl : this._url) + name + '?' + textParam + (this._connector.sessionId ? '&_sb=' + this._connector.sessionId : '');
+            if (this._connector.sessionId) {
+                if (textParam.length > 0) textParam += '&';
+                textParam += '_sb=' + this._connector.sessionId;
+            }
+
+            return (admin ? this.adminUrl : this._url) + name + '?' + textParam;
+        },
+
+        setDataFilter: function(serviceName, filterDescription) {
+            return this._operation('storage/meta/set', {
+                type: 'dataFilter',
+                serviceName: serviceName
+            }, filterDescription);
         },
 
         symbolize: function(options) {
@@ -223,25 +237,98 @@ sGis.module('spatialProcessor.Api', [
 
         publishLayer: function(description) {
             var props = {
-                AttributeDefinition: description.attributeDefinition,
                 Style: description.style,
-                Srid: description.srid,
-                EnableIntegration: description.enableIntegration,
-                IntegrationField: description.integrationField,
-                IntegrationFieldExt: description.integrationFieldExt,
                 Description: description.description,
-                GeometryTypeJson: description.geometryType,
                 Alias: description.alias,
                 Name: description.name,
                 IsShared: description.isShared,
-                Preview: description.preview
+                Preview: description.preview,
+                DataSourceServiceName: description.dataSourceServiceName,
+                CreateDataSource: true,
+
+                GeometryType: description.geometryType,
+                AttributesDefinition: description.attributeDefinition,
+                Srid: description.srid
             };
 
-            this._operation('PostGis/PublishData', {success: description.success, error: description.error}, JSON.stringify(props), true);
+            return this._operation('admin/Services/Create', {}, JSON.stringify(props));
         },
 
         deleteService: function(description) {
-            this._operation('PostGis/DeleteService', { success: description.success, error: description.error, serviceName: description.serviceName }, JSON.stringify({serviceName: description.serviceName}), true);
+            return this._operation('admin/Services/Delete', { success: description.success, error: description.error, serviceName: description.serviceName }, JSON.stringify([description.serviceName]));
+        },
+
+        deleteServices: function(description) {
+            return this._operation('admin/Services/Delete', {}, JSON.stringify(description.names));
+        },
+
+        /**
+         * @param {Object} options
+         * @param {String} options.serviceName - name of the service to update
+         * @param {String} [options.description] - new description of the service
+         * @param {String} [options.alias] - new alias of the service
+         * @param {Boolean} [options.isShared]
+         * @param {Object} [options.attributesDefinition]
+         * @returns {*}
+         */
+        changeDataSourceConfiguration: function(options) {
+            var props = {
+                Description: options.description,
+                Alias: options.alias,
+                IsShared: options.isShared,
+                AttributesDefinition: options.attributesDefinition
+            };
+
+            return this._operation('admin/Services/Update', { name: options.serviceName }, JSON.stringify(props));
+        },
+
+        /**
+         * @param {Object} options
+         * @param {String} options.serviceName - name of the service to update
+         * @param {String} [options.description] - new description of the service
+         * @param {String} [options.alias] - new alias of the service
+         * @param {Boolean} [options.isShared]
+         * @param {Object} [options.filter]
+         * @param {String} [options.preview]
+         * @param {String} [options.dataSourceServiceName]
+         * @param {String} [options.attributesDefinition]
+         * @returns {*}
+         */
+        changeDataViewConfiguration: function(options) {
+            var props = {
+                Description: options.description,
+                Alias: options.alias,
+                IsShared: options.isShared,
+                Filter: options.filter,
+                Preview: options.preview,
+                DataSourceServiceName: options.dataSourceServiceName,
+                AttributesDefinition: options.attributesDefinition
+            };
+
+            return this._operation('admin/Services/Update', { name: options.serviceName }, JSON.stringify(props));
+        },
+
+        getObjects ({serviceName, startIndex, count, getAttributes, getGeometry, srid, condition, orderBy}) {
+            const params = {
+                serviceName,
+                startIndex,
+                count,
+                getAttributes,
+                getGeometry,
+                srid,
+                condition,
+                orderBy
+            };
+
+            return this._operation('data/get', params);
+        },
+
+        getFunctionList: function({ targetServiceName }) {
+            return this._operation('functions/list', { targetServiceName });
+        },
+
+        validateExpression: function({ targetServiceName, expression, resultType }) {
+            return this._operation('functions/validateExpression', { targetServiceName, expression, resultType });
         }
     });
 

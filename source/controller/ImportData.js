@@ -1,6 +1,7 @@
 sGis.module('spatialProcessor.controller.ImportData', [
-    'spatialProcessor.Controller'
-], function(Controller) {
+    'spatialProcessor.Controller',
+    'spatialProcessor.ControllerManager'
+], function(Controller, ControllerMangager) {
     'use strict';
 
     var ImportData = function(connector, options) {
@@ -32,7 +33,7 @@ sGis.module('spatialProcessor.controller.ImportData', [
 
         import: function(properties) {
             this.__operation(function() {
-                var param = 'storageId=' + properties.storageId + '&attributeMapping=' + encodeURIComponent(JSON.stringify(properties.attributeMapping));
+                var param = 'serviceName=' + properties.serviceName + '&attributeMapping=' + encodeURIComponent(JSON.stringify(properties.attributeMapping));
                 if (properties.configuration) {
                     param += '&configuration=' + encodeURIComponent(JSON.stringify(properties.configuration));
                 }
@@ -57,6 +58,8 @@ sGis.module('spatialProcessor.controller.ImportData', [
             });
         }
     });
+
+    ControllerMangager.registerController('importData', ImportData);
 
     return ImportData;
 

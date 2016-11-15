@@ -4,13 +4,12 @@ sGis.module('spatialProcessor.MapServer', [
     'Crs',
     'Point',
     'TileLayer',
-    'ESRIDynamicLayer',
     'DynamicLayer',
     'Map',
-    'IEventHandler',
+    'EventHandler',
     'TileScheme',
     'spatialProcessor.ClusterLayer'
-], function(utils, proto, Crs, Point, TileLayer, ESRIDynamicLayer, DynamicLayer, Map, IEventHandler, TileScheme, ClusterLayer) {
+], function(utils, proto, Crs, Point, TileLayer, DynamicLayer, Map, EventHandler, TileScheme, ClusterLayer) {
     'use strict';
 
     var MapServer = function(name, serverConnector, options) {
@@ -174,7 +173,7 @@ sGis.module('spatialProcessor.MapServer', [
                 x: serviceInfo.tileInfo.origin.x,
                 y: serviceInfo.tileInfo.origin.y
             },
-            levels: {}
+            levels: []
         };
 
         var projection = sGis.CRS.wgs84.projectionTo(crs);
@@ -185,10 +184,11 @@ sGis.module('spatialProcessor.MapServer', [
         }
         for (var i = 0, len = serviceInfo.tileInfo.lods.length; i < len; i++) {
             var resolution = serviceInfo.tileInfo.lods[i].resolution;
-            scheme.levels[serviceInfo.tileInfo.lods[i].level] = {
+            scheme.levels[i] = {
                 resolution: resolution,
                 scale: serviceInfo.tileInfo.lods[i].scale,
-                indexCount: Math.round(fullWidth / resolution / scheme.tileWidth)
+                indexCount: Math.round(fullWidth / resolution / scheme.tileWidth),
+                zIndex: serviceInfo.tileInfo.lods[i].level
             };
         }
 
@@ -383,15 +383,15 @@ sGis.module('spatialProcessor.MapServer', [
                         if (bool) {
                             let index = -1;
                             if (this._layer) {
-                                index = this._map.getLayerIndex(this._layer);
+                                index = this._map.indexOf(this._layer);
                                 this._map.removeLayer(this._layer);
                             }
-                            this._map.moveLayerToIndex(this._clusterLayer, index);
+                            this._map.insertLayer(this._clusterLayer, index);
                         } else {
-                            let index = this._map.getLayerIndex(this._clusterLayer);
+                            let index = this._map.indexOf(this._clusterLayer);
                             this._map.removeLayer(this._clusterLayer);
                             if (this._layer) {
-                                this._map.moveLayerToIndex(this._layer, index);
+                                this._map.insertLayer(this._layer, index);
                             }
                         }
                     }
@@ -415,7 +415,7 @@ sGis.module('spatialProcessor.MapServer', [
         }
     });
 
-    sGis.utils.proto.setMethods(MapServer.prototype, sGis.IEventHandler);
+    sGis.utils.proto.setMethods(MapServer.prototype, sGis.EventHandler.prototype);
     
     return MapServer;
     

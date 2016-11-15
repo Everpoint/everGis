@@ -64,6 +64,23 @@ sGis.module('spatialProcessor.utils', [
         }
     };
 
+    sGis.utils.ajaxp = function(properties) {
+        return new Promise((resolve, reject) => {
+            var prop = {
+                success: (response, status) => { resolve([response, status, reject]); },
+                error: (response, status) => { reject([response, status, reject]); }
+            };
+            prop = Object.assign(prop, properties);
+            sGis.utils.ajax(prop);
+        });
+    };
+
+    sGis.utils.arrayMove = function (array, from, to) {
+        const newArray = array.slice();
+        newArray.splice((to < 0 ? newArray.length + to : to), 0, newArray.splice(from, 1)[0]);
+        return newArray;
+    };
+
     return {};
     
 });

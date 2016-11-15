@@ -1,8 +1,8 @@
 sGis.module('MapItem', [
     'utils',
     'utils.proto',
-    'IEventHandler'
-], function(utils, proto, IEventHandler) {
+    'EventHandler'
+], function(utils, proto, EventHandler) {
     'use strict';
 
     var MapItem = function(extention) {
@@ -163,13 +163,13 @@ sGis.module('MapItem', [
             if (childIndex === -1) sGis.utils.error('The folder does not contain requested child');
             for (var i = childIndex+1; i < this._children.length; i++) {
                 if (this._children[i].layer && this._children[i].layer.map && this._children[i].layer.layer) {
-                    return this._children[i].layer.map.getLayerIndex(this._children[i].layer.layer); //TODO: must be fixed
+                    return this._children[i].layer.map.indexOf(this._children[i].layer.layer); //TODO: must be fixed
                 }
             }
 
             for (var i = childIndex - 1; i >= 0; i--) {
                 if (this._children[i].layer && this._children[i].layer.layer && this._children[i].layer.map) {
-                    return this._children[i].layer.map.getLayerIndex(this._children[i].layer.layer) + 1;
+                    return this._children[i].layer.map.indexOf(this._children[i].layer.layer) + 1;
                 }
             }
 
@@ -205,7 +205,7 @@ sGis.module('MapItem', [
         }
     };
 
-    sGis.utils.proto.setMethods(MapItem.prototype, sGis.IEventHandler);
+    sGis.utils.proto.setMethods(MapItem.prototype, sGis.EventHandler.prototype);
 
     Object.defineProperties(MapItem.prototype, {
         id: {
@@ -322,12 +322,12 @@ sGis.module('MapItem', [
                 indexOnMap = childrenWithLayers[i].parent.getNewLayerIndex(childrenWithLayers[i]);
 
             if (indexOnMap === -1) {
-                map.moveLayerToIndex(layer, 0);
+                map.insertLayer(layer, 0);
             } else {
-                var currentIndex = map.getLayerIndex(layer);
+                var currentIndex = map.indexOf(layer);
                 if (currentIndex !== -1 && currentIndex < indexOnMap) indexOnMap--;
 
-                map.moveLayerToIndex(layer, indexOnMap);
+                map.insertLayer(layer, indexOnMap);
             }
         }
     }

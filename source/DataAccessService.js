@@ -23,6 +23,7 @@ sGis.module('spatialProcessor.DataAccessService', [
     DataAccessService.prototype = {
         __operation: sGis.spatialProcessor.Controller.prototype.__operation,
         query: sGis.spatialProcessor.Controller.prototype.query,
+        queryByGeometry: sGis.spatialProcessor.Controller.prototype.queryByGeometry,
         save: sGis.spatialProcessor.Controller.prototype.save,
         createObject: sGis.spatialProcessor.Controller.prototype.createObject,
         autoComplete: sGis.spatialProcessor.Controller.prototype.autoComplete,
@@ -93,7 +94,7 @@ sGis.module('spatialProcessor.DataAccessService', [
             this.__operation(function() {
                 return {
                     operation: 'selectScalarValue',
-                    dataParameters: 'storageId=' + properties.storageId + '&query=' + properties.query,
+                    dataParameters: 'serviceName=' + properties.serviceName + '&query=' + properties.query,
                     requested: properties.requested,
                     error: properties.error,
                     success: properties.success
@@ -125,20 +126,80 @@ sGis.module('spatialProcessor.DataAccessService', [
             });
         },
 
-        copy: function(properties) {
-            var dataParameters = 'id=' + properties.targetStorageId + '&sourceStorage=' + properties.sourceStorageId;
-            if (properties.items) dataParameters += '&items=' + encodeURIComponent(JSON.stringify(properties.items));
+        /**
+         * Copies objects from one service to another
+         * @param {String} sourceServiceName
+         * @param {String} targetServiceName
+         * @param {Number[]} [objectIds=null] - object ids to be copied. If not specified, all objects will be copied.
+         * @param {Function} requested
+         * @param {Function} success
+         * @param {Function} error
+         */
+        copy: function({ sourceServiceName, targetServiceName, objectIds = null, requested, success, error}) {
+            let dataParameters = {
+                sourceServiceName: sourceServiceName,
+                targetServiceName: targetServiceName,
+                objectIds: objectIds ? JSON.stringify(objectIds) : null
+            };
+
+            let paramString = Object.keys(dataParameters).filter(key => dataParameters[key]).map(key => `${key}=${dataParameters[key]}`).join('&');
 
             this.__operation(function() {
                 return {
                     operation: 'copy',
-                    dataParameters: dataParameters,
-                    requested: properties.requested,
-                    error: properties.error,
-                    success: properties.success
+                    dataParameters: paramString,
+                    requested: requested,
+                    error: error,
+                    success: success
                 };
             });
         },
+
+        /**
+         * Requests data aggregation
+         * @param {String} geometrySourceServiceName - name of data view service that contains source geometry. The objects of this service will be copied to the target service with aggregated attributes.
+         * @param {String} dataSourceServiceName - name of data view service that contains aggregation data.
+         * @param {String} targetServiceName - name of data view service where new features will be saved.
+         * @param {Object[]} aggregations - aggregation parameters given in format [{ targetAttributeName: 'min', aggregationQuery: 'min("gid")' }, ...]
+         * @param {Function} requested
+         * @param {Function} success
+         * @param {Function} error
+         */
+        aggregate: function({ geometrySourceServiceName, dataSourceServiceName, targetServiceName, aggregations, requested, success, error }) {
+            let dataParameters = {
+                geometrySourceServiceName: geometrySourceServiceName,
+                dataSourceServiceName: dataSourceServiceName,
+                targetServiceName: targetServiceName,
+                aggregations: JSON.stringify(aggregations)
+            };
+
+            let paramString = Object.keys(dataParameters).filter(key => dataParameters[key]).map(key => `${key}=${dataParameters[key]}`).join('&');
+
+            this.__operation(function() {
+                return {
+                    operation: 'aggregate',
+                    dataParameters: paramString,
+                    requested: requested,
+                    error: error,
+                    success: success
+                };
+            });
+        },
+
+        batchEdit: function({ serviceName, attribute, expression, condition, requested, success, error }) {
+            let dataParameters = { serviceName, attribute, expression: encodeURIComponent(expression), condition };
+            let paramString = Object.keys(dataParameters).filter(key => dataParameters[key]).map(key => `${key}=${dataParameters[key]}`).join('&');
+
+            this.__operation(function() {
+                return {
+                    operation: 'batchFuncEdit',
+                    dataParameters: paramString,
+                    requested: requested,
+                    error: error,
+                    success: success
+                };
+            });
+        }
     };
     
     return DataAccessService;
