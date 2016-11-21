@@ -263,6 +263,17 @@ sGis.module('spatialProcessor.Api', [
             });
         },
 
+        publishServiceGroup: function({name, alias, description, isShared, children, preview}) {
+            return this._publishService('LayerGroup', {
+                Name: name,
+                Alias: alias,
+                Description: description,
+                IsShared: isShared,
+                Preview: preview,
+                Children: children
+            });
+        },
+
         publishLayer: function({name, alias, description, isShared, preview, attributeDefinition, srid, geometryType}) {
             let dataSourceName = `${name}_source`;
             return this.publishDataSource({name: dataSourceName, isShared, srid, geometryType, attributeDefinition})
@@ -324,6 +335,16 @@ sGis.module('spatialProcessor.Api', [
             };
 
             return this._operation('admin/Services/Update', { name: options.serviceName }, JSON.stringify(props));
+        },
+
+        changeServiceGroupConfiguration: function({name, alias, description, isShared, children, preview}) {
+            return this._operation('admin/Services/Update', { name: name }, JSON.stringify({
+                Alias: alias,
+                Description: description,
+                IsShared: isShared,
+                Preview: preview,
+                Children: children
+            }));
         },
 
         getObjects ({serviceName, startIndex, count, getAttributes, getGeometry, srid, condition, orderBy}) {
