@@ -235,23 +235,41 @@ sGis.module('spatialProcessor.Api', [
             this._operation('storage/meta/set', {storageId: storageId, type: type}, JSON.stringify(description));
         },
 
-        publishLayer: function(description) {
-            var props = {
-                Style: description.style,
-                Description: description.description,
-                Alias: description.alias,
-                Name: description.name,
-                IsShared: description.isShared,
-                Preview: description.preview,
-                DataSourceServiceName: description.dataSourceServiceName,
-                CreateDataSource: true,
+        _publishService: function(type, params) {
+            return this._operation('admin/Services/Create', {serviceType: type}, JSON.stringify(params));
+        },
 
-                GeometryType: description.geometryType,
-                AttributesDefinition: description.attributeDefinition,
-                Srid: description.srid
-            };
+        publishDataView: function({name, alias, description, isShared, preview, dataSourceName, attributeDefinition}) {
+            return this._publishService('DataView', {
+                Name: name,
+                Alias: alias,
+                Description: description,
+                IsShared: isShared,
+                Preview: preview,
+                DataSourceName: dataSourceName,
+                AttributesDefinition: attributeDefinition
+            });
+        },
 
-            return this._operation('admin/Services/Create', {}, JSON.stringify(props));
+        publishDataSource: function({name, alias, description, isShared, srid, geometryType, attributeDefinition}) {
+            return this._publishService('DataSourceService', {
+                Name: name,
+                Alias: alias,
+                Description: description,
+                IsShared: isShared,
+                AttributesDefinition: attributeDefinition,
+                Srid: srid,
+                GeometryType: geometryType
+            });
+        },
+
+        publishLayer: function({name, alias, description, isShared, preview, attributeDefinition, srid, geometryType}) {
+            let dataSourceName = `${name}_source`;
+            return this.publishDataSource({name: dataSourceName, isShared, srid, geometryType, attributeDefinition})
+                .then((response) => {
+                    if (!response || !response.Success) throw new Error("Failed to publish service " + name);
+                    return this.publishDataView({name, alias, description, isShared, preview, dataSourceName, attributeDefinition});
+                });
         },
 
         deleteService: function(description) {
