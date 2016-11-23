@@ -6,10 +6,11 @@ sGis.module('spatialProcessor.LayerManager', [
     'EventHandler',
     'spatialProcessor.OrderManager',
     'spatialProcessor.MapService',
+    'spatialProcessor.ServiceGroup',
     'spatialProcessor.mapService.TileService',
     'LayerGroup',
     'spatialProcessor.Project'
-], function (utils, EventHandler, OrderManager, MapService, TileService, LayerGroup, Project) {
+], function (utils, EventHandler, OrderManager, MapService, ServiceGroup, TileService, LayerGroup, Project) {
 
     let ns = '.layerManager';
 
@@ -79,24 +80,54 @@ sGis.module('spatialProcessor.LayerManager', [
             });
         }
 
-        loadService (name) {
-            const realIndex = this._layers.getIndex(name);
-            return MapService.initialize(this._connector, name)
-                .then(service => {
-                    if (service instanceof TileService && !this._map.tileScheme){
-                        this._map.crs = service.layer.crs;
-                        this._map.tileScheme = service.layer.tileScheme;
-                        this._map.adjustResolution();
-                    }
-                    if (service.layer) {
-                        this.addService(service, realIndex);
-                    }
+        /**
+         * loadService
+         * @param {String} name
+         * @param {String} type "DataView" || "LayerGroup"
+         * @return {Promise.<TResult>}
+         */
+        loadService (name, type) {
+            if (!type) return;
 
-                    return service;
-                })
-                .catch(message => {
-                    utils.error(message);
-                });
+            this._layers.getIndex(name);
+
+            if (type === 'DataView') {
+                return MapService.initialize(this._connector, name)
+                    .then(this.loadDataView.bind(this))
+                    .catch(message => {
+                        utils.error(message);
+                    });
+            } else if (type === 'LayerGroup') {
+                return ServiceGroup.initialize(this._connector, name)
+                    .then(this.loadServiceGroup.bind(this))
+                    .catch(message => {
+                        utils.error(message);
+                    });
+            }
+        }
+
+        loadDataView (service) {
+            if (service instanceof TileService && !this._map.tileScheme){
+                this._map.crs = service.layer.crs;
+                this._map.tileScheme = service.layer.tileScheme;
+                this._map.adjustResolution();
+            }
+            if (service.layer) {
+                const realIndex = this._layers.getIndex(service.name);
+                this.addService(service, realIndex);
+            }
+
+            return service;
+        }
+
+        loadServiceGroup ({childrenNames}) {
+            const layerGroup = new LayerGroup();
+
+            for(let name of childrenNames) {
+                console.info(name)
+            }
+
+            //return service;
         }
 
         loadBasemap (name) {
