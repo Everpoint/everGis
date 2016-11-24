@@ -3,8 +3,6 @@
  */
 sGis.module('spatialProcessor.OrderManager', [], function () {
 
-    const BasemapSymbol = Symbol("Basemap");
-
     /**
      * Class for managing order of async loaded objects array
      * @alias sGis.spatialProcessor.OrderManager
