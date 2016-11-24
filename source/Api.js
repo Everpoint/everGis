@@ -236,6 +236,9 @@ sGis.module('spatialProcessor.Api', [
         },
 
         _publishService: function(type, params) {
+            if (!params.Name) throw new Error("Name is not set");
+            if (params.Name.length > 63) throw new Error("Name is not long. It cannot be longer then 63 symbols.");
+
             return this._operation('admin/Services/Create', {serviceType: type}, JSON.stringify(params));
         },
 
@@ -276,6 +279,8 @@ sGis.module('spatialProcessor.Api', [
 
         publishLayer: function({name, alias, description, isShared, preview, attributeDefinition, srid, geometryType}) {
             let dataSourceName = `${name}_source`;
+            if (dataSourceName.length > 63) dataSourceName = dataSourceName.substr(dataSourceName.length - 62);
+
             return this.publishDataSource({name: dataSourceName, isShared, srid, geometryType, attributeDefinition})
                 .then((response) => {
                     if (!response || !response.Success) throw new Error("Failed to publish service " + name);
