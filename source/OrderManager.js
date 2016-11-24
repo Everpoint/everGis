@@ -3,8 +3,6 @@
  */
 sGis.module('spatialProcessor.OrderManager', [], function () {
 
-    const BasemapSymbol = Symbol("Basemap");
-
     /**
      * Class for managing order of async loaded objects array
      * @alias sGis.spatialProcessor.OrderManager
@@ -42,7 +40,7 @@ sGis.module('spatialProcessor.OrderManager', [], function () {
          */
         getIndex(id) {
             const index = this._ids.indexOf(id);
-            return index > 0 ? index : (this._ids.push(id) - 1)
+            return index < 0 ? (this._ids.push(id) - 1) : index;
         }
 
         /**
