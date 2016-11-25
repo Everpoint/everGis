@@ -91,19 +91,19 @@ sGis.module('spatialProcessor.LayerManager', [
 
             this._layers.getIndex(name);
 
-            if (type === 'DataView') {
+            //if (type === 'DataView') {
                 return MapService.initialize(this._connector, name)
                     .then(this.loadDataView.bind(this))
                     .catch(message => {
                         utils.error(message);
                     });
-            } else if (type === 'LayerGroup') {
-                return ServiceGroup.initialize(this._connector, name)
-                    .then(this.loadServiceGroup.bind(this))
-                    .catch(message => {
-                        utils.error(message);
-                    });
-            }
+            // } else if (type === 'LayerGroup') {
+            //     return ServiceGroup.initialize(this._connector, name)
+            //         .then(this.loadServiceGroup.bind(this))
+            //         .catch(message => {
+            //             utils.error(message);
+            //         });
+            // }
         }
 
         loadDataView (service) {
