@@ -10,10 +10,9 @@ sGis.module('spatialProcessor.MapService', [
     let submodules = {};
     
     class MapService extends EventHandler {
-        constructor(connector, name, serviceInfo) {
+        constructor(connector, serviceInfo) {
             super();
             this._connector = connector;
-            this._name = name;
             this._meta = {};
             this.serviceInfo = serviceInfo;
         }
@@ -69,6 +68,7 @@ sGis.module('spatialProcessor.MapService', [
         get serviceInfo() { return this._serviceInfo; }
         set serviceInfo(val) {
             this._crs = MapService.parseCrs(val.spatialReference);
+            this._name = val.name;
             this._serviceInfo = val;
         }
         
