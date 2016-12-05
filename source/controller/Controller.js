@@ -5,13 +5,12 @@ sGis.module('spatialProcessor.Controller', [
     'feature.Polyline',
     'feature.Polygon',
     'spatialProcessor.parseXML',
-    'utils.proto',
     'EventHandler',
     'symbol.point.Point',
     'symbol.polyline.Simple',
     'symbol.polygon.Simple',
     'spatialProcessor.MapService'
-], function(utils, spUtils, Point, Polyline, Polygon, parseXML, proto, EventHandler, pointSymbols, polylineSymbols, polygonSymbols, MapService) {
+], function(utils, spUtils, Point, Polyline, Polygon, parseXML, EventHandler, pointSymbols, polylineSymbols, polygonSymbols, MapService) {
     'use strict';
 
     class Controller extends EventHandler {
