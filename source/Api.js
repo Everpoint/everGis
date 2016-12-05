@@ -29,7 +29,8 @@ sGis.module('spatialProcessor.Api', [
         getServiceCatalog: function(properties) {
             return this._operation('serviceCatalog/list', {
                 filter: properties.filter,
-                jsfilter: properties.jsfilter
+                jsfilter: properties.jsfilter,
+                serviceTypes: ['DataView', 'LayerGroup']
             });
         },
 
