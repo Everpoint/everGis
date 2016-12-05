@@ -212,6 +212,7 @@ sGis.module('spatialProcessor.LayerManager', [
                 .then(([response]) => {
                     try {
                         const serviceInfo = utils.parseJSON(response);
+                        serviceInfo.name = name;
 
                         if (serviceInfo.error) throw new Error();
 
@@ -256,7 +257,7 @@ sGis.module('spatialProcessor.LayerManager', [
 
         static _createServiceGroup (name, connector, serviceInfo) {
             return new ServiceGroup(name, serviceInfo, serviceInfo.map(info=> {
-                return LayerManager.createService(name, connector, info)
+                return LayerManager.createService(info.name, connector, info)
             }));
         }
     }

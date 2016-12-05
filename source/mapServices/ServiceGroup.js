@@ -10,6 +10,7 @@ sGis.module('spatialProcessor.mapService.ServiceGroup', [
             this._name = name;
             this._services = services;
             this._serviceInfo = serviceInfo;
+            this._isDisplayed = true;
             this._layer = new LayerGroup(services.map(service=>ServiceGroup.createLayers(service)));
         }
 
@@ -17,6 +18,15 @@ sGis.module('spatialProcessor.mapService.ServiceGroup', [
         get layer() { return this._layer; }
         get children() { return this._services; }
         get serviceInfo() { return this._serviceInfo; }
+
+        get isDisplayed() { return this._isDisplayed; }
+        set isDisplayed(bool) {
+            if (this._isDisplayed !== bool) {
+                this._isDisplayed = bool;
+                if (this.layer) this.layer.isDisplayed = bool;
+                this.fire('visibilityChange');
+            }
+        }
 
         static createLayers (service) {
             if(Array.isArray(service)) {
