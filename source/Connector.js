@@ -1,9 +1,8 @@
 sGis.module('spatialProcessor.Connector', [
     'utils',
-    'utils.proto',
     'EventHandler',
     'spatialProcessor.Api'
-], function(utils, proto, EventHandler, Api) {
+], function(utils, EventHandler, Api) {
     'use strict';
 
     class Connector extends EventHandler {
