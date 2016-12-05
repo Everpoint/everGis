@@ -94,39 +94,14 @@ sGis.module('spatialProcessor.LayerManager', [
          */
         loadService (name) {
             this._layers.getIndex(name);
-            return LayerManager.getServiceInfo(this._connector, name)
-                .then(serviceInfo => this.createService(name, serviceInfo))
+            return LayerManager.getServiceInfo(name, this._connector)
+                .then(serviceInfo => LayerManager.createService(name, this._connector, serviceInfo))
                 .then(service => this.addService(service))
         }
 
-        createService (name, serviceInfo) {
-            if (Array.isArray(serviceInfo)) {
-                return this.createServiceGroup(name, serviceInfo);
-            } else {
-                return this.createDataView(serviceInfo);
-            }
-        }
-
-        createDataView (serviceInfo) {
-            let service;
-            if (serviceInfo.capabilities && serviceInfo.capabilities.indexOf('tile') >= 0) {
-                service = new TileService(this._connector, serviceInfo);
-            } else {
-                service = new DataViewService(this._connector, serviceInfo);
-            }
-
-            return service;
-        }
-
-        createServiceGroup (name, serviceInfo) {
-            return new ServiceGroup(name, serviceInfo.map(info=> {
-                return this.createService(name, info)
-            }));
-        }
-
         loadBasemap (name) {
-            return LayerManager.getServiceInfo(this._connector, name)
-                .then((serviceInfo)=>this.createService(name, serviceInfo))
+            return LayerManager.getServiceInfo(name, this._connector)
+                .then((serviceInfo)=>LayerManager.createService(name, this._connector, serviceInfo))
                 .catch(message => {
                     utils.error(message);
                 });
@@ -227,11 +202,11 @@ sGis.module('spatialProcessor.LayerManager', [
 
         /**
          * getServiceInfo
-         * @param {Object} connector
          * @param {String} name
+         * @param {Object} connector
          * @return {Promise.<Object>}
          */
-        static getServiceInfo (connector, name) {
+        static getServiceInfo (name, connector) {
             const url = connector.url + name + '/?_sb=' + connector.sessionId;
             return utils.ajaxp({url})
                 .then(([response]) => {
@@ -242,7 +217,7 @@ sGis.module('spatialProcessor.LayerManager', [
 
                         if (serviceInfo.serviceType === 'LayerGroup') {
                             return Promise.all(serviceInfo.contents.map(name =>
-                                LayerManager.getServiceInfo(connector, name))
+                                LayerManager.getServiceInfo(name, connector))
                             )
                         }
 
@@ -251,6 +226,38 @@ sGis.module('spatialProcessor.LayerManager', [
                         throw new Error('Failed to initialize service ' + name);
                     }
                 });
+        }
+
+        /**
+         * Create MapService
+         * @param {String} name
+         * @param {Object} connector
+         * @param {Object} serviceInfo
+         * @return {Object} MapService
+         */
+        static createService (name, connector, serviceInfo) {
+            if (Array.isArray(serviceInfo)) {
+                return LayerManager._createServiceGroup(name, connector, serviceInfo);
+            } else {
+                return LayerManager._createDataView(name, connector, serviceInfo);
+            }
+        }
+
+        static _createDataView (name, connector, serviceInfo) {
+            let service;
+            if (serviceInfo.capabilities && serviceInfo.capabilities.indexOf('tile') >= 0) {
+                service = new TileService(name, connector, serviceInfo);
+            } else {
+                service = new DataViewService(name, connector, serviceInfo);
+            }
+
+            return service;
+        }
+
+        static _createServiceGroup (name, connector, serviceInfo) {
+            return new ServiceGroup(name, serviceInfo, serviceInfo.map(info=> {
+                return LayerManager.createService(name, connector, info)
+            }));
         }
     }
 

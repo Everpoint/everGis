@@ -10,8 +10,9 @@ sGis.module('spatialProcessor.Controller', [
     'symbol.point.Point',
     'symbol.polyline.Simple',
     'symbol.polygon.Simple',
-    'spatialProcessor.MapService'
-], function(utils, spUtils, Point, Polyline, Polygon, parseXML, proto, EventHandler, pointSymbols, polylineSymbols, polygonSymbols, MapService) {
+    'spatialProcessor.MapService',
+    'spatialProcessor.LayerManager'
+], function(utils, spUtils, Point, Polyline, Polygon, parseXML, proto, EventHandler, pointSymbols, polylineSymbols, polygonSymbols, MapService, LayerManager) {
     'use strict';
 
     class Controller extends EventHandler {
@@ -81,8 +82,9 @@ sGis.module('spatialProcessor.Controller', [
                         self._id = response.ServiceId;
                         if (response.DataViewServiceName) {
                             self._layerName = response.DataViewServiceName;
-                            self._service = MapService.initialize(self._spatialProcessor, self._layerName)
-                                .then(service => {
+                            self._service = LayerManager.getServiceInfo(self._layerName, self._spatialProcessor)
+                                .then(serviceInfo => {
+                                    const service = LayerManager.createService(self._layerName, self._spatialProcessor, serviceInfo);
                                     if (self._map) self._map.addLayer(service.layer);
                                 });
                         }
