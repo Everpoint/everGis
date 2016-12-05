@@ -75,8 +75,8 @@ sGis.module('SpatialProcessor', [
         if (resolution) map.resolution = resolution;
     });
 
-    SpatialProcessor.version = "0.2.0";
-    SpatialProcessor.releaseDate = "15.11.2016";
+    SpatialProcessor.version = "0.2.1";
+    SpatialProcessor.releaseDate = "05.12.2016";
     
     // var SpatialProcessor = function(options) {
     //     this._rootMapItem = new sGis.mapItem.Folder();
