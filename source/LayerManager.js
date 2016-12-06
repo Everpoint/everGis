@@ -95,13 +95,13 @@ sGis.module('spatialProcessor.LayerManager', [
         loadService (name) {
             this._layers.getIndex(name);
             return LayerManager.getServiceInfo(name, this._connector)
-                .then(serviceInfo => LayerManager.createService(name, this._connector, serviceInfo))
+                .then(serviceInfo => LayerManager.createService(serviceInfo, this._connector))
                 .then(service => this.addService(service))
         }
 
         loadBasemap (name) {
             return LayerManager.getServiceInfo(name, this._connector)
-                .then((serviceInfo)=>LayerManager.createService(name, this._connector, serviceInfo))
+                .then((serviceInfo)=>LayerManager.createService(serviceInfo, this._connector))
                 .catch(message => {
                     utils.error(message);
                 });
@@ -217,9 +217,12 @@ sGis.module('spatialProcessor.LayerManager', [
                         if (serviceInfo.error) throw new Error();
 
                         if (serviceInfo.serviceType === 'LayerGroup') {
-                            return Promise.all(serviceInfo.contents.map(name =>
-                                LayerManager.getServiceInfo(name, connector))
-                            )
+                            return Promise
+                                .all(serviceInfo.contents.map(name =>LayerManager.getServiceInfo(name, connector)))
+                                .then(info=>{
+                                    serviceInfo.contents = info;
+                                    return serviceInfo;
+                                })
                         }
 
                         return serviceInfo;
@@ -231,33 +234,32 @@ sGis.module('spatialProcessor.LayerManager', [
 
         /**
          * Create MapService
-         * @param {String} name
-         * @param {Object} connector
          * @param {Object} serviceInfo
+         * @param {Object} connector
          * @return {Object} MapService
          */
-        static createService (name, connector, serviceInfo) {
-            if (Array.isArray(serviceInfo)) {
-                return LayerManager._createServiceGroup(name, connector, serviceInfo);
+        static createService (serviceInfo, connector) {
+            if (serviceInfo.contents) {
+                return LayerManager._createServiceGroup(serviceInfo, connector);
             } else {
-                return LayerManager._createDataView(name, connector, serviceInfo);
+                return LayerManager._createDataView(serviceInfo, connector);
             }
         }
 
-        static _createDataView (name, connector, serviceInfo) {
+        static _createDataView (serviceInfo, connector) {
             let service;
             if (serviceInfo.capabilities && serviceInfo.capabilities.indexOf('tile') >= 0) {
-                service = new TileService(name, connector, serviceInfo);
+                service = new TileService(serviceInfo.name, connector, serviceInfo);
             } else {
-                service = new DataViewService(name, connector, serviceInfo);
+                service = new DataViewService(serviceInfo.name, connector, serviceInfo);
             }
 
             return service;
         }
 
-        static _createServiceGroup (name, connector, serviceInfo) {
-            return new ServiceGroup(name, serviceInfo, serviceInfo.map(info=> {
-                return LayerManager.createService(info.name, connector, info)
+        static _createServiceGroup (serviceInfo, connector) {
+            return new ServiceGroup(serviceInfo.name, serviceInfo, serviceInfo.contents.map(child=> {
+                return LayerManager.createService(child, connector)
             }));
         }
     }
