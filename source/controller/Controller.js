@@ -80,13 +80,14 @@ sGis.module('spatialProcessor.Controller', [
                         self._id = response.ServiceId;
                         if (response.DataViewServiceName) {
                             self._layerName = response.DataViewServiceName;
-                            self._service = MapService.initialize(self._spatialProcessor, self._layerName)
+                            var servicePromise = MapService.initialize(self._spatialProcessor, self._layerName)
                                 .then(service => {
                                     if (self._map) self._map.addLayer(service.layer);
+                                    self._service = service;
                                 });
                         }
 
-                        if (callback) callback.call(self);
+                        if (callback) callback.call(self, servicePromise);
                         for (var i in self._operationQueue) {
                             self.__operation(self._operationQueue[i]);
                         }
