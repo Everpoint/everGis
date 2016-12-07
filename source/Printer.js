@@ -1,8 +1,6 @@
 sGis.module('spatialProcessor.Printer', [
-    'utils',
-    'mapItem.MapServer',
-    'mapItem.DynamicServiceLayer'
-], function(utils, MapServer, DynamicServiceLayer) {
+    'utils'
+], function(utils) {
     'use strict';
 
     var defaults = {

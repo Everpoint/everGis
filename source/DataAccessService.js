@@ -199,6 +199,21 @@ sGis.module('spatialProcessor.DataAccessService', [
                     success: success
                 };
             });
+        },
+
+        geocode: function({ query, crs, providers, requested, error, success }) {
+            let dataParameters = { query: encodeURIComponent(query), sr: crs.stringDescription, providers: providers && JSON.stringify(providers) };
+            let paramString = Object.keys(dataParameters).filter(key => dataParameters[key]).map(key => `${key}=${dataParameters[key]}`).join('&');
+
+            this.__operation(function() {
+                return {
+                    operation: 'geocode',
+                    dataParameters: paramString,
+                    requested: requested,
+                    error: error,
+                    success: success
+                };
+            });
         }
     };
     

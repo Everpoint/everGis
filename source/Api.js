@@ -1,41 +1,39 @@
 sGis.module('spatialProcessor.Api', [
     'utils',
-    'utils.proto'
-], function(utils, proto) {
+], function(utils) {
+
     'use strict';
 
-    var Api = function(connector, adminUrl) {
-        this._connector = connector;
-        this._url = connector.url + 'api/';
-        this.adminUrl = adminUrl || connector.url + 'Admin/';
+    class Api {
+        constructor(connector, adminUrl) {
+            this._connector = connector;
+            this._url = connector.url + 'api/';
+            this.adminUrl = adminUrl || connector.url + 'Admin/';
 
-        this._frame = document.createElement('iframe');
-        this._frame.style.display = 'none';
-        this._frame.id = 'sGis-downloadFrame';
-        document.body.appendChild(this._frame);
-    };
+            this._frame = document.createElement('iframe');
+            this._frame.style.display = 'none';
+            this._frame.id = 'sGis-downloadFrame';
+            document.body.appendChild(this._frame);
+        }
 
-    sGis.utils.proto.setProperties(Api.prototype, {
-        adminUrl: null,
-        url: {default: null}
-    });
+        get url() { return this._url; }
 
-    sGis.utils.proto.setMethods(Api.prototype, {
-        downloadBinary: function(id, name) {
+        downloadBinary(id, name) {
             name = name || 'sp_binary_file';
             this.downloadFile(this._getOperationUrl('page/getBinary/' + name, {id: id}));
-        },
+        }
 
-        getServiceCatalog: function(properties) {
+        getServiceCatalog(properties) {
             return this._operation('serviceCatalog/list', {
                 filter: properties.filter,
-                jsfilter: properties.jsfilter
+                jsfilter: properties.jsfilter,
+                serviceTypes: ['DataView', 'LayerGroup']
             });
-        },
+        }
 
-        getEfsFileUrl: function(path) {
+        getEfsFileUrl(path) {
             return this._getOperationUrl('efs/file', {path: path});
-        },
+        }
 
         /**
          *
@@ -45,11 +43,11 @@ sGis.module('spatialProcessor.Api', [
          * @param {Function} [options.success]
          * @param {Function} [options.error]
          */
-        getEfsFile: function(options) {
+        getEfsFile(options) {
             this._operation('efs/file', {path: options.path, media_type: options.type, success: options.success, error: options.error});
-        },
+        }
 
-        getJsonFile: function(options) {
+        getJsonFile(options) {
             this.getEfsFile({path: options.path, type: 'Json', success: successHandler, error: options.error});
 
             function successHandler(response) {
@@ -60,13 +58,13 @@ sGis.module('spatialProcessor.Api', [
                     if (options.error) options.error(e);
                 }
             }
-        },
+        }
 
-        getTextFile: function(options) {
+        getTextFile(options) {
             this.getEfsFile({path: options.path, type: 'Text', success: options.success, error: options.error});
-        },
+        }
 
-        getEfsObjects: function(options) {
+        getEfsObjects(options) {
             this._operation('efs/objects', {path: options.path, success: successHandler, error: options.error});
 
             function successHandler(response) {
@@ -82,9 +80,9 @@ sGis.module('spatialProcessor.Api', [
                     if (options.error) options.error(data);
                 }
             }
-        },
+        }
 
-        getEfsFiles: function(options) {
+        getEfsFiles(options) {
             var pathList = {Items: options.paths};
             var string = JSON.stringify(pathList);
 
@@ -103,9 +101,9 @@ sGis.module('spatialProcessor.Api', [
                     if (options.success) options.success(data);
                 }
             }
-        },
+        }
 
-        getUserSettings: function(options) {
+        getUserSettings(options) {
             this._operation('workspace/settings/load', {
                 success:function(data) {
                     if (options.success) {
@@ -118,22 +116,22 @@ sGis.module('spatialProcessor.Api', [
                     }
                 }
             });
-        },
+        }
 
-        saveUserSettings: function(settings, options) {
+        saveUserSettings(settings, options) {
             var data = JSON.stringify(settings);
             this._operation('workspace/settings/save', options, data);
-        },
+        }
 
-        downloadFile: function(url) {
+        downloadFile(url) {
             this._frame.src = url;
-        },
+        }
         
-        operation: function(name, parameters, data) {
+        operation(name, parameters, data) {
             return this._operation(name, parameters, data);
-        },
+        }
 
-        _operation: function(name, parameters, data, admin) {
+        _operation(name, parameters, data, admin) {
             return sGis.utils.ajaxp({
                         url: this._getOperationUrl(name, parameters, admin),
                         type: data ? 'POST' : 'GET',
@@ -149,9 +147,9 @@ sGis.module('spatialProcessor.Api', [
                         if (data.Error) throw Error(JSON.stringify(data.Error));
                         return data;
                     });
-        },
+        }
 
-        _getOperationUrl: function(name, parameters, admin) {
+        _getOperationUrl(name, parameters, admin) {
             var textParam = '';
             var keys = Object.keys(parameters);
             for (var i = 0; i < keys.length; i++) {
@@ -173,16 +171,16 @@ sGis.module('spatialProcessor.Api', [
             }
 
             return (admin ? this.adminUrl : this._url) + name + '?' + textParam;
-        },
+        }
 
-        setDataFilter: function(serviceName, filterDescription) {
+        setDataFilter(serviceName, filterDescription) {
             return this._operation('storage/meta/set', {
                 type: 'dataFilter',
                 serviceName: serviceName
             }, filterDescription);
-        },
+        }
 
-        symbolize: function(options) {
+        symbolize(options) {
             this._operation('storage/meta/set', {
                 storageId: options.storageId,
                 type: options.type,
@@ -203,9 +201,9 @@ sGis.module('spatialProcessor.Api', [
                     if (options.success) options.success(data);
                 }
             }
-        },
+        }
 
-        getJsonLog: function(options) {
+        getJsonLog(options) {
             this._operation('logger/json', {
                 logLevel: 3,
                 success: successHandler,
@@ -225,21 +223,24 @@ sGis.module('spatialProcessor.Api', [
                     if (options.success) options.success(data);
                 }
             }
-        },
+        }
 
-        setStorageLabels: function(storageId, description) {
+        setStorageLabels(storageId, description) {
             this.setStorageMeta('labeling', storageId, description);
-        },
+        }
 
-        setStorageMeta: function(type, storageId, description) {
+        setStorageMeta(type, storageId, description) {
             this._operation('storage/meta/set', {storageId: storageId, type: type}, JSON.stringify(description));
-        },
+        }
 
-        _publishService: function(type, params) {
+        _publishService(type, params) {
+            if (!params.Name) throw new Error("Name is not set");
+            if (params.Name.length > 63) throw new Error("Name is not long. It cannot be longer then 63 symbols.");
+
             return this._operation('admin/Services/Create', {serviceType: type}, JSON.stringify(params));
-        },
+        }
 
-        publishDataView: function({name, alias, description, isShared, preview, dataSourceName, attributeDefinition}) {
+        publishDataView({name, alias, description, isShared, preview, dataSourceName, attributeDefinition}) {
             return this._publishService('DataView', {
                 Name: name,
                 Alias: alias,
@@ -249,9 +250,9 @@ sGis.module('spatialProcessor.Api', [
                 DataSourceName: dataSourceName,
                 AttributesDefinition: attributeDefinition
             });
-        },
+        }
 
-        publishDataSource: function({name, alias, description, isShared, srid, geometryType, attributeDefinition}) {
+        publishDataSource({name, alias, description, isShared, srid, geometryType, attributeDefinition}) {
             return this._publishService('DataSourceService', {
                 Name: name,
                 Alias: alias,
@@ -261,9 +262,9 @@ sGis.module('spatialProcessor.Api', [
                 Srid: srid,
                 GeometryType: geometryType
             });
-        },
+        }
 
-        publishServiceGroup: function({name, alias, description, isShared, children, preview}) {
+        publishServiceGroup({name, alias, description, isShared, children, preview}) {
             return this._publishService('LayerGroup', {
                 Name: name,
                 Alias: alias,
@@ -272,24 +273,26 @@ sGis.module('spatialProcessor.Api', [
                 Preview: preview,
                 Children: children
             });
-        },
+        }
 
-        publishLayer: function({name, alias, description, isShared, preview, attributeDefinition, srid, geometryType}) {
+        publishLayer({name, alias, description, isShared, preview, attributeDefinition, srid, geometryType}) {
             let dataSourceName = `${name}_source`;
+            if (dataSourceName.length > 63) dataSourceName = dataSourceName.substr(dataSourceName.length - 62);
+
             return this.publishDataSource({name: dataSourceName, isShared, srid, geometryType, attributeDefinition})
                 .then((response) => {
                     if (!response || !response.Success) throw new Error("Failed to publish service " + name);
                     return this.publishDataView({name, alias, description, isShared, preview, dataSourceName, attributeDefinition});
                 });
-        },
+        }
 
-        deleteService: function(description) {
+        deleteService(description) {
             return this._operation('admin/Services/Delete', { success: description.success, error: description.error, serviceName: description.serviceName }, JSON.stringify([description.serviceName]));
-        },
+        }
 
-        deleteServices: function(description) {
+        deleteServices(description) {
             return this._operation('admin/Services/Delete', {}, JSON.stringify(description.names));
-        },
+        }
 
         /**
          * @param {Object} options
@@ -300,7 +303,7 @@ sGis.module('spatialProcessor.Api', [
          * @param {Object} [options.attributesDefinition]
          * @returns {*}
          */
-        changeDataSourceConfiguration: function(options) {
+        changeDataSourceConfiguration(options) {
             var props = {
                 Description: options.description,
                 Alias: options.alias,
@@ -309,7 +312,7 @@ sGis.module('spatialProcessor.Api', [
             };
 
             return this._operation('admin/Services/Update', { name: options.serviceName }, JSON.stringify(props));
-        },
+        }
 
         /**
          * @param {Object} options
@@ -323,7 +326,7 @@ sGis.module('spatialProcessor.Api', [
          * @param {String} [options.attributesDefinition]
          * @returns {*}
          */
-        changeDataViewConfiguration: function(options) {
+        changeDataViewConfiguration(options) {
             var props = {
                 Description: options.description,
                 Alias: options.alias,
@@ -335,9 +338,9 @@ sGis.module('spatialProcessor.Api', [
             };
 
             return this._operation('admin/Services/Update', { name: options.serviceName }, JSON.stringify(props));
-        },
+        }
 
-        changeServiceGroupConfiguration: function({name, alias, description, isShared, children, preview}) {
+        changeServiceGroupConfiguration({name, alias, description, isShared, children, preview}) {
             return this._operation('admin/Services/Update', { name: name }, JSON.stringify({
                 Alias: alias,
                 Description: description,
@@ -345,9 +348,9 @@ sGis.module('spatialProcessor.Api', [
                 Preview: preview,
                 Children: children
             }));
-        },
+        }
 
-        getObjects ({serviceName, startIndex, count, getAttributes, getGeometry, srid, condition, orderBy}) {
+        getObjects({serviceName, startIndex, count, getAttributes, getGeometry, srid, condition, orderBy}) {
             const params = {
                 serviceName,
                 startIndex,
@@ -360,16 +363,16 @@ sGis.module('spatialProcessor.Api', [
             };
 
             return this._operation('data/get', params);
-        },
+        }
 
-        getFunctionList: function({ targetServiceName }) {
+        getFunctionList({ targetServiceName }) {
             return this._operation('functions/list', { targetServiceName });
-        },
+        }
 
-        validateExpression: function({ targetServiceName, expression, resultType }) {
+        validateExpression({ targetServiceName, expression, resultType }) {
             return this._operation('functions/validateExpression', { targetServiceName, expression, resultType });
         }
-    });
+    }
 
     return Api;
 

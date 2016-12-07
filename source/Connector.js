@@ -1,10 +1,8 @@
 sGis.module('spatialProcessor.Connector', [
     'utils',
-    'utils.proto',
     'EventHandler',
-    'spatialProcessor.Api',
-    'MapItem'
-], function(utils, proto, EventHandler, Api, MapItem) {
+    'spatialProcessor.Api'
+], function(utils, EventHandler, Api) {
     'use strict';
 
     class Connector extends EventHandler {
@@ -59,17 +57,10 @@ sGis.module('spatialProcessor.Connector', [
                         if (data === '') {
                             sGis.utils.message('Could not get session ID');
                         } else {
-                            var id = JSON.parse(data);
+                            var response = JSON.parse(data);
 
-                            if (sGis.utils.isString(id)) {
-                                try {
-                                    let error = JSON.parse(id);
-                                    if (error) return sGis.utils.message('Could not get session ID');
-                                } catch(e) {
-
-                                }
-
-                                initialize(id);
+                            if (response.Success && response.Message) {
+                                initialize(response.Message);
 
                                 self.fire('sessionInitialized');
                             } else {

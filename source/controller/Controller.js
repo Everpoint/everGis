@@ -5,7 +5,6 @@ sGis.module('spatialProcessor.Controller', [
     'feature.Polyline',
     'feature.Polygon',
     'spatialProcessor.parseXML',
-    'utils.proto',
     'EventHandler',
     'symbol.point.Point',
     'symbol.polyline.Simple',

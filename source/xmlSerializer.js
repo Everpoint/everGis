@@ -312,6 +312,7 @@ sGis.module('spatialProcessor.parseXML', [
      */
 
     if (!sGis.spatialProcessor) sGis.spatialProcessor = {};
+    let tempId = -1;
 
     sGis.spatialProcessor.serializeGeometry = function(features) {
         var formatedData = getFormatedData(features);
@@ -319,6 +320,7 @@ sGis.module('spatialProcessor.parseXML', [
     };
 
     sGis.spatialProcessor.serializeGeometryEdit = function(editDescription, attributesOnly, ignoreSymbol) {
+        tempId = -1;
         var featureList = [];
         for (var i in editDescription) {
             if (sGis.utils.isArray(editDescription[i]) && i !== 'deleted') featureList = featureList.concat(editDescription[i]);
@@ -639,6 +641,8 @@ sGis.module('spatialProcessor.parseXML', [
 
     function getGeometricNode(visualObject, xml, attributesOnly, ignoreSymbol) {
         var node = xml.createElement('Geometric');
+
+        if (visualObject.feature.id === undefined) visualObject.feature.id = tempId--;
 
         var nodeAttributes = {
             Id: visualObject.feature.id,
