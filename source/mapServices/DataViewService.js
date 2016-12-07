@@ -7,8 +7,8 @@ sGis.module('spatialProcessor.mapService.DataViewService', [
     'use strict';
 
     class DataViewService extends MapService {
-        constructor(connector, serviceInfo) {
-            super(connector, serviceInfo);
+        constructor(name, connector, serviceInfo) {
+            super(name, connector, serviceInfo);
             this._setLayer();
             this._subscribeForNotifications()
         }
