@@ -28,6 +28,16 @@ sGis.module('spatialProcessor.mapService.ServiceGroup', [
             }
         }
 
+        getService(serviceName) {
+            return this._services.filter(({name})=>name===serviceName)[0];
+        }
+
+        removeService(serviceName) {
+            const {layer} = this.getService(serviceName);
+            this._layer.removeLayer(layer);
+            this._services = this._services.filter(({name})=>name!==serviceName);
+        }
+
         static createLayers (service) {
             if(Array.isArray(service)) {
                 return new LayerGroup(service.map(s=>ServiceGroup.createLayers(s)));

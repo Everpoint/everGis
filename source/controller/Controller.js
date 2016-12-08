@@ -9,14 +9,9 @@ sGis.module('spatialProcessor.Controller', [
     'symbol.point.Point',
     'symbol.polyline.Simple',
     'symbol.polygon.Simple',
-<<<<<<< Temporary merge branch 1
-    'spatialProcessor.MapService'
-], function(utils, spUtils, Point, Polyline, Polygon, parseXML, EventHandler, pointSymbols, polylineSymbols, polygonSymbols, MapService) {
-=======
     'spatialProcessor.MapService',
     'spatialProcessor.LayerManager'
 ], function(utils, spUtils, Point, Polyline, Polygon, parseXML, proto, EventHandler, pointSymbols, polylineSymbols, polygonSymbols, MapService, LayerManager) {
->>>>>>> Temporary merge branch 2
     'use strict';
 
     class Controller extends EventHandler {

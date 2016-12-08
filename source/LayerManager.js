@@ -18,11 +18,6 @@ sGis.module('spatialProcessor.LayerManager', [
      * @alias sGis.spatialProcessor.LayerManager
      */
 
-    const debug = (v) => {
-        console.log(v);
-        return v;
-    };
-
     class LayerManager extends EventHandler {
         /**
          * @constructor
@@ -133,19 +128,26 @@ sGis.module('spatialProcessor.LayerManager', [
         }
 
         removeService (name) {
-            const {layer} = this._services[name];
-            if (!layer) {
+            const service = this.getService(name);
+            const parent = this.getParent(name);
+
+            if (!service || !service.layer) {
                 return;
             }
-            this._services[name].off('layerChange' + ns);
 
-            this._layerGroup.removeLayer(layer);
-            const index = this._layers.removeId(name);
+            service.off('layerChange' + ns);
 
-            this.fire('serviceRemove', {service: this._services[name], index});
+            if(parent) {
+                parent.removeService(service.name)
+            } else {
+                this._layerGroup.removeLayer(service.layer);
+                this._layers.removeId(service.name);
+                delete this._services[service.name];
+            }
 
-            delete this._services[name];
-            return index;
+            this.fire('serviceRemove', {service});
+
+            return service.name;
         }
 
         _onServiceLayerChange (service, sGisEvent) {
@@ -176,20 +178,37 @@ sGis.module('spatialProcessor.LayerManager', [
         }
 
         toggleService (name) {
-            if (this._services[name]) {
-                const {isDisplayed} = this._services[name];
-                this.fire('serviceToggle', {service: this._services[name]});
-                return this._services[name].isDisplayed = isDisplayed !== true;
+            const service = this.getService(name);
+            if (service) {
+                const {isDisplayed} = service;
+                this.fire('serviceToggle', {service});
+                return service.isDisplayed = isDisplayed !== true;
             }
         }
 
+        getParent (path) {
+            if (path.length < 2 || !Array.isArray(path)) return;
+            return this.getService(path.splice(0, path.length-1))
+        }
+
         /**
-         * getService by name
-         * @param name {String} service name
+         * getService by name or path
+         * @param name {String|Array<String>} service name
          * @returns {Object} service
          */
-        getService (name) {
-            return this._services[name];
+        getService (serviceName) {
+            serviceName = [].concat(serviceName);
+
+            const services = this._services;
+            let tempService;
+            serviceName.forEach((name, i)=>{
+                if(i===0){
+                    tempService = this._services[name]
+                } else if(tempService.children){
+                    tempService = tempService.getService(name);
+                }
+            });
+            return tempService;
         }
 
         /**
