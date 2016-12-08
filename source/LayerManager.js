@@ -5,17 +5,24 @@ sGis.module('spatialProcessor.LayerManager', [
     'utils',
     'EventHandler',
     'spatialProcessor.OrderManager',
-    'spatialProcessor.MapService',
+    'spatialProcessor.mapService.DataViewService',
+    'spatialProcessor.mapService.ServiceGroup',
     'spatialProcessor.mapService.TileService',
     'LayerGroup',
     'spatialProcessor.Project'
-], function (utils, EventHandler, OrderManager, MapService, TileService, LayerGroup, Project) {
+], function (utils, EventHandler, OrderManager, DataViewService, ServiceGroup, TileService, LayerGroup, Project) {
 
     let ns = '.layerManager';
 
     /**
      * @alias sGis.spatialProcessor.LayerManager
      */
+
+    const debug = (v) => {
+        console.log(v);
+        return v;
+    };
+
     class LayerManager extends EventHandler {
         /**
          * @constructor
@@ -49,7 +56,7 @@ sGis.module('spatialProcessor.LayerManager', [
          * @return {Object} sGis.LayerGroup
          */
         get basemaps () {
-           return this._basemapGroup;
+            return this._basemapGroup;
         }
 
         /**
@@ -74,33 +81,27 @@ sGis.module('spatialProcessor.LayerManager', [
         }
 
         loadFromSettings (services) {
-            services.forEach(name=>{
+            services.forEach(name=> {
                 this.loadService(name);
             });
         }
 
+        /**
+         * loadService
+         * @param {String} name
+         * @param {String} type "DataView" || "LayerGroup"
+         * @return {Promise.<Object>}
+         */
         loadService (name) {
-            const realIndex = this._layers.getIndex(name);
-            return MapService.initialize(this._connector, name)
-                .then(service => {
-                    if (service instanceof TileService && !this._map.tileScheme){
-                        this._map.crs = service.layer.crs;
-                        this._map.tileScheme = service.layer.tileScheme;
-                        this._map.adjustResolution();
-                    }
-                    if (service.layer) {
-                        this.addService(service, realIndex);
-                    }
-
-                    return service;
-                })
-                .catch(message => {
-                    utils.error(message);
-                });
+            this._layers.getIndex(name);
+            return LayerManager.getServiceInfo(name, this._connector)
+                .then(serviceInfo => LayerManager.createService(serviceInfo, this._connector))
+                .then(service => this.addService(service))
         }
 
         loadBasemap (name) {
-            return MapService.initialize(this._connector, name)
+            return LayerManager.getServiceInfo(name, this._connector)
+                .then((serviceInfo)=>LayerManager.createService(serviceInfo, this._connector))
                 .catch(message => {
                     utils.error(message);
                 });
@@ -114,7 +115,14 @@ sGis.module('spatialProcessor.LayerManager', [
             this.fire('baseMapChanged');
         }
 
-        addService (service, realIndex) {
+        addService (service) {
+            if (service instanceof TileService && !this._map.tileScheme) {
+                this._map.crs = service.layer.crs;
+                this._map.tileScheme = service.layer.tileScheme;
+                this._map.adjustResolution();
+            }
+
+            const realIndex = this._layers.getIndex(service.name);
             const index = this._layers.getCurrentIndex(realIndex, service.name);
             this._services[service.name] = service;
             service.on('layerChange' + ns, this._onServiceLayerChange.bind(this, service));
@@ -125,8 +133,8 @@ sGis.module('spatialProcessor.LayerManager', [
         }
 
         removeService (name) {
-            const { layer } = this._services[name];
-            if (!layer){
+            const {layer} = this._services[name];
+            if (!layer) {
                 return;
             }
             this._services[name].off('layerChange' + ns);
@@ -140,7 +148,7 @@ sGis.module('spatialProcessor.LayerManager', [
             return index;
         }
 
-        _onServiceLayerChange(service, sGisEvent) {
+        _onServiceLayerChange (service, sGisEvent) {
             let layer = service.layer;
             let prevLayer = sGisEvent.prevLayer;
 
@@ -162,7 +170,7 @@ sGis.module('spatialProcessor.LayerManager', [
             const index = (this.removeService(name, true) + 1) - count;
 
             this.loadService(name)
-                .then(()=>{
+                .then(()=> {
                     this.moveService(name, index);
                 });
         }
@@ -191,9 +199,72 @@ sGis.module('spatialProcessor.LayerManager', [
         getDisplayedServiceList () {
             return this.services.filter(service => service.isDisplayed && service.layer);
         }
+
+        /**
+         * getServiceInfo
+         * @param {String} name
+         * @param {Object} connector
+         * @return {Promise.<Object>}
+         */
+        static getServiceInfo (name, connector) {
+            const url = connector.url + name + '/?_sb=' + connector.sessionId;
+            return utils.ajaxp({url})
+                .then(([response]) => {
+                    try {
+                        const serviceInfo = utils.parseJSON(response);
+                        serviceInfo.name = name;
+
+                        if (serviceInfo.error) throw new Error();
+
+                        if (serviceInfo.serviceType === 'LayerGroup') {
+                            return Promise
+                                .all(serviceInfo.contents.map(name =>LayerManager.getServiceInfo(name, connector)))
+                                .then(info=>{
+                                    serviceInfo.contents = info;
+                                    return serviceInfo;
+                                })
+                        }
+
+                        return serviceInfo;
+                    } catch (e) {
+                        throw new Error('Failed to initialize service ' + name);
+                    }
+                });
+        }
+
+        /**
+         * Create MapService
+         * @param {Object} serviceInfo
+         * @param {Object} connector
+         * @return {Object} MapService
+         */
+        static createService (serviceInfo, connector) {
+            if (serviceInfo.contents) {
+                return LayerManager._createServiceGroup(serviceInfo, connector);
+            } else {
+                return LayerManager._createDataView(serviceInfo, connector);
+            }
+        }
+
+        static _createDataView (serviceInfo, connector) {
+            let service;
+            if (serviceInfo.capabilities && serviceInfo.capabilities.indexOf('tile') >= 0) {
+                service = new TileService(serviceInfo.name, connector, serviceInfo);
+            } else {
+                service = new DataViewService(serviceInfo.name, connector, serviceInfo);
+            }
+
+            return service;
+        }
+
+        static _createServiceGroup (serviceInfo, connector) {
+            return new ServiceGroup(serviceInfo.name, serviceInfo, serviceInfo.contents.map(child=> {
+                return LayerManager.createService(child, connector)
+            }));
+        }
     }
 
-    Project.registerCustomDataItem('services', ({ layerManager }) => {
+    Project.registerCustomDataItem('services', ({layerManager}) => {
         if (!layerManager) return;
         return layerManager.services.map(service => {
             return {
@@ -205,7 +276,7 @@ sGis.module('spatialProcessor.LayerManager', [
                 meta: service.meta
             };
         });
-    }, (services, { layerManager }) => {
+    }, (services, {layerManager}) => {
         if (!layerManager || !services) return;
 
         services.forEach(serviceDesc => {
@@ -218,7 +289,7 @@ sGis.module('spatialProcessor.LayerManager', [
         });
     });
 
-    function restoreServiceParameters(service, desc) {
+    function restoreServiceParameters (service, desc) {
         if (desc.opacity !== undefined) service.layer.opacity = desc.opacity;
         if (desc.resolutionLimits) service.layer.resolutionLimits = desc.resolutionLimits;
         if (desc.isDisplayed !== undefined) service.isDisplayed = desc.isDisplayed;

@@ -7,9 +7,10 @@ sGis.module('spatialProcessor.mapService.TileService', [
     'use strict';
 
     class TileService extends MapService {
-        constructor(connector, name, serviceInfo) {
-            super(connector, name, serviceInfo);
+        constructor(name, connector, serviceInfo) {
+            super(name, connector, serviceInfo);
             this._setLayer();
+            this._subscribeForNotifications();
         }
         
         _setLayer() {
