@@ -29,7 +29,21 @@ sGis.module('spatialProcessor.mapService.ServiceGroup', [
         }
 
         getService(serviceName) {
-            return this._services.filter(({name})=>name===serviceName)[0];
+            let tempService = this._services.filter(({name})=>name===serviceName)[0];
+            if (tempService) {
+                return tempService;
+            } else {
+                this._services.forEach(service =>{
+                    if(service.children) {
+                        let s = service.getService(serviceName);
+                        if(s) {
+                            tempService = s;
+                        }
+                    }
+                });
+
+                return tempService;
+            }
         }
 
         removeService(serviceName) {

@@ -197,13 +197,30 @@ sGis.module('spatialProcessor.LayerManager', [
          * @returns {Object} service
          */
         getService (serviceName) {
-            serviceName = [].concat(serviceName);
+           if(Array.isArray(serviceName)) {
+               return this.getServiceByPath(serviceName)
+           } else if (this._services[serviceName]){
+               return this._services[serviceName]
+           } else {
+               let tempService;
+               this.services.forEach(service => {
+                   if (service.children) {
+                       let s = service.getService(serviceName);
+                       if (s) {
+                           tempService  = s;
+                       }
+                   }
+               })
+               return tempService;
+           }
+        }
 
+        getServiceByPath (path) {
             const services = this._services;
             let tempService;
-            serviceName.forEach((name, i)=>{
+            path.forEach((name, i)=>{
                 if(i===0){
-                    tempService = this._services[name]
+                    tempService = services[name]
                 } else if(tempService.children){
                     tempService = tempService.getService(name);
                 }
