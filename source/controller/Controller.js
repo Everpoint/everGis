@@ -9,9 +9,8 @@ sGis.module('spatialProcessor.Controller', [
     'symbol.point.Point',
     'symbol.polyline.Simple',
     'symbol.polygon.Simple',
-    'spatialProcessor.MapService',
-    'spatialProcessor.LayerManager'
-], function(utils, spUtils, Point, Polyline, Polygon, parseXML, proto, EventHandler, pointSymbols, polylineSymbols, polygonSymbols, MapService, LayerManager) {
+    'spatialProcessor.services.ServiceContainer'
+], function(utils, spUtils, Point, Polyline, Polygon, parseXML, EventHandler, pointSymbols, polylineSymbols, polygonSymbols, ServiceContainer) {
     'use strict';
 
     class Controller extends EventHandler {
@@ -39,6 +38,8 @@ sGis.module('spatialProcessor.Controller', [
             }
             this._display = false;
         },
+
+
 
         __initialize: function(spatialProcessor, properties, callback) {
             if (!this._operationQueue) this._operationQueue = [];
@@ -81,15 +82,16 @@ sGis.module('spatialProcessor.Controller', [
                         self._id = response.ServiceId;
                         if (response.DataViewServiceName) {
                             self._layerName = response.DataViewServiceName;
-                            var servicePromise = LayerManager.getServiceInfo(self._layerName, self._spatialProcessor)
-                                .then(serviceInfo => {
-                                    const service = LayerManager.createService(self._layerName, self._spatialProcessor, serviceInfo);
-                                    if (self._map) self._map.addLayer(service.layer);
-                                    self._service = service;
-                                });
+                            self._serviceContainer = new ServiceContainer(self._spatialProcessor, self._layerName);
+                            self._serviceContainer.once('stateUpdate', () => {
+                                if (self._serviceContainer.service) {
+                                    self._service = self._serviceContainer.service;
+                                    if (self._map) self._map.addLayer(self._service.layer);
+                                }
+                            });
                         }
 
-                        if (callback) callback.call(self, servicePromise);
+                        if (callback) callback.call(self);
                         for (var i in self._operationQueue) {
                             self.__operation(self._operationQueue[i]);
                         }

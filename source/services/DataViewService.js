@@ -1,8 +1,9 @@
-sGis.module('spatialProcessor.mapService.DataViewService', [
+sGis.module('spatialProcessor.services.DataViewService', [
     'DynamicLayer',
-    'spatialProcessor.MapService',
-    'spatialProcessor.ClusterLayer'
-], (DynamicLayer, MapService, ClusterLayer) => {
+    'spatialProcessor.services.MapService',
+    'spatialProcessor.ClusterLayer',
+    'spatialProcessor.services.ServiceContainer'
+], (DynamicLayer, MapService, ClusterLayer, ServiceContainer) => {
 
     'use strict';
 
@@ -82,7 +83,7 @@ sGis.module('spatialProcessor.mapService.DataViewService', [
     
     DataViewService.prototype._showAsClusters = false;
 
-    MapService.register('DataViewService', DataViewService);
+    ServiceContainer.register(serviceInfo => serviceInfo.serviceType === 'DataView' && serviceInfo.capabilities.indexOf('tile') === -1, DataViewService);
 
     return DataViewService;
 

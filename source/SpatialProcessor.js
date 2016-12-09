@@ -4,13 +4,13 @@ sGis.module('SpatialProcessor', [
     'Map',
     'painter.DomPainter',
     'spatialProcessor.Connector',
-    'spatialProcessor.MapService',
     'spatialProcessor.LayerManager',
     'spatialProcessor.DataAccessService',
     'EventHandler',
     'spatialProcessor.ControllerManager',
-    'spatialProcessor.Project'
-], function(utils, Point, Map, DomRenderer, Connector, MapService, LayerManager, DataAccessService, EventHandler, ControllerManager, Project) {
+    'spatialProcessor.Project',
+    'spatialProcessor.services.MapService'
+], function(utils, Point, Map, DomRenderer, Connector, LayerManager, DataAccessService, EventHandler, ControllerManager, Project, MapService) {
     'use strict';
     
     class SpatialProcessor {

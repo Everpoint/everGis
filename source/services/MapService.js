@@ -1,4 +1,4 @@
-sGis.module('spatialProcessor.MapService', [
+sGis.module('spatialProcessor.services.MapService', [
     'utils',
     'CRS',
     'EventHandler',
@@ -7,8 +7,6 @@ sGis.module('spatialProcessor.MapService', [
 
     'use strict';
 
-    let submodules = {};
-    
     class MapService extends EventHandler {
         constructor(name, connector, serviceInfo) {
             super();
@@ -16,35 +14,6 @@ sGis.module('spatialProcessor.MapService', [
             this._meta = {};
             this._name = name;
             this.serviceInfo = serviceInfo;
-        }
-        
-        static initialize(connector, name) {
-            let url = connector.url + name + '/?_sb=' + connector.sessionId;
-            return utils.ajaxp({url: url})
-                .then(([response]) => {
-                    try {
-                        var serviceInfo = utils.parseJSON(response);
-                        let layer;
-
-                        if (serviceInfo.error) throw new Error();
-
-                        if (serviceInfo.capabilities && serviceInfo.capabilities.indexOf('tile') >= 0) {
-                            layer = new submodules.TileService(connector, name, serviceInfo);
-                        } else {
-                            layer = new submodules.DataViewService(connector, name, serviceInfo);
-                        }
-
-                        layer._subscribeForNotifications();
-
-                        return layer;
-                    } catch (e) {
-                        throw new Error('Failed to initialize service ' + name);
-                    }
-                });
-        }
-        
-        static register(name, module) {
-            submodules[name] = module;
         }
 
         _subscribeForNotifications() {
@@ -65,20 +34,20 @@ sGis.module('spatialProcessor.MapService', [
         get url() {
             return this._connector.url + this._name + '/';
         }
-        
+
         get serviceInfo() { return this._serviceInfo; }
         set serviceInfo(val) {
             this._crs = MapService.parseCrs(val.spatialReference);
             this._serviceInfo = val;
         }
-        
+
         get crs() { return this._crs; }
         get layer() { return this._layer; }
         get connector() { return this._connector; }
         get name() { return this._name; }
         get alias() { return this.serviceInfo && this.serviceInfo.alias; }
         get description() { return this.serviceInfo && this.serviceInfo.description; }
-        
+
         get isDisplayed() { return this._isDisplayed; }
         set isDisplayed(bool) {
             if (this._isDisplayed !== bool) {

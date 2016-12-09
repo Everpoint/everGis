@@ -1,8 +1,9 @@
-sGis.module('spatialProcessor.mapService.TileService', [
-    'spatialProcessor.MapService',
+sGis.module('spatialProcessor.services.TileService', [
+    'spatialProcessor.services.MapService',
     'TileLayer',
-    'TileScheme'
-], (MapService, TileLayer, TileScheme) => {
+    'TileScheme',
+    'spatialProcessor.services.ServiceContainer'
+], (MapService, TileLayer, TileScheme, ServiceContainer) => {
 
     'use strict';
 
@@ -53,7 +54,7 @@ sGis.module('spatialProcessor.mapService.TileService', [
         return new TileScheme(scheme);
     }
 
-    MapService.register('TileService', TileService);
+    ServiceContainer.register(serviceInfo => serviceInfo.serviceType === 'DataView' && serviceInfo.capabilities.indexOf('tile') !== -1, TileService);
 
     return TileService;
 

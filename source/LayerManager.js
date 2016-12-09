@@ -5,12 +5,10 @@ sGis.module('spatialProcessor.LayerManager', [
     'utils',
     'EventHandler',
     'spatialProcessor.OrderManager',
-    'spatialProcessor.mapService.DataViewService',
-    'spatialProcessor.mapService.ServiceGroup',
-    'spatialProcessor.mapService.TileService',
-    'LayerGroup',
-    'spatialProcessor.Project'
-], function (utils, EventHandler, OrderManager, DataViewService, ServiceGroup, TileService, LayerGroup, Project) {
+    'spatialProcessor.Project',
+    'spatialProcessor.services.ServiceContainer',
+    'LayerGroup'
+], function (utils, EventHandler, OrderManager, Project, ServiceContainer, LayerGroup) {
 
     let ns = '.layerManager';
 
@@ -34,25 +32,10 @@ sGis.module('spatialProcessor.LayerManager', [
             this._painter = painter;
             this._layers = new OrderManager();
             this._services = {};
+            this._containers = [];
         }
 
-        /**
-         * Services
-         * @returns {Array.<Object>} Ordered array of init services
-         */
-        get services () {
-            return this._layers.ids
-                .map(id=>this._services[id])
-                .filter(service=>!!service);
-        }
-
-        /**
-         * Basemap group
-         * @return {Object} sGis.LayerGroup
-         */
-        get basemaps () {
-            return this._basemapGroup;
-        }
+        get containers() { return this._containers; }
 
         /**
          * Layer group
@@ -67,9 +50,9 @@ sGis.module('spatialProcessor.LayerManager', [
          * @param services {Array} array of service names from settings
          */
         init (services = []) {
-            this._basemapGroup = new LayerGroup();
+            // this._basemapGroup = new LayerGroup();
             this._layerGroup = new LayerGroup();
-            this._map.addLayer(this._basemapGroup);
+            // this._map.addLayer(this._basemapGroup);
             this._map.addLayer(this._layerGroup);
 
             this.loadFromSettings(services);
@@ -81,151 +64,92 @@ sGis.module('spatialProcessor.LayerManager', [
             });
         }
 
-        /**
-         * loadService
-         * @param {String} name
-         * @param {String} type "DataView" || "LayerGroup"
-         * @return {Promise.<Object>}
-         */
-        loadService (name) {
-            this._layers.getIndex(name);
-            return LayerManager.getServiceInfo(name, this._connector)
-                .then(serviceInfo => LayerManager.createService(serviceInfo, this._connector))
-                .then(service => this.addService(service))
+        loadService (name, index = -1) {
+            if (this.getService(name)) throw new Error(`Service ${name} is already in the list`);
+
+            let container = new ServiceContainer(this._connector, name);
+            container.on('stateUpdate', this._updateService.bind(this, container));
+
+            if (index < 0 || index > this._containers.length) index = this._containers.length;
+            this._containers.splice(index, 0, container);
+            this._layerGroup.insertLayer(container.layer, index);
+
+            return container;
         }
 
-        loadBasemap (name) {
-            return LayerManager.getServiceInfo(name, this._connector)
-                .then((serviceInfo)=>LayerManager.createService(serviceInfo, this._connector))
-                .catch(message => {
-                    utils.error(message);
+        loadWithPromise(name) {
+            return new Promise((resolve, reject) => {
+                let container = this.loadService(name);
+                container.on('stateUpdate', () => {
+                    if (container.service) {
+                        resolve(container);
+                    } else {
+                        reject();
+                    }
                 });
+            });
         }
 
-        setBasemap (service) {
-            this.basemaps.layers = [];
-            this.basemaps.addLayer(service.layer);
-            this.activeBasemap = service;
-
-            this.fire('baseMapChanged');
-        }
-
-        addService (service) {
-            if (service instanceof TileService && !this._map.tileScheme) {
-                this._map.crs = service.layer.crs;
-                this._map.tileScheme = service.layer.tileScheme;
-                this._map.adjustResolution();
-            }
-
-            const realIndex = this._layers.getIndex(service.name);
-            const index = this._layers.getCurrentIndex(realIndex, service.name);
-            this._services[service.name] = service;
-            service.on('layerChange' + ns, this._onServiceLayerChange.bind(this, service));
-
-            this._layerGroup.insertLayer(service.layer, index);
-
-            this.fire('serviceAdd', {service, index: realIndex});
-        }
-
-        removeService (name) {
-            const service = this.getService(name);
-            const parent = this.getParent(name);
-
-            if (!service || !service.layer) {
+        _updateService(container) {
+            if (this._layerGroup.contains(container.layer)) {
+                this.fire('serviceUpdate');
                 return;
             }
 
-            service.off('layerChange' + ns);
-
-            if(parent) {
-                parent.removeService(service.name)
+            let index = this._layerGroup.indexOf(container.placeholderLayer);
+            if (index !== -1) {
+                this._layerGroup.removeLayer(container.placeholderLayer);
             } else {
-                this._layerGroup.removeLayer(service.layer);
-                this._layers.removeId(service.name);
-                delete this._services[service.name];
+                index = this._layerGroup.layer.length;
             }
-
-            this.fire('serviceRemove', {service});
-
-            return service.name;
+            this._layerGroup.insertLayer(container.layer, index);
+            this.fire('serviceUpdate');
         }
 
-        _onServiceLayerChange (service, sGisEvent) {
-            let layer = service.layer;
-            let prevLayer = sGisEvent.prevLayer;
+        removeService (name) {
+            const container = this.getService(name, false);
 
-            let index = this._layerGroup.indexOf(prevLayer);
-            this._layerGroup.removeLayer(prevLayer);
-            this._layerGroup.insertLayer(layer, index);
+            if (!container) {
+                return;
+            }
+
+            this._layerGroup.removeLayer(container.layer);
+            this._containers.splice(this._containers.indexOf(container), 1);
+
+            this.fire('serviceRemove', {container});
+
+            return container.name;
         }
 
         moveService (name, direction) {
-            const newIndex = this._layers.moveId(name, direction);
-            const service = this._services[name];
-            this._layerGroup.insertLayer(service.layer, newIndex);
-            this.fire('serviceMove', {service, index: newIndex});
-            return newIndex;
+            let container = this._containers.find(x => x.name === name);
+            let currIndex = this._containers.indexOf(container);
+            let index = currIndex + direction;
+            if (index < 0 || index >= this._containers.length) return;
+
+            this._containers = utils.arrayMove(this._containers, currIndex, index);
+            this._layerGroup.insertLayer(container.layer, index);
+            this.fire('serviceMove', { serviceContainer: container, index });
+
+            return index;
         }
 
         updateService (name) {
-            const count = this._layers.ids.length;
-            const index = (this.removeService(name, true) + 1) - count;
-
-            this.loadService(name)
-                .then(()=> {
-                    this.moveService(name, index);
-                });
+            let index = this._containers.indexOf(this.getService(name, false));
+            this.removeService(name);
+            this.loadService(name, index);
         }
 
-        toggleService (name) {
-            const service = this.getService(name);
-            if (service) {
-                const {isDisplayed} = service;
-                this.fire('serviceToggle', {service});
-                return service.isDisplayed = isDisplayed !== true;
-            }
-        }
-
-        getParent (path) {
-            if (path.length < 2 || !Array.isArray(path)) return;
-            return this.getService(path.splice(0, path.length-1))
-        }
-
-        /**
-         * getService by name or path
-         * @param name {String|Array<String>} service name
-         * @returns {Object} service
-         */
-        getService (serviceName) {
-           if(Array.isArray(serviceName)) {
-               return this.getServiceByPath(serviceName)
-           } else if (this._services[serviceName]){
-               return this._services[serviceName]
-           } else {
-               let tempService;
-               this.services.forEach(service => {
-                   if (service.children) {
-                       let s = service.getService(serviceName);
-                       if (s) {
-                           tempService  = s;
-                       }
-                   }
-               })
-               return tempService;
-           }
-        }
-
-        getServiceByPath (path) {
-            const services = this._services;
-            let tempService;
-            path.forEach((name, i)=>{
-                if(i===0){
-                    tempService = services[name]
-                } else if(tempService.children){
-                    tempService = tempService.getService(name);
+        getService (serviceName, recurse = true) {
+            for (let i = 0; i < this._containers.length; i++) {
+                if (this._containers[i].name === serviceName) return this._containers[i];
+                if (recurse && this._containers[i].service && this._containers[i].service.getService) {
+                    let result = this._containers[i].service.getService(serviceName);
+                    if (result) return result;
                 }
-            });
-            return tempService;
+            }
+
+            return null;
         }
 
         /**
@@ -233,104 +157,53 @@ sGis.module('spatialProcessor.LayerManager', [
          * @returns {Array.<Object>} visible layers
          */
         getDisplayedServiceList () {
-            return this.services.filter(service => service.isDisplayed && service.layer);
+            return this.getServiceList().filter(service => service.layer && service.isDisplayed && !(service.layer instanceof LayerGroup));
         }
 
-        /**
-         * getServiceInfo
-         * @param {String} name
-         * @param {Object} connector
-         * @return {Promise.<Object>}
-         */
-        static getServiceInfo (name, connector) {
-            const url = connector.url + name + '/?_sb=' + connector.sessionId;
-            return utils.ajaxp({url})
-                .then(([response]) => {
-                    try {
-                        const serviceInfo = utils.parseJSON(response);
-                        serviceInfo.name = name;
-
-                        if (serviceInfo.error) throw new Error();
-
-                        if (serviceInfo.serviceType === 'LayerGroup') {
-                            return Promise
-                                .all(serviceInfo.contents.map(name =>LayerManager.getServiceInfo(name, connector)))
-                                .then(info=>{
-                                    serviceInfo.contents = info;
-                                    return serviceInfo;
-                                })
-                        }
-
-                        return serviceInfo;
-                    } catch (e) {
-                        throw new Error('Failed to initialize service ' + name);
-                    }
-                });
-        }
-
-        /**
-         * Create MapService
-         * @param {Object} serviceInfo
-         * @param {Object} connector
-         * @return {Object} MapService
-         */
-        static createService (serviceInfo, connector) {
-            if (serviceInfo.contents) {
-                return LayerManager._createServiceGroup(serviceInfo, connector);
-            } else {
-                return LayerManager._createDataView(serviceInfo, connector);
+        getServiceList() {
+            let services = [];
+            for (let i = 0; i < this._containers.length; i++) {
+                if (this._containers[i].service) {
+                    services.push(this._containers[i].service);
+                    if (this._containers[i].service.getServices) services = services.concat(this._containers[i].service.getServices(true));
+                }
             }
-        }
-
-        static _createDataView (serviceInfo, connector) {
-            let service;
-            if (serviceInfo.capabilities && serviceInfo.capabilities.indexOf('tile') >= 0) {
-                service = new TileService(serviceInfo.name, connector, serviceInfo);
-            } else {
-                service = new DataViewService(serviceInfo.name, connector, serviceInfo);
-            }
-
-            return service;
-        }
-
-        static _createServiceGroup (serviceInfo, connector) {
-            return new ServiceGroup(serviceInfo.name, serviceInfo, serviceInfo.contents.map(child=> {
-                return LayerManager.createService(child, connector)
-            }));
+            return services;
         }
     }
 
     Project.registerCustomDataItem('services', ({layerManager}) => {
         if (!layerManager) return;
-        return layerManager.services.map(service => {
+        return layerManager.containers.map(container => {
             return {
-                serviceName: service.name,
-                opacity: service.layer && service.layer.opacity,
-                resolutionLimits: service.layer && service.layer.resolutionLimits,
-                isDisplayed: service.isDisplayed,
-                filter: service.customFilter,
-                meta: service.meta
+                serviceName: container.name,
+                opacity: container.layer && container.layer.opacity,
+                resolutionLimits: container.layer && container.layer.resolutionLimits,
+                isDisplayed: container.service && container.service.isDisplayed,
+                filter: container.service && container.service.customFilter,
+                meta: container.service && container.service.meta
             };
         });
-    }, (services, {layerManager}) => {
-        if (!layerManager || !services) return;
+    }, (containers, {layerManager}) => {
+        if (!layerManager || !containers) return;
 
-        services.forEach(serviceDesc => {
-            let service = layerManager.getService(serviceDesc.serviceName);
-            if (service) return restoreServiceParameters(service, serviceDesc);
-            layerManager.loadService(serviceDesc.serviceName)
+        containers.forEach(serviceDesc => {
+            let container = layerManager.getService(serviceDesc.serviceName, false);
+            if (container) return restoreServiceParameters(container, serviceDesc);
+            layerManager.loadWithPromise(serviceDesc.serviceName)
                 .then(service => {
                     restoreServiceParameters(service, serviceDesc);
-                });
+                })
+                .catch(() => {});
         });
     });
 
-    function restoreServiceParameters (service, desc) {
-        if (desc.opacity !== undefined) service.layer.opacity = desc.opacity;
-        if (desc.resolutionLimits) service.layer.resolutionLimits = desc.resolutionLimits;
-        if (desc.isDisplayed !== undefined) service.isDisplayed = desc.isDisplayed;
-        if (desc.filter && service.setCustomFilter) service.setCustomFilter(desc.filter);
-        if (desc.meta) service.meta = desc.meta;
+    function restoreServiceParameters (container, desc) {
+        if (desc.opacity !== undefined) container.layer.opacity = desc.opacity;
+        if (desc.resolutionLimits) container.layer.resolutionLimits = desc.resolutionLimits;
+        if (desc.isDisplayed !== undefined && container.service) container.service.isDisplayed = desc.isDisplayed;
+        if (desc.filter && container.service && container.service.setCustomFilter) container.service.setCustomFilter(desc.filter);
+        if (desc.meta && container.service) container.service.meta = desc.meta;
     }
 
 

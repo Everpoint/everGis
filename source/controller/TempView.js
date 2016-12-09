@@ -1,7 +1,7 @@
 sGis.module('spatialProcessor.controller.TempView', [
     'spatialProcessor.Controller',
     'spatialProcessor.ControllerManager',
-    'spatialProcessor.MapService'
+    'spatialProcessor.services.ServiceContainer'
 ], function(Controller, ControllerManager) {
     'use strict';
 
