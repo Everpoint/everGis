@@ -9,12 +9,9 @@ sGis.module('spatialProcessor.LayerManager', [
     'LayerGroup'
 ], function (utils, EventHandler, Project, ServiceContainer, LayerGroup) {
 
-    let ns = '.layerManager';
-
     /**
      * @alias sGis.spatialProcessor.LayerManager
      */
-
     class LayerManager extends EventHandler {
         /**
          * @constructor

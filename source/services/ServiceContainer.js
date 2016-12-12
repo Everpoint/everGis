@@ -31,7 +31,7 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
                     serviceInfo.name = name;
 
                     if (serviceInfo.error) throw new Error(serviceInfo.error.message);
-                    this._createService(serviceInfo);
+                    return this._createService(serviceInfo);
                 })
                 .catch(error => {
                     this._failInitialization(error.message || 'Unknown error');
@@ -57,7 +57,7 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
                         this._service.layer.resolutionLimits = this._emptyLayer.resolutionLimits;
                         this._service.isDisplayed = this._emptyLayer.isDisplayed;
                     }
-                    return;
+                    return this._service.initializationPromise;
                 }
             }
 

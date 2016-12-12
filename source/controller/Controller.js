@@ -107,6 +107,7 @@ sGis.module('spatialProcessor.Controller', [
 
         _failInitialization() {
             sGis.utils.message('Could not create controller ' + this._type);
+            this.fire('initError');
             this._failed = true;
             this._operationQueue.forEach(operation => {
                 this.__operation(operation);
