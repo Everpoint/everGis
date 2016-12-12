@@ -372,6 +372,10 @@ sGis.module('spatialProcessor.Api', [
         validateExpression({ targetServiceName, expression, resultType }) {
             return this._operation('functions/validateExpression', { targetServiceName, expression, resultType });
         }
+
+        getServiceDependencies ({name}) {
+            return this._operation('serviceCatalog/dependencies', {name})
+        }
     }
 
     return Api;
