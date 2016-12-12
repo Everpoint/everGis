@@ -20,10 +20,11 @@ sGis.module('spatialProcessor.services.ServiceGroup', [
             this._layer = new LayerGroup();
         }
 
-        get name() {return this._name}
+        get name() { return this._name}
         get layer() { return this._layer; }
         get children() { return this._children; }
         get serviceInfo() { return this._serviceInfo; }
+        get alias() { return this.serviceInfo && this.serviceInfo.alias; }
 
         get isDisplayed() { return this._isDisplayed; }
         set isDisplayed(bool) {
