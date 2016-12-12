@@ -4,11 +4,10 @@
 sGis.module('spatialProcessor.LayerManager', [
     'utils',
     'EventHandler',
-    'spatialProcessor.OrderManager',
     'spatialProcessor.Project',
     'spatialProcessor.services.ServiceContainer',
     'LayerGroup'
-], function (utils, EventHandler, OrderManager, Project, ServiceContainer, LayerGroup) {
+], function (utils, EventHandler, Project, ServiceContainer, LayerGroup) {
 
     let ns = '.layerManager';
 
@@ -30,8 +29,6 @@ sGis.module('spatialProcessor.LayerManager', [
             this._api = api;
             this._connector = connector;
             this._painter = painter;
-            this._layers = new OrderManager();
-            this._services = {};
             this._containers = [];
         }
 
