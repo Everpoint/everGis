@@ -146,6 +146,8 @@ sGis.module('spatialProcessor.services.MapService', [
             Promise.resolve(p);
             return p;
         }
+
+        get initializationPromise() { return null; }
     }
 
     MapService.prototype._isDisplayed = true;
