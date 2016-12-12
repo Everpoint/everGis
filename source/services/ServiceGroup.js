@@ -12,7 +12,7 @@ sGis.module('spatialProcessor.services.ServiceGroup', [
             this._connector = connector;
             this._children = serviceInfo.contents.map(childName => {
                 let container = new ServiceContainer(connector, childName);
-                container.once('stateUpdate', this._updateChildLayers.bind(this));
+                container.on('stateUpdate', this._updateChildLayers.bind(this));
                 return container;
             });
             this._serviceInfo = serviceInfo;
@@ -44,12 +44,12 @@ sGis.module('spatialProcessor.services.ServiceGroup', [
             if (tempService) {
                 return tempService;
             } else {
-                this._children.forEach(service =>{
-                    if(service.children) {
-                        let s = service.getService(serviceName);
-                        if(s) {
-                            tempService = s;
-                        }
+                this._children.forEach(container =>{
+                    if (!container.service || !container.service.children) return;
+
+                    let s = container.service.getService(serviceName);
+                    if(s) {
+                        tempService = s;
                     }
                 });
 
