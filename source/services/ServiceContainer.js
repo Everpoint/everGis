@@ -10,24 +10,23 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
     let serviceTypeRegistry = [];
 
     class ServiceContainer extends EventHandler {
-        constructor(connector, serviceName) {
+        constructor(connector, serviceName, serviceInfo) {
             super();
 
             this._connector = connector;
             this._name = serviceName;
             this._emptyLayer = new FeatureLayer();
 
-            this._init();
+            this._init(serviceInfo);
         }
 
         get url() { return this._connector.url + this._name; }
         get name() { return this._name; }
 
-        _init() {
-            const url = this.url + '/?_sb=' + this._connector.sessionId;
-            utils.ajaxp({url})
-                .then(([response]) => {
-                    let serviceInfo = utils.parseJSON(response);
+        _init(serviceInfo) {
+            let promise = serviceInfo ? Promise.resolve(serviceInfo) : this._loadServiceInfo();
+
+            promise.then(serviceInfo => {
                     serviceInfo.name = name;
 
                     if (serviceInfo.error) throw new Error(serviceInfo.error.message);
@@ -38,6 +37,14 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
                 })
                 .then(() => {
                     this.fire('stateUpdate');
+                });
+        }
+
+        _loadServiceInfo() {
+            const url = this.url + '/?_sb=' + this._connector.sessionId;
+            return utils.ajaxp({url})
+                .then(([response]) => {
+                    return utils.parseJSON(response);
                 });
         }
 

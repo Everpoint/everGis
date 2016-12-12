@@ -10,14 +10,19 @@ sGis.module('spatialProcessor.services.ServiceGroup', [
             super();
             this._name = name;
             this._connector = connector;
-            this._children = serviceInfo.contents.map(childName => {
-                let container = new ServiceContainer(connector, childName);
-                container.on('stateUpdate', this._updateChildLayers.bind(this));
-                return container;
-            });
+            this._children = serviceInfo.childrenInfo.map(info => new ServiceContainer(connector, info.name, info));
+
             this._serviceInfo = serviceInfo;
             this._isDisplayed = true;
             this._layer = new LayerGroup();
+
+            this._initializationPromise = new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    this._setForwardListeners();
+                    this._updateChildLayers();
+                    resolve();
+                }, 0);
+            });
         }
 
         get name() {return this._name}
@@ -34,9 +39,17 @@ sGis.module('spatialProcessor.services.ServiceGroup', [
             }
         }
 
+        _setForwardListeners() {
+            this._children.forEach(container => {
+                if (container.service) {
+                    container.service.on('visibilityChange', this.forwardEvent.bind(this));
+                }
+            });
+        }
+
         _updateChildLayers() {
             this._layer.layers = this._children.filter(container => container.service && container.service.layer).map(container => container.service.layer);
-            this.fire('childUpdate');
+            // this.fire('childUpdate');
         }
 
         getService(serviceName) {
@@ -62,7 +75,7 @@ sGis.module('spatialProcessor.services.ServiceGroup', [
             this._children.forEach(c => {
                 if (!c.service) return;
                 children.push(c.service);
-                if (recurse && c.service.getServices) c = c.concat(c.service.getServices(true));
+                if (recurse && c.service.getServices) children = children.concat(c.service.getServices(true));
             });
 
             return children;
@@ -80,6 +93,10 @@ sGis.module('spatialProcessor.services.ServiceGroup', [
             } else if(service.layer) {
                 return service.layer;
             }
+        }
+
+        get initializationPromise() {
+            return this._initializationPromise;
         }
     }
 

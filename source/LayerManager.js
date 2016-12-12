@@ -168,20 +168,12 @@ sGis.module('spatialProcessor.LayerManager', [
 
     Project.registerCustomDataItem('services', ({layerManager}) => {
         if (!layerManager) return;
-        return layerManager.containers.map(container => {
-            return {
-                serviceName: container.name,
-                opacity: container.layer && container.layer.opacity,
-                resolutionLimits: container.layer && container.layer.resolutionLimits,
-                isDisplayed: container.service && container.service.isDisplayed,
-                filter: container.service && container.service.customFilter,
-                meta: container.service && container.service.meta
-            };
-        });
-    }, (containers, {layerManager}) => {
-        if (!layerManager || !containers) return;
+        return layerManager.containers.map(container => saveContainer(container));
+    }, (descriptions, {layerManager}) => {
+        if (!layerManager || !descriptions) return;
 
-        containers.forEach(serviceDesc => {
+
+        descriptions.forEach(serviceDesc => {
             let container = layerManager.getService(serviceDesc.serviceName, false);
             if (container) return restoreServiceParameters(container, serviceDesc);
             layerManager.loadWithPromise(serviceDesc.serviceName)
@@ -198,6 +190,29 @@ sGis.module('spatialProcessor.LayerManager', [
         if (desc.isDisplayed !== undefined && container.service) container.service.isDisplayed = desc.isDisplayed;
         if (desc.filter && container.service && container.service.setCustomFilter) container.service.setCustomFilter(desc.filter);
         if (desc.meta && container.service) container.service.meta = desc.meta;
+        if (desc.children && container.service && container.service.children) {
+            container.service.children.forEach(child => {
+                let childDesc = desc.children.find(x => x.serviceName === child.name);
+                if (childDesc) restoreServiceParameters(child, childDesc);
+            });
+        }
+    }
+
+    function saveContainer(container) {
+        return {
+            serviceName: container.name,
+            opacity: container.layer && container.layer.opacity,
+            resolutionLimits: container.layer && container.layer.resolutionLimits,
+            isDisplayed: container.service && container.service.isDisplayed,
+            filter: container.service && container.service.customFilter,
+            meta: container.service && container.service.meta,
+            children: saveChildren(container.service)
+        };
+    }
+
+    function saveChildren(service) {
+        if (!service.children) return;
+        return service.children.map(container => saveContainer(container));
     }
 
 
