@@ -20,7 +20,9 @@ sGis.module('spatialProcessor.services.TileService', [
             }
 
             this._tileScheme = tileScheme;
-            this._layer = new TileLayer(this.url + 'tile/{z}/{y}/{x}?_sb=' + this.connector.sessionId, { tileScheme: tileScheme, crs: this.crs, isDisplayed: this.isDisplayed });
+
+            let url = this.serviceInfo.sourceUrl || this.url + 'tile/{z}/{y}/{x}?_sb=' + this.connector.sessionId;
+            this._layer = new TileLayer(url, { tileScheme: tileScheme, crs: this.crs, isDisplayed: this.isDisplayed });
         }
 
         get tileScheme() { return this._tileScheme; }
