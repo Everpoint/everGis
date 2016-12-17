@@ -70,6 +70,8 @@ sGis.module('spatialProcessor.services.DataSourceService', [
         get fullExtent() { return this.view && this.view.fullExtent; }
         get initialExtent() { return this.view && this.view.initialExtent; }
 
+        get serviceInfo() { return this._serviceInfo; }
+
         updateExtent() { return this.view && this.view.updateExtent(); }
     }
 
