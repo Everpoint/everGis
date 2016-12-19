@@ -87,11 +87,7 @@ sGis.module('spatialProcessor.ClusterLayer', [
             return this._serviceUrl + 'clusters?' +
                     'resolution=' + resolution +
                     '&clusterSize=' + this.clusterSize +
-                    '&bbox=' +
-                        bbox.p[0].x + '%2C' +
-                        bbox.p[0].y + '%2C' +
-                        bbox.p[1].x + '%2C' +
-                        bbox.p[1].y +
+                    '&bbox=' + bbox.coordinates.join('%2C') +
                     '&algorithm=' + this.algorithm +
                     '&aggregationParameters=' + encodeURIComponent(JSON.stringify(this.aggregationParameters)) +
                     '&_sb=' + this.sessionId;

@@ -96,7 +96,7 @@ sGis.module('spatialProcessor.LayerManager', [
             if (index !== -1) {
                 this._layerGroup.removeLayer(container.placeholderLayer);
             } else {
-                index = this._layerGroup.layer.length;
+                index = this._layerGroup.layers.length;
             }
             this._layerGroup.insertLayer(container.layer, index);
             this.fire('serviceUpdate');
