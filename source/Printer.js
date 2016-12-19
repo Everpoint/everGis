@@ -76,8 +76,8 @@ sGis.module('spatialProcessor.Printer', [
             var description = {
                 ServiceStateDefinition: [],
                 MapCenter: {
-                    X: properties.position ? properties.position.x : this._map.position.x,
-                    Y: properties.position ? properties.position.y :this._map.position.y
+                    X: properties.position ? properties.position.x : this._map.centerPoint.x,
+                    Y: properties.position ? properties.position.y : this._map.centerPoint.y
                 },
                 SpatialReference: this._map.crs.getWkidString(),
                 Dpi: properties.dpi || defaults.dpi,

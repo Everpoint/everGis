@@ -59,11 +59,11 @@ sGis.module('SpatialProcessor', [
 
     Project.registerCustomDataItem('map', ({map}) => {
         if (!map) return;
-        return { position: map.position.position, resolution: map.resolution, crsCode: MapService.serializeCrs(map.crs) };
+        return { position: map.position, resolution: map.resolution, crsCode: MapService.serializeCrs(map.crs) };
     }, ({position, resolution, crsCode}, {map}) => {
         if (!map) return;
         if (crsCode) map.crs = MapService.parseCrs(crsCode);
-        if (position) map.position = new Point(position, map.crs);
+        if (position) map.position = position;
         if (resolution) map.resolution = resolution;
     });
 
