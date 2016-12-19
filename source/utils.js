@@ -30,7 +30,7 @@ sGis.module('spatialProcessor.utils', [
     sGis.utils.ajax = function(properties) {
         var requestType = properties.type ? properties.type : 'GET';
         if (properties.cache === false) properties.url += '&ts=' + new Date().getTime();
-        if (sGis.browser === 'MSIE 9') {
+        if (sGis.utils.browser === 'MSIE 9') {
             var xdr = new XDomainRequest();
             xdr.onload = function() {
                 if (properties.success) properties.success(xdr.responseText);
