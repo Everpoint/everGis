@@ -68,6 +68,8 @@ sGis.module('spatialProcessor.LayerManager', [
             this._containers.splice(index, 0, container);
             this._layerGroup.insertLayer(container.layer, index);
 
+            this.fire('serviceAdd');
+
             return container;
         }
 
