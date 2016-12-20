@@ -144,6 +144,7 @@ sGis.module('spatialProcessor.Api', [
                             throw Error('cannot parse response')
                         }
 
+                        if (data.Success === false) throw Error(data.Message);
                         if (data.Error) throw Error(JSON.stringify(data.Error));
                         return data;
                     });
