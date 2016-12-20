@@ -61,8 +61,8 @@ sGis.module('spatialProcessor.services.DataSourceService', [
         updateLegend() { this.view && this.view.updateLegend(); }
         get attributesDefinition() { return this.view && this.view.attributesDefinition; }
 
-        setMeta() { return this.view && this.view.setMeta(arguments); }
-        getMeta() { return this.view && this.view.getMeta(arguments); }
+        setMeta() { return this.view && this.view.setMeta.apply(this.view, arguments); }
+        getMeta() { return this.view && this.view.getMeta.apply(this.view, arguments); }
 
         get geometryType() { return this.view && this.view.geometryType; }
         get permissions() { return this.view && this.view.permissions; }
@@ -73,6 +73,11 @@ sGis.module('spatialProcessor.services.DataSourceService', [
         get serviceInfo() { return this._serviceInfo; }
         get isEditable() { return this.view.isEditable; }
         get isFilterable() { return this.view && this.view.isFilterable; }
+
+        get filter() { return this.view && this.view.filter; }
+        set filter(filter) { this.view.filter = filter; }
+
+        setCustomFilter() { return this.view.setCustomFilter.apply(this.view, arguments); }
 
         updateExtent() { return this.view && this.view.updateExtent(); }
     }
