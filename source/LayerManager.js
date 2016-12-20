@@ -27,6 +27,7 @@ sGis.module('spatialProcessor.LayerManager', [
             this._connector = connector;
             this._painter = painter;
             this._containers = [];
+            this._layersMap = new Map();
         }
 
         get containers() { return this._containers; }
@@ -67,6 +68,7 @@ sGis.module('spatialProcessor.LayerManager', [
             if (index < 0 || index > this._containers.length) index = this._containers.length;
             this._containers.splice(index, 0, container);
             this._layerGroup.insertLayer(container.layer, index);
+            this._layersMap.set(container, container.layer);
 
             this.fire('serviceAdd');
 
@@ -92,13 +94,15 @@ sGis.module('spatialProcessor.LayerManager', [
                 return;
             }
 
-            let index = this._layerGroup.indexOf(container.placeholderLayer);
+            let prevLayer = this._layersMap.get(container);
+            let index = prevLayer && this._layerGroup.indexOf(prevLayer) || -1;
             if (index !== -1) {
-                this._layerGroup.removeLayer(container.placeholderLayer);
+                this._layerGroup.removeLayer(prevLayer);
             } else {
                 index = this._layerGroup.layers.length;
             }
             this._layerGroup.insertLayer(container.layer, index);
+            this._layersMap.set(container, container.layer);
             this.fire('serviceUpdate');
         }
 
@@ -111,6 +115,7 @@ sGis.module('spatialProcessor.LayerManager', [
 
             this._layerGroup.removeLayer(container.layer);
             this._containers.splice(this._containers.indexOf(container), 1);
+            this._layersMap.delete(container);
 
             this.fire('serviceRemove', {container});
 

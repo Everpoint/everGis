@@ -58,7 +58,7 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
             for (let i = 0; i < serviceTypeRegistry.length; i++) {
                 if (serviceTypeRegistry[i].condition(serviceInfo)) {
                     this._service = new serviceTypeRegistry[i].constructor(this._name, this._connector, serviceInfo);
-                    this._service.on('visibilityChange childUpdate', this._fireUpdate.bind(this));
+                    this._service.on('visibilityChange childUpdate layerChange', this._fireUpdate.bind(this));
                     if (this._service.layer) {
                         this._service.layer.opacity = this._emptyLayer.opacity;
                         this._service.layer.resolutionLimits = this._emptyLayer.resolutionLimits;
@@ -83,7 +83,6 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
         }
 
         get layer() { return this._service && this._service.layer || this._emptyLayer; }
-        get placeholderLayer() { return this._emptyLayer; }
     }
 
     return ServiceContainer;
