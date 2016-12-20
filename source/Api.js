@@ -240,13 +240,14 @@ sGis.module('spatialProcessor.Api', [
             return this._operation('admin/Services/Create', {serviceType: type}, JSON.stringify(params));
         }
 
-        publishDataView({name, alias, description, isShared, preview, dataSourceName, attributeDefinition}) {
+        publishDataView({name, alias, description, filter, isShared, preview, dataSourceName, attributeDefinition}) {
             return this._publishService('DataView', {
                 Name: name,
                 Alias: alias,
                 Description: description,
                 IsShared: isShared,
                 Preview: preview,
+                Filter: filter,
                 DataSourceName: dataSourceName,
                 AttributesDefinition: attributeDefinition
             });

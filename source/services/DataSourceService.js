@@ -72,6 +72,7 @@ sGis.module('spatialProcessor.services.DataSourceService', [
 
         get serviceInfo() { return this._serviceInfo; }
         get isEditable() { return this.view.isEditable; }
+        get isFilterable() { return this.view && this.view.isFilterable; }
 
         updateExtent() { return this.view && this.view.updateExtent(); }
     }
