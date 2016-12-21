@@ -35,6 +35,8 @@ sGis.module('spatialProcessor.controller.TempView', [
             return this._service;
         }
 
+        get container() { return this._serviceContainer; }
+
         _updateView() {
             if (!this._layerName) return;
 

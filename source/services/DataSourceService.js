@@ -47,6 +47,7 @@ sGis.module('spatialProcessor.services.DataSourceService', [
         get alias() { return this.serviceInfo && this.serviceInfo.alias; }
         get description() { return this.serviceInfo && this.serviceInfo.description; }
         get view() { return this._tempViewController.mapService; }
+        get viewContainer() { return this._tempViewController.container; }
 
         get isDisplayed() { return this.view && this.view.isDisplayed; }
         set isDisplayed(bool) { if (this.view) this.view.isDisplayed = bool; }

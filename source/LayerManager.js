@@ -144,6 +144,7 @@ sGis.module('spatialProcessor.LayerManager', [
         getService (serviceName, recurse = true) {
             for (let i = 0; i < this._containers.length; i++) {
                 if (this._containers[i].name === serviceName) return this._containers[i];
+                if (this._containers[i].service && this._containers[i].service.viewContainer && this._containers[i].service.viewContainer.name === serviceName) return this._containers[i].service.viewContainer;
                 if (recurse && this._containers[i].service && this._containers[i].service.getService) {
                     let result = this._containers[i].service.getService(serviceName);
                     if (result) return result;
