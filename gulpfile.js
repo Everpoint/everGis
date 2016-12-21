@@ -36,7 +36,8 @@ gulp.task('minify-babel', () => {
     return gulp.src(['./source/**/*.js'])
         .pipe(babel({
             presets: ['es2015', 'babili'],
-            plugins: ['remove-comments']
+            plugins: ['remove-comments'],
+            passPerPreset: true
         }))
         .pipe(concat('everGis.babel.min.js'))
         .pipe(gulp.dest('./dist/'))
