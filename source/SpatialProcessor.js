@@ -67,8 +67,8 @@ sGis.module('SpatialProcessor', [
         if (resolution) map.resolution = resolution;
     });
 
-    SpatialProcessor.version = "0.2.1";
-    SpatialProcessor.releaseDate = "05.12.2016";
+    SpatialProcessor.version = "0.2.2";
+    SpatialProcessor.releaseDate = "21.12.2016";
 
     return SpatialProcessor;
     
