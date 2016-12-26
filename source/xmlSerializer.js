@@ -78,7 +78,8 @@ sGis.module('spatialProcessor.parseXML', [
                     Name: 'name',
                     Alias: 'alias',
                     Type: 'type',
-                    Size: 'size'
+                    Size: 'size',
+                    Editable: 'isEditable'
                 };
 
             var parameters = getNodeAttributes(node);
@@ -253,7 +254,8 @@ sGis.module('spatialProcessor.parseXML', [
                 value: value,
                 type: attributeDefinition.type,
                 size: attributeDefinition.size || 0,
-                domain: attributeDefinition.domain
+                domain: attributeDefinition.domain,
+                isEditable: attributeDefinition.isEditable === 'True'
             };
         },
 
