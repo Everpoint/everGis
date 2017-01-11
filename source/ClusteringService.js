@@ -31,7 +31,7 @@ sGis.module('spatialProcessor.ClusteringService', [
                 sizeString = Math.round(bbox.width / options.resolution) + ',' + Math.round(bbox.height / options.resolution);
 
             sGis.utils.ajax({
-                url: this._url + options.storageId + '/?bbox=' + encodeURIComponent(bboxString) + '&size=' + encodeURIComponent(sizeString) + '&_sb=' + this._serverConnector.sessionId,
+                url: this._url + options.storageId + '/?bbox=' + encodeURIComponent(bboxString) + '&size=' + encodeURIComponent(sizeString) + this._serverConnector.sessionSuffix,
                 cache: false,
                 success: function(response) {
                     var clusters = sGis.utils.parseJSON(response);

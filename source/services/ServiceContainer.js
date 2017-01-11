@@ -41,7 +41,7 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
         }
 
         _loadServiceInfo() {
-            const url = this.url + '/?_sb=' + this._connector.sessionId;
+            const url = this.url + '/' + (this._connector.sessionId ? '?_sb=' + this._connector.sessionId : '');
             return utils.ajaxp({url})
                 .then(([response]) => {
                     return utils.parseJSON(response);

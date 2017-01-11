@@ -75,7 +75,7 @@ sGis.module('spatialProcessor.services.MapService', [
         }
 
         _requestLegend() {
-            return utils.ajaxp({url: this.url + 'legend?_sb=' + this._connector.sessionId});
+            return utils.ajaxp({ url: this.url + 'legend' + (this._connector.sessionId ? '?_sb=' + this._connector.sessionId : '') });
         }
 
         get attributesDefinition() {
@@ -133,7 +133,7 @@ sGis.module('spatialProcessor.services.MapService', [
 
         updateExtent() {
             if (this.serviceInfo.capabilities.indexOf('extent') >= 0) {
-                return utils.ajaxp({ url: this.url + 'extent?_sb=' + this._connector.sessionId })
+                return utils.ajaxp({ url: this.url + 'extent' + (this._connector.sessionId ? '?_sb=' + this._connector.sessionId : '') })
                     .then(response => {
                         try {
                             let ext = JSON.parse(response[0]);

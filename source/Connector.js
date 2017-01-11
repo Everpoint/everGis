@@ -17,7 +17,7 @@ sGis.module('spatialProcessor.Connector', [
             // this._rootMapItem = rootMapItem;
             this._failedNotificationRequests = 0;
 
-            this.initializeSession(login, password);
+            if (login) this.initializeSession(login, password);
             
             this.api = new Api(this);
         }
@@ -206,7 +206,7 @@ sGis.module('spatialProcessor.Connector', [
 
         getServiceList: function(callback) {
             sGis.utils.ajax({
-                url: this._url + '?f=json&_sb=' + this._sessionId,
+                url: this._url + '?f=json' + this.sessionSuffix,
                 success: function(data) {
                     try {
                         var response = JSON.parse(data);
@@ -226,6 +226,12 @@ sGis.module('spatialProcessor.Connector', [
         sessionId: {
             get: function() {
                 return this._sessionId;
+            }
+        },
+
+        sessionSuffix: {
+            get: function() {
+                return this._sessionId ? '&_sb=' + this._sessionId : '';
             }
         },
 
