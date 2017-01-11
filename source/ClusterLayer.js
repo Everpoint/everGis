@@ -90,7 +90,7 @@ sGis.module('spatialProcessor.ClusterLayer', [
                     '&bbox=' + bbox.coordinates.join('%2C') +
                     '&algorithm=' + this.algorithm +
                     '&aggregationParameters=' + encodeURIComponent(JSON.stringify(this.aggregationParameters)) +
-                    '&_sb=' + this.sessionId;
+                    (this.sessionId ? '&_sb=' + this.sessionId : '');
         }
 
         _setFeatures(clusters, crs) {

@@ -25,7 +25,7 @@ sGis.module('spatialProcessor.Printer', [
     Printer.prototype = {
         getTemplates: function(properties) {
             sGis.utils.ajax({
-                url: this._serverConnector.url + 'export/templates/?_sb=' + this._serverConnector.sessionId,
+                url: this._serverConnector.url + 'export/templates/' + (this._serverConnector.sessionId ? '?_sb=' + this._serverConnector.sessionId : ''),
                 cache: false,
                 success: function(data) {
                     try {
@@ -46,7 +46,7 @@ sGis.module('spatialProcessor.Printer', [
             var successHandler = properties.success,
                 self = this;
             properties.success = function() {
-                var link = self._serverConnector.url + 'export/preview/?noHeader=true&f=binary&_sb=' + self._serverConnector.sessionId + '&ts=' + Date.now();
+                var link = self._serverConnector.url + 'export/preview/?noHeader=true&f=binary' + self._serverConnector.sessionSuffix + '&ts=' + Date.now();
                 if (successHandler) successHandler(link);
             };
 
@@ -57,7 +57,7 @@ sGis.module('spatialProcessor.Printer', [
             var successHandler = properties.success,
                 self = this;
             properties.success = function() {
-                var link = self._serverConnector.url + 'export/print/?noHeader=true&f=' + (properties.useApi ? 'json' : 'binary') + '&_sb=' + self._serverConnector.sessionId + '&ts=' + Date.now() + (properties.useApi ? '&asLink=true' : '');
+                var link = self._serverConnector.url + 'export/print/?noHeader=true&f=' + (properties.useApi ? 'json' : 'binary') + self._serverConnector.sessionSuffix + '&ts=' + Date.now() + (properties.useApi ? '&asLink=true' : '');
                 if (successHandler) {
                     if (properties.useApi) {
                         sGis.utils.ajax({url: link, success: function(id) {
@@ -120,7 +120,7 @@ sGis.module('spatialProcessor.Printer', [
             // };
 
             sGis.utils.ajax({
-                url: this._serverConnector.url + 'export/store/?_sb=' + this._serverConnector.sessionId,
+                url: this._serverConnector.url + 'export/store/' + (this._serverConnector.sessionId ? '?_sb=' + this._serverConnector.sessionId : ''),
                 type: 'POST',
                 data: 'exportDefinition=' + encodeURIComponent(JSON.stringify(description)) + '&f=json',
                 cache: false,

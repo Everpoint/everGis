@@ -11,7 +11,7 @@ sGis.module('spatialProcessor.services.DataViewService', [
         constructor(name, connector, serviceInfo) {
             super(name, connector, serviceInfo);
             this._setLayer();
-            this._subscribeForNotifications()
+            if (connector.sessionId) this._subscribeForNotifications()
         }
 
         _setLayer() {
@@ -41,7 +41,7 @@ sGis.module('spatialProcessor.services.DataViewService', [
                 'bboxSR=' + sr + '&' +
                 'imageSR=' + sr + '&' +
                 'size=' + imgWidth + '%2C' + imgHeight + '&' +
-                'f=image&_sb=' + this.connector.sessionId;
+                'f=image' + this.connector.sessionSuffix;
         }
         
         get customFilter() { return this._customFilter; }

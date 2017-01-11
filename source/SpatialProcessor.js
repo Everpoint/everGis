@@ -30,7 +30,7 @@ sGis.module('SpatialProcessor', [
 
             this.project = new Project(this.api);
 
-            if (this._connector.sessionId) {
+            if (this._connector.sessionId || !properties.login) {
                 this._init(properties);
             } else {
                 this._connector.once('sessionInitialized', this._init.bind(this, properties));
