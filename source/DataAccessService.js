@@ -214,6 +214,76 @@ sGis.module('spatialProcessor.DataAccessService', [
                     success: success
                 };
             });
+        },
+
+        /**
+         * Calculates the buffers and displays them in the controller mapServer
+         * @param {Object} properties
+         * @param {Number|String[]} properties.distances - an array of buffer radiuses or attribute names, which should be used as a value for radius.
+         * @param {Boolean} properties.unionResults - whether to unite buffers into one object.
+         * @param {Boolean} properties.subtractObject - whether to subtract the source object from the resulting buffer.
+         * @param {Number} [properties.processDelay] - server processes objects in batches of 200. This parameter is a sleep time in ms between batches. Use smaller value for quicker process.
+         * @param {Boolean} properties.subtractInnerBuffer - whether to subtract inner buffer from outer buffer. This option has no effect if "unionResult" is true.
+         * @param {String} properties.sourceServiceName - name of the service with source geometries
+         * @param {String} properties.targetServiceName - name of the service to which to write calculated buffers
+         * @param {Function} properties.requested
+         * @param {Function} properties.success
+         * @param {Function} properties.error
+         */
+        calculateBuffers(properties) {
+            this.__operation(function() {
+                let params = {
+                    distances: JSON.stringify(properties.distances),
+                    unionResults: properties.unionResults,
+                    subtractObject: properties.subtractObject,
+                    processDelay: properties.processDelay,
+                    subtractInnerBuffer: properties.subtractInnerBuffer,
+                    sourceServiceName: properties.sourceServiceName,
+                    targetServiceName: properties.targetServiceName
+                };
+
+                return {
+                    operation: 'buffer',
+                    dataParameters: params,
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
+        },
+
+        /**
+         * Build isochrone from the center of every object in the given storage
+         * @param {Object} properties
+         * @param {Number} properties.duration - time in seconds for isochrone limit
+         * @param {String} properties.solver - name of the route builder backend
+         * @param {String} properties.sourceServiceName - name of the service of the source geometries
+         * @param {String} properties.targetServiceName - name of the service the isochrones will be saved to
+         * @param {Number} [properties.resolutionK] - the resolution coefficient of isochrone. 0.1 would mean, that 20x20 grid will be used, 0.5 -> 4x4.
+         * @param {Boolean} [properties.uniteResults] - whether to unite the isochrones from different objects
+         * @param {Function} properties.requested
+         * @param {Function} properties.success
+         * @param {Function} properties.error
+         */
+        buildIsochroneByStorage: function(properties) {
+            this.__operation(function() {
+                var duration = 'duration=' + properties.duration;
+                var solver = 'solver=' + properties.solver;
+                var sourceServiceName = 'sourceServiceName=' + properties.sourceServiceName;
+                var targetServiceName = 'targetServiceName=' + properties.targetServiceName;
+
+                var param = [duration, solver, sourceServiceName, targetServiceName].join('&');
+
+                if (properties.resolutionK) param += '&resolutionK=' + properties.resolutionK;
+                if (properties.uniteResults !== undefined) param += '&uniteResults=' + properties.uniteResults;
+                return {
+                    operation: 'isochroneByStorage',
+                    dataParameters: param,
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
         }
     };
     
