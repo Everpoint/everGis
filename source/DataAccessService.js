@@ -250,6 +250,40 @@ sGis.module('spatialProcessor.DataAccessService', [
                     requested: properties.requested
                 };
             });
+        },
+
+        /**
+         * Build isochrone from the center of every object in the given storage
+         * @param {Object} properties
+         * @param {Number} properties.duration - time in seconds for isochrone limit
+         * @param {String} properties.solver - name of the route builder backend
+         * @param {String} properties.sourceServiceName - name of the service of the source geometries
+         * @param {String} properties.targetServiceName - name of the service the isochrones will be saved to
+         * @param {Number} [properties.resolutionK] - the resolution coefficient of isochrone. 0.1 would mean, that 20x20 grid will be used, 0.5 -> 4x4.
+         * @param {Boolean} [properties.uniteResults] - whether to unite the isochrones from different objects
+         * @param {Function} properties.requested
+         * @param {Function} properties.success
+         * @param {Function} properties.error
+         */
+        buildIsochroneByStorage: function(properties) {
+            this.__operation(function() {
+                var duration = 'duration=' + properties.duration;
+                var solver = 'solver=' + properties.solver;
+                var sourceServiceName = 'sourceServiceName=' + properties.sourceServiceName;
+                var targetServiceName = 'targetServiceName=' + properties.targetServiceName;
+
+                var param = [duration, solver, sourceServiceName, targetServiceName].join('&');
+
+                if (properties.resolutionK) param += '&resolutionK=' + properties.resolutionK;
+                if (properties.uniteResults !== undefined) param += '&uniteResults=' + properties.uniteResults;
+                return {
+                    operation: 'isochroneByStorage',
+                    dataParameters: param,
+                    success: properties.success,
+                    error: properties.error,
+                    requested: properties.requested
+                };
+            });
         }
     };
     
