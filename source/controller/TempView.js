@@ -22,9 +22,7 @@ sGis.module('spatialProcessor.controller.TempView', [
                 return {
                     operation: 'resetView',
                     dataParameters: paramsString,
-                    success: () => {
-                        this._updateView();
-                    },
+                    success: success,
                     error: error,
                     requested: requested
                 };
