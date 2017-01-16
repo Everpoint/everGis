@@ -8,6 +8,7 @@ sGis.module('spatialProcessor.controller.TempView', [
     class TempView extends Controller {
         constructor(connector) {
             super({ _type: 'tempView' });
+            this.createDataViewOnInit = false;
             this.__initialize(connector, {sync: true}, function() {
                 this.initialized = true;
                 this.fire('initialize');
@@ -18,6 +19,8 @@ sGis.module('spatialProcessor.controller.TempView', [
             this.__operation(function() {
                 let params = { sourceServiceName };
                 let paramsString = Object.keys(params).map(key => `${key}=${params[key]}`).join('&');
+
+                this._updateView();
 
                 return {
                     operation: 'resetView',
