@@ -195,12 +195,12 @@ sGis.module('spatialProcessor.Connector', [
             }
         },
 
-        registerOperation: function(operationId, callback) {
+        registerOperation: function(operationId, callback, progressCallback) {
             if (this._latestOperationNotification && (this._latestOperationNotification.operation.id === operationId)) {
                 callback(this._latestOperationNotification);
                 this._latestOperationNotification = null;
             } else {
-                this._operationList[operationId] = callback;
+                this._operationList[operationId] = { finalCallback: callback, progressCallback: progressCallback };
             }
         },
 
@@ -266,8 +266,12 @@ sGis.module('spatialProcessor.Connector', [
         'DAS': function(connector, data, type) {
             var response = sGis.spatialProcessor.parseXML(data);
             if (connector._operationList[response.operation.id]) {
-                connector._operationList[response.operation.id](response);
-                delete connector._operationList[response.operation.id];
+                if ( response.operation.status === 'Running') {
+                    if (connector._operationList[response.operation.id].progressCallback) connector._operationList[response.operation.id].progressCallback(response);
+                } else {
+                    connector._operationList[response.operation.id].finalCallback(response);
+                    delete connector._operationList[response.operation.id];
+                }
             } else {
                 connector._latestOperationNotification = response;
             }

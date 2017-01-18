@@ -170,7 +170,7 @@ sGis.module('spatialProcessor.Controller', [
                                     } else {
                                         if (parameters.error) parameters.error(result);
                                     }
-                                });
+                                }, parameters.onProgress);
                             }
 
                         } else if (response.status === 'error' && parameters.error) {
