@@ -95,7 +95,7 @@ sGis.module('spatialProcessor.LayerManager', [
             }
 
             let prevLayer = this._layersMap.get(container);
-            let index = prevLayer && this._layerGroup.indexOf(prevLayer) || -1;
+            let index = prevLayer && this._layerGroup.indexOf(prevLayer);
             if (index !== -1) {
                 this._layerGroup.removeLayer(prevLayer);
             } else {
