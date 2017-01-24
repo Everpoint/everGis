@@ -8,6 +8,7 @@ sGis.module('spatialProcessor.controller.TempView', [
     class TempView extends Controller {
         constructor(connector) {
             super({ _type: 'tempView' });
+            this.createDataViewOnInit = false;
             this.__initialize(connector, {sync: true}, function() {
                 this.initialized = true;
                 this.fire('initialize');
@@ -23,7 +24,7 @@ sGis.module('spatialProcessor.controller.TempView', [
                     operation: 'resetView',
                     dataParameters: paramsString,
                     success: () => {
-                        this._updateView();
+                        this._updateView().then(success);
                     },
                     error: error,
                     requested: requested
@@ -38,12 +39,17 @@ sGis.module('spatialProcessor.controller.TempView', [
         get container() { return this._serviceContainer; }
 
         _updateView() {
-            if (!this._layerName) return;
+            return new Promise((resolve, reject)=>{
+                !this._layerName && reject(new Error('Temp view layer name error'));
 
-            this._serviceContainer = new ServiceContainer(this._spatialProcessor, this._layerName);
-            this._serviceContainer.once('stateUpdate', () => {
-                this._service = this._serviceContainer.service;
-                this.fire('viewUpdate');
+                this._serviceContainer = new ServiceContainer(this._spatialProcessor, this._layerName);
+                this._serviceContainer.once('stateUpdate', () => {
+                    this._service = this._serviceContainer.service;
+                    this.fire('viewUpdate');
+
+                    !this._service && reject(new Error('State update error'));
+                    resolve(this._service);
+                });
             });
         }
     }

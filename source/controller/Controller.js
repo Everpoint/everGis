@@ -24,7 +24,7 @@ sGis.module('spatialProcessor.Controller', [
 
     let ext = {
         _display: true,
-
+        createDataViewOnInit: true,
         show: function() {
             if (this._layer) {
                 this._layer.display = true;
@@ -82,13 +82,7 @@ sGis.module('spatialProcessor.Controller', [
                         self._id = response.ServiceId;
                         if (response.DataViewServiceName) {
                             self._layerName = response.DataViewServiceName;
-                            self._serviceContainer = new ServiceContainer(self._spatialProcessor, self._layerName);
-                            self._serviceContainer.once('stateUpdate', () => {
-                                if (self._serviceContainer.service) {
-                                    self._service = self._serviceContainer.service;
-                                    if (self._map) self._map.addLayer(self._service.layer);
-                                }
-                            });
+                            self.createDataViewOnInit && self._createContainer();
                         }
 
                         if (callback) callback.call(self);
@@ -101,6 +95,16 @@ sGis.module('spatialProcessor.Controller', [
                 },
                 error: function() {
                     self._failInitialization();
+                }
+            });
+        },
+
+        _createContainer () {
+            this._serviceContainer = new ServiceContainer( this._spatialProcessor,  this._layerName);
+            this._serviceContainer.once('stateUpdate', () => {
+                if ( this._serviceContainer.service) {
+                    this._service =  this._serviceContainer.service;
+                    if ( this._map)  this._map.addLayer(this._service.layer);
                 }
             });
         },
@@ -166,7 +170,7 @@ sGis.module('spatialProcessor.Controller', [
                                     } else {
                                         if (parameters.error) parameters.error(result);
                                     }
-                                });
+                                }, parameters.onProgress);
                             }
 
                         } else if (response.status === 'error' && parameters.error) {

@@ -42,18 +42,8 @@ sGis.module('spatialProcessor.controller.ImportData', [
                     dataParameters: param,
                     success: properties.success,
                     error: properties.error,
-                    requested: properties.requested
-                };
-            });
-        },
-
-        getProgress: function(properties) {
-            this.__operation(function() {
-                return {
-                    operation: 'getProgress',
-                    success: properties.success,
-                    error: properties.error,
-                    requested: properties.requested
+                    requested: properties.requested,
+                    onProgress: properties.onProgress
                 };
             });
         }

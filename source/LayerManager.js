@@ -95,7 +95,7 @@ sGis.module('spatialProcessor.LayerManager', [
             }
 
             let prevLayer = this._layersMap.get(container);
-            let index = prevLayer && this._layerGroup.indexOf(prevLayer) || -1;
+            let index = prevLayer && this._layerGroup.indexOf(prevLayer);
             if (index !== -1) {
                 this._layerGroup.removeLayer(prevLayer);
             } else {
@@ -126,7 +126,11 @@ sGis.module('spatialProcessor.LayerManager', [
             let container = this._containers.find(x => x.name === name);
             let currIndex = this._containers.indexOf(container);
             let index = currIndex + direction;
-            if (index < 0 || index >= this._containers.length) return;
+            if (index < 0) {
+                index = 0;
+            } else if (index >= this._containers.length) {
+                index = this._containers.length-1
+            }
 
             this._containers = utils.arrayMove(this._containers, currIndex, index);
             this._layerGroup.insertLayer(container.layer, index);
@@ -159,7 +163,7 @@ sGis.module('spatialProcessor.LayerManager', [
          * @returns {Array.<Object>} visible layers
          */
         getDisplayedServiceList () {
-            return this.getServiceList().filter(service => service.layer && service.isDisplayed && !(service.layer instanceof LayerGroup));
+            return this.getServiceList().filter(({layer, isDisplayed}) => layer && isDisplayed && !(layer instanceof LayerGroup));
         }
 
         getServiceList() {
