@@ -104,7 +104,7 @@ sGis.module('spatialProcessor.Printer', [
             for (var i = 0, len = services.length; i < len; i++) {
                 let service = services[i];
                 description.ServiceStateDefinition.push({
-                    UniqueName: service.name || service.id,
+                    UniqueName: service.view && service.view.name || service.name || service.id,
                     Opactiy: service.layer.opacity,
                     IsVisible: service.isDisplayed,
                     Title: service.Name,

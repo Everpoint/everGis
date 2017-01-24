@@ -50,6 +50,11 @@ sGis.module('SpatialProcessor', [
             }
         }
 
+        kill() {
+            if (this._connector) this._connector.cancelNotificationRequest();
+            this._map.wrapper = null;
+        }
+
         get map() { return this._map; }
         get painter() { return this._painter; }
         get login() { return this._login; }
