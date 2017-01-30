@@ -20,12 +20,18 @@ sGis.module('spatialProcessor.services.TileService', [
             }
 
             this._tileScheme = tileScheme;
-
-            let url = this.serviceInfo.sourceUrl || this.url + 'tile/{z}/{y}/{x}' + (this.connector.sessionId ? '?_sb=' + this.connector.sessionId : '');
-            this._layer = new TileLayer(url, { tileScheme: tileScheme, crs: this.crs, isDisplayed: this.isDisplayed });
+            this._layer = new TileLayer(this._getUrl(), { tileScheme: tileScheme, crs: this.crs, isDisplayed: this.isDisplayed });
         }
 
         get tileScheme() { return this._tileScheme; }
+
+        _getUrl() {
+            if (this.serviceInfo.sourceUrl) {
+                return this.serviceInfo.sourceUrl.replace(/^https?:/, '');
+            } else {
+                return this.url + 'tile/{z}/{y}/{x}' + (this.connector.sessionId ? '?_sb=' + this.connector.sessionId : '');
+            }
+        }
     }
 
     function getTileScheme(tileInfo, crs) {
