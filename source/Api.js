@@ -378,6 +378,11 @@ sGis.module('spatialProcessor.Api', [
         getServiceDependencies ({name}) {
             return this._operation('serviceCatalog/dependencies', {name})
         }
+
+        geocode ({ crs, providers, query }) {
+            let sr = crs.stringDescription;
+            return this._operation('geocode', {sr, providers: JSON.stringify(providers), query });
+        }
     }
 
     return Api;
