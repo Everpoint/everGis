@@ -379,12 +379,42 @@ sGis.module('spatialProcessor.Api', [
             return this._operation('serviceCatalog/dependencies', {name})
         }
 
-        geocode ({ crs, providers, query }) {
-            let sr = crs.stringDescription;
-            return this._operation('geocode', {sr, providers: JSON.stringify(providers), query });
+        /**
+         * Given an address returns coordinates of points that correspond to that address.
+         * @param {String} query
+         * @param {String[]} providers
+         * @param {sGis.Crs} [crs=sGis.CRS.wgs84]
+         * @returns {Promise.<AddressSearchResult[]>}
+         */
+        geocode (query, providers, crs = sGis.CRS.wgs84) {
+            let requestCRS = crs === sGis.CRS.geo ? sGis.CRS.wgs84 : crs;
+
+            let sr = requestCRS.stringDescription;
+            return this._operation('geocode', {sr, providers: JSON.stringify(providers), query }).then((response) => {
+                if (!Array.isArray(response)) throw new Exception('Search failed');
+
+                return response.map(item => {
+                    if (crs === sGis.CRS.geo) {
+                        let position = [item.Geometry[1], item.Geometry[0]];
+                        return { address: item.Address, source: item.Source, score: item.Score, position: position, point: new sGis.Point(position, crs)};
+                    } else {
+                        return { address: item.Address, source: item.Source, score: item.Score, position: item.Geometry, point: new sGis.Point(item.Geometry, crs)};
+                    }
+                });
+            });
         }
     }
 
     return Api;
 
 });
+
+/**
+ * @typedef AddressSearchResult
+ * @type Object
+ * @prop {String} address
+ * @prop {String} source
+ * @prop {Number} score
+ * @prop {Position} position
+ * @prop {sGis.Point} point
+ */
