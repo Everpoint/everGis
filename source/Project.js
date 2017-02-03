@@ -59,12 +59,13 @@ sGis.module('spatialProcessor.Project', [
             });
         }
 
-        save() {
+        save(isShared) {
             let operation = this._isLoaded ? 'projects/update' : 'projects/create';
             return this._api.operation(operation, {
                 name: this.name,
                 alias: this.alias,
-                description: this.description
+                description: this.description,
+                isShared: isShared
             }, JSON.stringify(this._data));
         }
 

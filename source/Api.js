@@ -1,6 +1,7 @@
 sGis.module('spatialProcessor.Api', [
     'utils',
-], function(utils) {
+    'spatialProcessor.JsonSerializer'
+], function(utils, JsonSerializer) {
 
     'use strict';
 
@@ -365,6 +366,12 @@ sGis.module('spatialProcessor.Api', [
             };
 
             return this._operation('data/get', params);
+        }
+
+        pickByGeometry({ services, geometry, resolution}) {
+            return this._operation('data/pickByGeometry', { services, geom: JSON.stringify(JsonSerializer.serializeGeometry(geometry)), res: resolution}).then(response => {
+                return response.map(x => JsonSerializer.deserializeFeature(x, geometry.crs));
+            });
         }
 
         getFunctionList({ targetServiceName }) {
