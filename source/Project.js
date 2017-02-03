@@ -65,7 +65,7 @@ sGis.module('spatialProcessor.Project', [
                 name: this.name,
                 alias: this.alias,
                 description: this.description,
-                isShared: isShared
+                isShared: !!isShared
             }, JSON.stringify(this._data));
         }
 
