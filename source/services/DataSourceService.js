@@ -19,7 +19,7 @@ sGis.module('spatialProcessor.services.DataSourceService', [
 
         _initialize() {
             this._initializationPromise = new Promise((resolve, reject) => {
-                this._tempViewController = new TempView(this._connector);
+                this._tempViewController = new TempView(this._connector, this.name);
                 this._tempViewController.resetView({
                     sourceServiceName: this._name,
                     success: () => {
@@ -81,6 +81,8 @@ sGis.module('spatialProcessor.services.DataSourceService', [
         setCustomFilter() { return this.view.setCustomFilter.apply(this.view, arguments); }
 
         updateExtent() { return this.view && this.view.updateExtent(); }
+
+        get localName() { return this.view && this.view.name; }
     }
 
     ServiceContainer.register(serviceInfo => serviceInfo.serviceType === 'DataSourceService', DataSourceService);

@@ -6,8 +6,9 @@ sGis.module('spatialProcessor.controller.TempView', [
     'use strict';
 
     class TempView extends Controller {
-        constructor(connector) {
+        constructor(connector, localName) {
             super({ _type: 'tempView' });
+            this._localName = localName;
             this.createDataViewOnInit = false;
             this.__initialize(connector, {sync: true}, function() {
                 this.initialized = true;
