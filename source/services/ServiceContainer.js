@@ -23,6 +23,8 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
         get url() { return this._connector.url + this._name; }
         get name() { return this._name; }
 
+        get localName() { return this._service && this._service.localName; }
+
         _init(serviceInfo) {
             let promise = serviceInfo ? Promise.resolve(serviceInfo) : this._loadServiceInfo();
 
