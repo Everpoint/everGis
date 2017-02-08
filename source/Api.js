@@ -258,12 +258,13 @@ sGis.module('spatialProcessor.Api', [
             });
         }
 
-        publishDataSource({name, alias, description, isShared, srid, geometryType, attributeDefinition}) {
+        publishDataSource({name, alias, description, preview, isShared, srid, geometryType, attributeDefinition}) {
             return this._publishService('DataSourceService', {
                 Name: name,
                 Alias: alias,
                 Description: description,
                 IsShared: isShared,
+                Preview: preview,
                 AttributesDefinition: attributeDefinition,
                 Srid: srid,
                 GeometryType: geometryType
