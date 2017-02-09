@@ -10,7 +10,6 @@ sGis.module('spatialProcessor.ServiceGroup', [
             super();
             this._name = name;
             this._children = options.children || [];
-            this._children.forEach(container => this._setListeners(container));
 
             this.alias = options.alias;
 
@@ -19,6 +18,8 @@ sGis.module('spatialProcessor.ServiceGroup', [
 
             this._forwardEvent = this.forwardEvent.bind(this);
             this._onStateUpdate = this._onStateUpdate.bind(this);
+
+            this._children.forEach(container => this._setListeners(container));
         }
 
         get name() { return this._name}
