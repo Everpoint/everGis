@@ -13,7 +13,6 @@ sGis.module('spatialProcessor.services.ServiceGroup', [
 
             this._initializationPromise = new Promise((resolve, reject) => {
                 setTimeout(() => {
-                    this._setForwardListeners();
                     this._updateChildLayers();
                     resolve();
                 }, 0);
