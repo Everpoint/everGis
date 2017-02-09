@@ -393,7 +393,7 @@ sGis.module('spatialProcessor.Api', [
          * @param {sGis.Crs} [crs=sGis.CRS.wgs84]
          * @returns {Promise.<AddressSearchResult[]>}
          */
-        geocode (query, providers, crs = sGis.CRS.wgs84) {
+        geocode(query, providers, crs = sGis.CRS.wgs84) {
             let requestCRS = crs === sGis.CRS.geo ? sGis.CRS.wgs84 : crs;
 
             let sr = requestCRS.stringDescription;

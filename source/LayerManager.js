@@ -43,7 +43,7 @@ sGis.module('spatialProcessor.LayerManager', [
 
         updateService (name) {
             let service = this.getService(name, false);
-            let index = this._containers.indexOf(service);
+            let index = this.children.indexOf(service);
             this.removeService(service);
             this.loadService(name, index);
         }
