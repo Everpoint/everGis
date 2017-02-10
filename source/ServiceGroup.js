@@ -111,7 +111,11 @@ sGis.module('spatialProcessor.ServiceGroup', [
             return children;
         }
 
-        getDisplayedSerivces(recurse) {
+        createFolder (name) {
+            this.insertService(new ServiceGroup(name), 0);
+        }
+
+        getDisplayedServices(recurse) {
             return this.getServices(recurse).filter(s => s.layer && s.isDisplayed && !(s.layer instanceof LayerGroup));
         }
     }

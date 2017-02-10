@@ -25,6 +25,15 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
 
         get localName() { return this._service && this._service.localName; }
 
+        get isDisplayed() { return this._service && this._service.isDisplayed; }
+        set isDisplayed(bool) {
+            if (this._service && this._service.isDisplayed !== bool) {
+                this._service.isDisplayed = bool;
+                this.fire('visibilityChange');
+            }
+        }
+
+
         _init(serviceInfo) {
             let promise = serviceInfo ? Promise.resolve(serviceInfo) : this._loadServiceInfo();
 
