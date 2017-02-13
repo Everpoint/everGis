@@ -1,9 +1,8 @@
 sGis.module('spatialProcessor.ServiceGroup', [
     'utils',
     'LayerGroup',
-    'spatialProcessor.services.ServiceContainer',
     'EventHandler'
-], (utils, LayerGroup, ServiceContainer, EventHandler) => {
+], (utils, LayerGroup, EventHandler) => {
     'use strict';
 
     class ServiceGroup extends EventHandler {
