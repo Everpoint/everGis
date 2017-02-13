@@ -1,8 +1,9 @@
 sGis.module('spatialProcessor.ServiceGroup', [
     'utils',
     'LayerGroup',
+    'spatialProcessor.services.ServiceContainer',
     'EventHandler'
-], (utils, LayerGroup, EventHandler) => {
+], (utils, LayerGroup, ServiceContainer, EventHandler) => {
     'use strict';
 
     class ServiceGroup extends EventHandler {
@@ -78,7 +79,10 @@ sGis.module('spatialProcessor.ServiceGroup', [
         }
 
         _updateChildLayers() {
-            let layers = this._children.filter(container => container.service && container.service.layer).map(container => container.service.layer);
+            let layers = this._children
+                .filter(container => container.service && container.service.layer)
+                .map(container => container.service.layer);
+
             layers.forEach((layer, index) => {
                 if (this._layer.layers[index] !== layer) this._layer.insertLayer(layer, index);
             });
@@ -109,10 +113,6 @@ sGis.module('spatialProcessor.ServiceGroup', [
             });
 
             return children;
-        }
-
-        createFolder (name) {
-            this.insertService(new ServiceGroup(name), 0);
         }
 
         getDisplayedServices(recurse) {

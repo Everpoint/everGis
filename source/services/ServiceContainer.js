@@ -10,14 +10,18 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
     let serviceTypeRegistry = [];
 
     class ServiceContainer extends EventHandler {
-        constructor(connector, serviceName, serviceInfo) {
+        constructor(connector, serviceName, {serviceInfo, service}={}) {
             super();
 
             this._connector = connector;
             this._name = serviceName;
             this._emptyLayer = new FeatureLayer();
 
-            this._init(serviceInfo);
+            if (service) {
+                this._initWithService(service);
+            } else {
+                this._init(serviceInfo);
+            }
         }
 
         get url() { return this._connector.url + this._name; }
@@ -25,14 +29,9 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
 
         get localName() { return this._service && this._service.localName; }
 
-        get isDisplayed() { return this._service && this._service.isDisplayed; }
-        set isDisplayed(bool) {
-            if (this._service && this._service.isDisplayed !== bool) {
-                this._service.isDisplayed = bool;
-                this.fire('visibilityChange');
-            }
+        _initWithService(service) {
+            this._service = service;
         }
-
 
         _init(serviceInfo) {
             let promise = serviceInfo ? Promise.resolve(serviceInfo) : this._loadServiceInfo();
