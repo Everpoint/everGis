@@ -78,7 +78,10 @@ sGis.module('spatialProcessor.ServiceGroup', [
         }
 
         _updateChildLayers() {
-            let layers = this._children.filter(container => container.service && container.service.layer).map(container => container.service.layer);
+            let layers = this._children
+                .filter(container => container.service && container.service.layer)
+                .map(container => container.service.layer);
+
             layers.forEach((layer, index) => {
                 if (this._layer.layers[index] !== layer) this._layer.insertLayer(layer, index);
             });
@@ -111,7 +114,7 @@ sGis.module('spatialProcessor.ServiceGroup', [
             return children;
         }
 
-        getDisplayedSerivces(recurse) {
+        getDisplayedServices(recurse) {
             return this.getServices(recurse).filter(s => s.layer && s.isDisplayed && !(s.layer instanceof LayerGroup));
         }
     }
