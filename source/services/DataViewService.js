@@ -2,8 +2,9 @@ sGis.module('spatialProcessor.services.DataViewService', [
     'DynamicLayer',
     'spatialProcessor.services.MapService',
     'spatialProcessor.ClusterLayer',
-    'spatialProcessor.services.ServiceContainer'
-], (DynamicLayer, MapService, ClusterLayer, ServiceContainer) => {
+    'spatialProcessor.services.ServiceContainer',
+    'spatialProcessor.DataFilter'
+], (DynamicLayer, MapService, ClusterLayer, ServiceContainer, DataFilter) => {
 
     'use strict';
 
@@ -11,6 +12,7 @@ sGis.module('spatialProcessor.services.DataViewService', [
         constructor(name, connector, serviceInfo) {
             super(name, connector, serviceInfo);
             this._setLayer();
+            if (serviceInfo.dataFilter) this._dataFilter = DataFilter.deserialize(serviceInfo.dataFilter);
             if (connector.sessionId) this._subscribeForNotifications()
         }
 
@@ -43,6 +45,8 @@ sGis.module('spatialProcessor.services.DataViewService', [
                 'size=' + imgWidth + '%2C' + imgHeight + '&' +
                 'f=image' + this.connector.sessionSuffix;
         }
+
+        get dataFilter() { return this._dataFilter; }
         
         get customFilter() { return this._customFilter; }
 

@@ -52,12 +52,10 @@ sGis.module('spatialProcessor.ServiceGroup', [
         }
 
         _setListeners(container) {
-            container.on('visibilityChange', this._forwardEvent);
             container.on('stateUpdate', this._onStateUpdate);
         }
 
         _removeListeners(container) {
-            container.off('visibilityChange', this._forwardEvent);
             container.off('stateUpdate', this._onStateUpdate);
         }
 
