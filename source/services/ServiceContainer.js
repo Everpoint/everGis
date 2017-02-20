@@ -10,17 +10,18 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
     let serviceTypeRegistry = [];
 
     class ServiceContainer extends EventHandler {
-        constructor(connector, serviceName, {serviceInfo, service, isDisplayed}={}) {
+        constructor(connector, serviceName, {serviceInfo, service, isDisplayed=true}={}) {
             super();
 
             this._connector = connector;
             this._name = serviceName;
             this._emptyLayer = new FeatureLayer();
+            this._emptyLayer.isDisplayed = isDisplayed;
 
             if (service) {
                 this._initWithService(service);
             } else {
-                this._init(serviceInfo, isDisplayed);
+                this._init(serviceInfo);
             }
         }
 
@@ -39,14 +40,14 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
             service.on('stateUpdate', this.forwardEvent.bind(this));
         }
 
-        _init(serviceInfo, isDisplayed) {
+        _init(serviceInfo) {
             let promise = serviceInfo ? Promise.resolve(serviceInfo) : this._loadServiceInfo();
 
             promise.then(serviceInfo => {
                     serviceInfo.name = name;
 
                     if (serviceInfo.error) throw new Error(serviceInfo.error.message);
-                    return this._createService(serviceInfo, isDisplayed);
+                    return this._createService(serviceInfo);
                 })
                 .catch(error => {
                     this._failInitialization(error.message || 'Unknown error');
@@ -70,7 +71,7 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
             this.fire('stateUpdate');
         }
 
-        _createService(serviceInfo, isDisplayed) {
+        _createService(serviceInfo) {
             for (let i = 0; i < serviceTypeRegistry.length; i++) {
                 if (serviceTypeRegistry[i].condition(serviceInfo)) {
                     this._service = new serviceTypeRegistry[i].constructor(this._name, this._connector, serviceInfo);
@@ -78,7 +79,7 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
                     if (this._service.layer) {
                         this._service.layer.opacity = this._emptyLayer.opacity;
                         this._service.layer.resolutionLimits = this._emptyLayer.resolutionLimits;
-                        this._service.isDisplayed = isDisplayed === undefined ? this._emptyLayer.isDisplayed : isDisplayed;
+                        this._service.isDisplayed = this._emptyLayer.isDisplayed;
                     }
                     return this._service.initializationPromise;
                 }
