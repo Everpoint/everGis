@@ -31,6 +31,12 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
 
         _initWithService(service) {
             this._service = service;
+            this._setListeners(service);
+        }
+
+        _setListeners(service) {
+            service.on('visibilityChange childUpdate layerChange', this._fireUpdate.bind(this));
+            service.on('stateUpdate', this.forwardEvent.bind(this));
         }
 
         _init(serviceInfo) {
@@ -68,7 +74,7 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
             for (let i = 0; i < serviceTypeRegistry.length; i++) {
                 if (serviceTypeRegistry[i].condition(serviceInfo)) {
                     this._service = new serviceTypeRegistry[i].constructor(this._name, this._connector, serviceInfo);
-                    this._service.on('visibilityChange childUpdate layerChange', this._fireUpdate.bind(this));
+                    this._setListeners(this._service);
                     if (this._service.layer) {
                         this._service.layer.opacity = this._emptyLayer.opacity;
                         this._service.layer.resolutionLimits = this._emptyLayer.resolutionLimits;
