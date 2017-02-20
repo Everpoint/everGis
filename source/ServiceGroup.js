@@ -92,8 +92,8 @@ sGis.module('spatialProcessor.ServiceGroup', [
         getService(serviceName, recurse = true) {
             for (let i = 0; i < this._children.length; i++) {
                 if (this._children[i].name === serviceName || this._children[i].localName === serviceName) return this._children[i];
-                if (recurse && this._children.service && this._children.service.children) {
-                    let found = this._children.service.getService(serviceName, true);
+                if (recurse && this._children[i].service && this._children[i].service.children) {
+                    let found = this._children[i].service.getService(serviceName, true);
                     if (found) return found;
                 }
             }
@@ -112,7 +112,7 @@ sGis.module('spatialProcessor.ServiceGroup', [
             return children;
         }
 
-        getDisplayedServices(recurse) {
+        getDisplayedServices(recurse = true) {
             return this.getServices(recurse).filter(s => s.layer && s.isDisplayed && !(s.layer instanceof LayerGroup));
         }
     }
