@@ -10,7 +10,7 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
     let serviceTypeRegistry = [];
 
     class ServiceContainer extends EventHandler {
-        constructor(connector, serviceName, {serviceInfo, service}={}) {
+        constructor(connector, serviceName, {serviceInfo, service, isDisplayed}={}) {
             super();
 
             this._connector = connector;
@@ -20,7 +20,7 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
             if (service) {
                 this._initWithService(service);
             } else {
-                this._init(serviceInfo);
+                this._init(serviceInfo, isDisplayed);
             }
         }
 
@@ -39,14 +39,14 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
             service.on('stateUpdate', this.forwardEvent.bind(this));
         }
 
-        _init(serviceInfo) {
+        _init(serviceInfo, isDisplayed) {
             let promise = serviceInfo ? Promise.resolve(serviceInfo) : this._loadServiceInfo();
 
             promise.then(serviceInfo => {
                     serviceInfo.name = name;
 
                     if (serviceInfo.error) throw new Error(serviceInfo.error.message);
-                    return this._createService(serviceInfo);
+                    return this._createService(serviceInfo, isDisplayed);
                 })
                 .catch(error => {
                     this._failInitialization(error.message || 'Unknown error');
@@ -70,7 +70,7 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
             this.fire('stateUpdate');
         }
 
-        _createService(serviceInfo) {
+        _createService(serviceInfo, isDisplayed) {
             for (let i = 0; i < serviceTypeRegistry.length; i++) {
                 if (serviceTypeRegistry[i].condition(serviceInfo)) {
                     this._service = new serviceTypeRegistry[i].constructor(this._name, this._connector, serviceInfo);
@@ -78,7 +78,7 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
                     if (this._service.layer) {
                         this._service.layer.opacity = this._emptyLayer.opacity;
                         this._service.layer.resolutionLimits = this._emptyLayer.resolutionLimits;
-                        this._service.isDisplayed = this._emptyLayer.isDisplayed;
+                        this._service.isDisplayed = isDisplayed === undefined ? this._emptyLayer.isDisplayed : isDisplayed;
                     }
                     return this._service.initializationPromise;
                 }
