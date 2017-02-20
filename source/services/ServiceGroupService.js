@@ -8,7 +8,8 @@ sGis.module('spatialProcessor.services.ServiceGroup', [
         constructor(name, connector, serviceInfo) {
             let children = serviceInfo.childrenInfo
                 .map(info => new ServiceContainer(connector, info.name, {
-                    serviceInfo: info
+                    serviceInfo: info,
+                    isDisplayed: serviceInfo.contents.find(({name})=>name === info.name).isVisible
                 }));
             super(name, { children, alias: serviceInfo.alias });
 

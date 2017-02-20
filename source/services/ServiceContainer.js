@@ -10,12 +10,13 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
     let serviceTypeRegistry = [];
 
     class ServiceContainer extends EventHandler {
-        constructor(connector, serviceName, {serviceInfo, service}={}) {
+        constructor(connector, serviceName, {serviceInfo, service, isDisplayed=true}={}) {
             super();
 
             this._connector = connector;
             this._name = serviceName;
             this._emptyLayer = new FeatureLayer();
+            this._emptyLayer.isDisplayed = isDisplayed;
 
             if (service) {
                 this._initWithService(service);
