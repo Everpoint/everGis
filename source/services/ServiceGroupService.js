@@ -6,14 +6,16 @@ sGis.module('spatialProcessor.services.ServiceGroup', [
 
     class ServiceGroupService extends ServiceGroup {
         constructor(name, connector, serviceInfo) {
-            let children = serviceInfo.childrenInfo.map(info => new ServiceContainer(connector, info.name, info));
+            let children = serviceInfo.childrenInfo
+                .map(info => new ServiceContainer(connector, info.name, {
+                    serviceInfo: info
+                }));
             super(name, { children, alias: serviceInfo.alias });
 
             this._serviceInfo = serviceInfo;
 
             this._initializationPromise = new Promise((resolve, reject) => {
                 setTimeout(() => {
-                    this._setForwardListeners();
                     this._updateChildLayers();
                     resolve();
                 }, 0);

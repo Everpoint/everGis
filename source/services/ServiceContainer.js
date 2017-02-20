@@ -10,20 +10,34 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
     let serviceTypeRegistry = [];
 
     class ServiceContainer extends EventHandler {
-        constructor(connector, serviceName, serviceInfo) {
+        constructor(connector, serviceName, {serviceInfo, service}={}) {
             super();
 
             this._connector = connector;
             this._name = serviceName;
             this._emptyLayer = new FeatureLayer();
 
-            this._init(serviceInfo);
+            if (service) {
+                this._initWithService(service);
+            } else {
+                this._init(serviceInfo);
+            }
         }
 
         get url() { return this._connector.url + this._name; }
         get name() { return this._name; }
 
         get localName() { return this._service && this._service.localName; }
+
+        _initWithService(service) {
+            this._service = service;
+            this._setListeners(service);
+        }
+
+        _setListeners(service) {
+            service.on('visibilityChange childUpdate layerChange', this._fireUpdate.bind(this));
+            service.on('stateUpdate', this.forwardEvent.bind(this));
+        }
 
         _init(serviceInfo) {
             let promise = serviceInfo ? Promise.resolve(serviceInfo) : this._loadServiceInfo();
@@ -60,7 +74,7 @@ sGis.module('spatialProcessor.services.ServiceContainer', [
             for (let i = 0; i < serviceTypeRegistry.length; i++) {
                 if (serviceTypeRegistry[i].condition(serviceInfo)) {
                     this._service = new serviceTypeRegistry[i].constructor(this._name, this._connector, serviceInfo);
-                    this._service.on('visibilityChange childUpdate layerChange', this._fireUpdate.bind(this));
+                    this._setListeners(this._service);
                     if (this._service.layer) {
                         this._service.layer.opacity = this._emptyLayer.opacity;
                         this._service.layer.resolutionLimits = this._emptyLayer.resolutionLimits;

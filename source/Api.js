@@ -28,7 +28,10 @@ sGis.module('spatialProcessor.Api', [
             return this._operation('serviceCatalog/list', {
                 filter: properties.filter,
                 jsfilter: properties.jsfilter,
-                serviceTypes: ['DataView', 'LayerGroup', 'DataSourceService']
+                serviceTypes: properties.serviceTypes,
+                owners: properties.owners,
+                startFrom: properties.startFrom,
+                take: properties.take
             });
         }
 
@@ -255,12 +258,13 @@ sGis.module('spatialProcessor.Api', [
             });
         }
 
-        publishDataSource({name, alias, description, isShared, srid, geometryType, attributeDefinition}) {
+        publishDataSource({name, alias, description, preview, isShared, srid, geometryType, attributeDefinition}) {
             return this._publishService('DataSourceService', {
                 Name: name,
                 Alias: alias,
                 Description: description,
                 IsShared: isShared,
+                Preview: preview,
                 AttributesDefinition: attributeDefinition,
                 Srid: srid,
                 GeometryType: geometryType
