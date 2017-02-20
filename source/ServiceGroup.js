@@ -92,6 +92,8 @@ sGis.module('spatialProcessor.ServiceGroup', [
         }
 
         getService(serviceName, recurse = true) {
+            if (!serviceName) return null;
+
             for (let i = 0; i < this._children.length; i++) {
                 if (this._children[i].name === serviceName || this._children[i].localName === serviceName) return this._children[i];
                 if (recurse && this._children[i].service && this._children[i].service.children) {

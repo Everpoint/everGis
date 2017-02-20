@@ -83,6 +83,8 @@ sGis.module('spatialProcessor.services.DataSourceService', [
         updateExtent() { return this.view && this.view.updateExtent(); }
 
         get localName() { return this.view && this.view.name; }
+
+        get permissions() { return this.serviceInfo.permissions; }
     }
 
     ServiceContainer.register(serviceInfo => serviceInfo.serviceType === 'DataSourceService', DataSourceService);

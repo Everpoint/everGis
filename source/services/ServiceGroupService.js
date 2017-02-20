@@ -27,6 +27,8 @@ sGis.module('spatialProcessor.services.ServiceGroup', [
         get initializationPromise() {
             return this._initializationPromise;
         }
+
+        get permissions() { return this.serviceInfo.permissions; }
     }
 
     ServiceContainer.register(serviceInfo => serviceInfo.serviceType === 'LayerGroup', ServiceGroupService);
