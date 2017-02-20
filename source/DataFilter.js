@@ -1,7 +1,8 @@
 sGis.module('spatialProcessor.DataFilter', [
     'serializer.symbolSerializer',
-    'spatialProcessor.Labeling'
-], (serializer, LabelingConst) => {
+    'spatialProcessor.Labeling',
+    'spatialProcessor.ClusterSymbol'
+], (serializer, LabelingConst, ClusterSymbol) => {
 
     'use strict';
 
@@ -23,15 +24,26 @@ sGis.module('spatialProcessor.DataFilter', [
         }
 
         serialize() {
-            return {
+            let serialized = {
                 Title: this.title,
-                Symbol: this.symbol && serializer.serialize(this.symbol, 'hex'),
+                Symbol: null,
                 Condition: this.condition,
-                Labeling: this.labeling && this.labeling.serialize(),
+                Labeling: null,
                 MaxResolution: this.maxResolution,
                 MinResolution: this.minResolution,
-                ChildFilters: this._serializeChildren()
+                ChildFilters: null
             };
+
+            if (this.symbol instanceof ClusterSymbol) {
+                this.symbol.classifiers = this.childFilters;
+                return serialized;
+            }
+
+            serialized.Symbol = this.symbol && serializer.serialize(this.symbol, 'hex');
+            serialized.Labeling = this.labeling && this.labeling.serialize();
+            serialized.ChildFilters = this._serializeChildren();
+
+            return serialized;
         }
 
         _serializeChildren() {
@@ -142,9 +154,9 @@ sGis.module('spatialProcessor.dataFilter.Classifier', ['utils.Color'], (Color) =
     }
 
     Object.assign(Classifier.prototype, {
-        propertyName: 'strokeWidth',
-        propertyType: 'number',
-        attributeName: 'attribute',
+        propertyName: null,
+        propertyType: null,
+        attributeName: null,
         values: null
     });
 

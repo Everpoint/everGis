@@ -126,43 +126,100 @@ sGis.module('spatialProcessor.ClusterSymbol', [
     'render.Arc'
 ], function(utils, PointSymbol, Arc) {
 
-    var symbolDefaults = {
-        maxCount: 1024,
-        minSize: 24,
-        maxSize: 72,
-        haloColor: 'rgba(0, 183, 255, 0.3)',
-        mainColor: 'rgba(0, 205, 255, 0.78)',
-        haloK: 1.5
-    };
-
     class ClusterSymbol extends PointSymbol {
-        constructor() {
-            super();
+        renderFunction(feature, resolution, crs) {
+            let renders = super.renderFunction.call(this, feature, resolution, crs);
 
-            this.strokeColor = '#003d63';
-            this.fillColor = 'rgba(0, 183, 255, 0.78)';
+            this.classifiers.forEach((classifier, index) => {
+                this._applyClassifier(renders, classifier, feature, index);
+            });
+
+            return renders;
         }
 
-        renderFunction(feature, resolution, crs) {
-            var points = super.renderFunction(feature, resolution, crs);
-            if (feature.objectCount === 1) return points;
+        _applyClassifier(renders, classifier, feature, index) {
+            if (classifier.propertyName === 'clusterSize') {
+                this._applySizeClassifier(renders, classifier, feature);
+            } else if (classifier.propertyName === 'fillColor' && classifier.values.length > 0 && classifier.values[0].attributeValue !== 'undefined') {
+                this._applyChartClassifier(renders, classifier, feature.objectCount, feature.aggregations[index]);
+            }
+        }
 
-            var k = Math.log2(feature.objectCount) / Math.log2(this.maxCount);
-            if (k > 1) k = 1;
-            var size = this.minSize + (this.maxSize - this.minSize) * k;
-            points[0].radius = size / 2;
-            points[0].strokeColor = 'transparent';
-            points[0].fillColor = this.haloColor;
+        _applySizeClassifier(renders, classifier, feature) {
+            if (!classifier.values || classifier.values.length < 2) return;
+            let minSize = classifier.values[0].propertyValue;
+            let maxSize = classifier.values[1].propertyValue;
+            let maxCount = classifier.values[1].attributeValue;
+            renders[0].radius = (minSize + feature.objectCount / maxCount * (maxSize - minSize)) / 2;
+        }
 
-            points[1] = new Arc(points[0].center, { radius: points[0].radius / this.haloK, fillColor: this.mainColor, strokeColor: 'transparent' });
-            return points;
+        _applyChartClassifier(renders, classifier, totalCount, aggr) {
+            if (!aggr) return;
+            let startAngle = 0;
+            let pies = aggr.filter(x => x.count > 0).map(x => {
+                let angle = x.count / totalCount * Math.PI * 2;
+                let fillColor = classifier.values.find(val => val.attributeValue === aggr.value).propertyValue;
+
+                let arc = new Arc(renders[0].position, {
+                    fillColor: fillColor,
+                    strokeColor: this.strokeColor,
+                    strokeWidth: this.strokeWidth,
+                    radius: this.size / 2,
+                    startAngle: startAngle,
+                    endAngle: startAngle + angle,
+                    isSector: true
+                });
+
+                startAngle += angle;
+                return arc;
+            });
+
+            renders.splice(0, 0, pies);
         }
     }
 
-    utils.extend(ClusterSymbol.prototype, symbolDefaults);
+    Object.assign(ClusterSymbol.prototype, {
+        clusterSize: 64,
+        classifiers: []
+    });
+
+
+
+    // var symbolDefaults = {
+    //     maxCount: 1024,
+    //     minSize: 24,
+    //     maxSize: 72,
+    //     haloColor: 'rgba(0, 183, 255, 0.3)',
+    //     mainColor: 'rgba(0, 205, 255, 0.78)',
+    //     haloK: 1.5
+    // };
+    //
+    // class ClusterSymbol extends PointSymbol {
+    //     constructor() {
+    //         super();
+    //
+    //         this.strokeColor = '#003d63';
+    //         this.fillColor = 'rgba(0, 183, 255, 0.78)';
+    //     }
+    //
+    //     renderFunction(feature, resolution, crs) {
+    //         var points = super.renderFunction(feature, resolution, crs);
+    //         if (feature.objectCount === 1) return points;
+    //
+    //         var k = Math.log2(feature.objectCount) / Math.log2(this.maxCount);
+    //         if (k > 1) k = 1;
+    //         var size = this.minSize + (this.maxSize - this.minSize) * k;
+    //         points[0].radius = size / 2;
+    //         points[0].strokeColor = 'transparent';
+    //         points[0].fillColor = this.haloColor;
+    //
+    //         points[1] = new Arc(points[0].center, { radius: points[0].radius / this.haloK, fillColor: this.mainColor, strokeColor: 'transparent' });
+    //         return points;
+    //     }
+    // }
+    //
+    // utils.extend(ClusterSymbol.prototype, symbolDefaults);
 
     return ClusterSymbol;
 
 });
-
-sGis.module()
