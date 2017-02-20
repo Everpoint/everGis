@@ -71,7 +71,7 @@ sGis.module('spatialProcessor.LayerManager', [
     function restoreService(layerManager, serviceDesc, parent) {
         if (serviceDesc.isFolder) {
             let service = new ServiceGroup(serviceDesc.serviceName, { alias: serviceDesc.alias });
-            let container = new ServiceContainer(layerManager._connector, serviceDesc.name, { service });
+            let container = new ServiceContainer(layerManager._connector, serviceDesc.serviceName, { service });
             (parent || layerManager).insertService(container);
             return restoreServiceParameters(container, serviceDesc, layerManager);
         }
