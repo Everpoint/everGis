@@ -47,6 +47,11 @@ sGis.module('spatialProcessor.services.DataViewService', [
         }
 
         get dataFilter() { return this._dataFilter; }
+
+        setDataFilter(filter) {
+            let serialized = filter.serialize();
+            return this.connector.api.setDataFilter(this.name, JSON.stringify(serialized));
+        }
         
         get customFilter() { return this._customFilter; }
 
@@ -55,6 +60,9 @@ sGis.module('spatialProcessor.services.DataViewService', [
             this.setCustomFilter(filter);
         }
 
+        /**
+         * @deprecated
+         */
         setCustomFilter(filter) {
             this._customFilter = filter;
             return this.connector.api.setDataFilter(this.name, JSON.stringify(filter));

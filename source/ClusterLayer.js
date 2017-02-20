@@ -164,3 +164,5 @@ sGis.module('spatialProcessor.ClusterSymbol', [
     return ClusterSymbol;
 
 });
+
+sGis.module()
