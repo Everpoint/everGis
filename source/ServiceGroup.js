@@ -118,11 +118,11 @@ sGis.module('spatialProcessor.ServiceGroup', [
             return this.getServices(recurse).filter(s => s.layer && s.isDisplayed && !(s.layer instanceof LayerGroup));
         }
 
-        contains (container) {
+        contains (container, recurse = true) {
             let isContain = false;
             this._children.forEach(child => {
                 if (child === container ||
-                    (child.service && child.service.children && child.service.contains(container))
+                    (recurse && child.service && child.service.children && child.service.contains(container))
                 ) {
                     isContain = true;
                 }
