@@ -1,21 +1,23 @@
 sGis.module('spatialProcessor.services.DataViewService', [
-    'DynamicLayer',
     'spatialProcessor.services.MapService',
     'spatialProcessor.ClusterLayer',
-    'spatialProcessor.services.ServiceContainer'
-], (DynamicLayer, MapService, ClusterLayer, ServiceContainer) => {
+    'spatialProcessor.services.ServiceContainer',
+    'spatialProcessor.DataFilter',
+    'spatialProcessor.layers.DataViewLayer'
+], (MapService, ClusterLayer, ServiceContainer, DataFilter, DataViewLayer) => {
 
     'use strict';
 
     class DataViewService extends MapService {
         constructor(name, connector, serviceInfo) {
             super(name, connector, serviceInfo);
+            if (serviceInfo.dataFilter) this._dataFilter = DataFilter.deserialize(serviceInfo.dataFilter);
             this._setLayer();
             if (connector.sessionId) this._subscribeForNotifications()
         }
 
         _setLayer() {
-            this._layer = new DynamicLayer(this.getImageUrl.bind(this), { crs: this.crs, isDisplayed: this.isDisplayed });
+            this._layer = new DataViewLayer(this);
         }
 
         get dataSource() {
@@ -25,23 +27,15 @@ sGis.module('spatialProcessor.services.DataViewService', [
         get isEditable() { return !!this.dataSource; }
         get isFilterable() { return !!this.dataSource; }
 
-        getImageUrl(bbox, resolution) {
-            var imgWidth = Math.round((bbox.xMax - bbox.xMin) / resolution);
-            var imgHeight = Math.round((bbox.yMax - bbox.yMin) / resolution);
-            var sr = encodeURIComponent(bbox.crs.wkid || JSON.stringify(bbox.crs.description));
+        get dataFilter() { return this._dataFilter; }
 
-            return this.url + 'export?' +
-                'dpi=96&' +
-                'transparent=true&' +
-                'bbox=' +
-                bbox.xMin + '%2C' +
-                bbox.yMin + '%2C' +
-                bbox.xMax + '%2C' +
-                bbox.yMax + '&' +
-                'bboxSR=' + sr + '&' +
-                'imageSR=' + sr + '&' +
-                'size=' + imgWidth + '%2C' + imgHeight + '&' +
-                'f=image' + this.connector.sessionSuffix;
+        setDataFilter(filter) {
+            this._dataFilter = filter;
+
+            let serialized = filter.serialize();
+            let promise = this.connector.api.setDataFilter(this.name, JSON.stringify(serialized));
+
+            this.fire('dataFilterChange');
         }
         
         get customFilter() { return this._customFilter; }
@@ -51,6 +45,9 @@ sGis.module('spatialProcessor.services.DataViewService', [
             this.setCustomFilter(filter);
         }
 
+        /**
+         * @deprecated
+         */
         setCustomFilter(filter) {
             this._customFilter = filter;
             return this.connector.api.setDataFilter(this.name, JSON.stringify(filter));
