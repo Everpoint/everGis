@@ -96,7 +96,15 @@ sGis.module('spatialProcessor.ClusterLayer', [
         _setFeatures(clusters, crs) {
             var features = [];
             clusters.forEach((cluster) => {
-                features.push(new PointF(cluster.Center, {crs: crs, symbol: this._symbol, objectCount: cluster.ObjectCount, aggregations: cluster.Aggregations, setNo: cluster.SetNo, bouningPolygon: new Polygon(cluster.BoundingGeometry, {crs: crs} )}));
+                features.push(new PointF(cluster.Center, {
+                    crs: crs,
+                    symbol: this._symbol,
+                    objectCount: cluster.ObjectCount,
+                    aggregations: cluster.Aggregations,
+                    setNo: cluster.SetNo,
+                    boundingPolygon: new Polygon(cluster.BoundingGeometry, {crs: crs} )}
+                    )
+                );
             });
 
             this._features = features;
@@ -129,42 +137,46 @@ sGis.module('spatialProcessor.ClusterSymbol', [
     class ClusterSymbol extends PointSymbol {
         renderFunction(feature, resolution, crs) {
             let renders = super.renderFunction.call(this, feature, resolution, crs);
+            this._applySizeClassifier(renders[0], feature);
 
-            this.classifiers.forEach((classifier, index) => {
-                this._applyClassifier(renders, classifier, feature, index);
-            });
+            if (this.pieAggregationIndex >= 0) {
+                let pieChart = this._applyChartClassifier(feature, renders[0].center, renders[0].radius);
+                if (pieChart && pieChart.length > 0) {
+                    renders[0].radius *= 0.5;
+                    renders = pieChart.concat(renders);
+                }
+            }
 
             return renders;
         }
 
-        _applyClassifier(renders, classifier, feature, index) {
-            if (classifier.propertyName === 'clusterSize') {
-                this._applySizeClassifier(renders, classifier, feature);
-            } else if (classifier.propertyName === 'fillColor' && classifier.values.length > 0 && classifier.values[0].attributeValue !== 'undefined') {
-                this._applyChartClassifier(renders, classifier, feature.objectCount, feature.aggregations[index]);
-            }
+        _applySizeClassifier(circleRender, feature) {
+            if (feature.objectCount === undefined || !this.minSize || !this.maxSize || !this.sizeAggregationMaxValue) return;
+
+            let minSize = this.minSize;
+            let maxSize = this.maxSize;
+            let maxCount = this.sizeAggregationMaxValue;
+            let value = this.sizeAggregationIndex <= 0 ? feature.objectCount : feature.aggregations[this.sizeAggregationIndex].value;
+            let size = Math.min(this.maxSize, (minSize + value / maxCount * (maxSize - minSize)));
+            circleRender.radius = size / 2;
         }
 
-        _applySizeClassifier(renders, classifier, feature) {
-            if (!classifier.values || classifier.values.length < 2) return;
-            let minSize = classifier.values[0].propertyValue;
-            let maxSize = classifier.values[1].propertyValue;
-            let maxCount = classifier.values[1].attributeValue;
-            renders[0].radius = (minSize + feature.objectCount / maxCount * (maxSize - minSize)) / 2;
-        }
+        _applyChartClassifier(feature, center, radius) {
+            if (!feature.aggregations || !feature.aggregations[this.pieAggregationIndex]) return;
+            let aggr = feature.aggregations[this.pieAggregationIndex];
+            let totalCount = feature.objectCount;
 
-        _applyChartClassifier(renders, classifier, totalCount, aggr) {
             if (!aggr) return;
             let startAngle = 0;
             let pies = aggr.filter(x => x.count > 0).map(x => {
                 let angle = x.count / totalCount * Math.PI * 2;
-                let fillColor = classifier.values.find(val => val.attributeValue === aggr.value).propertyValue;
+                let fillColor = this._pieGroups[x.value] || this.fillColor;
 
-                let arc = new Arc(renders[0].position, {
+                let arc = new Arc(center, {
                     fillColor: fillColor,
                     strokeColor: this.strokeColor,
                     strokeWidth: this.strokeWidth,
-                    radius: this.size / 2,
+                    radius: radius,
                     startAngle: startAngle,
                     endAngle: startAngle + angle,
                     isSector: true
@@ -174,13 +186,57 @@ sGis.module('spatialProcessor.ClusterSymbol', [
                 return arc;
             });
 
-            renders.splice(0, 0, pies);
+            return pies;
+        }
+
+        resetClassification() {
+            this.sizeAggregationIndex = -1;
+            this.sizeAggregationMaxValue = 1;
+            this.pieAggregationIndex = -1;
+            this._pieGroups = {};
+        }
+
+        addPieGroup(attributeValue, color) {
+            this._pieGroups[attributeValue] = color;
+        }
+
+        clone() {
+            return new ClusterSymbol(this.serialize());
+        }
+
+        serialize() {
+            return {
+                size: this.size,
+                fillColor: this.fillColor,
+                strokeColor: this.strokeColor,
+                strokeWidth: this.strokeWidth,
+                clusterSize: this.clusterSize,
+                minSize: this.minSize,
+                maxSize: this.maxSize,
+                sizeAggregationIndex: this.sizeAggregationIndex,
+                sizeAggregationMaxValue: this.sizeAggregationMaxValue,
+                pieAggregationIndex: this.pieAggregationIndex,
+                _pieGroups: this._pieGroups
+            };
         }
     }
 
     Object.assign(ClusterSymbol.prototype, {
+        size: 50,
+        fillColor: 'rgba(0, 183, 255, 1)',
+        strokeColor: 'white',
+        strokeWidth: 2,
+
         clusterSize: 64,
-        classifiers: []
+
+        minSize: 0,
+        maxSize: 0,
+        sizeAggregationIndex: -1,
+        sizeAggregationMaxValue: 0,
+
+        pieAggregationIndex: -1,
+        _pieGroups: {}
+
     });
 
 

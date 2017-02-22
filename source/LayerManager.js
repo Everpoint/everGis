@@ -1,8 +1,9 @@
 sGis.module('spatialProcessor.LayerManager', [
     'spatialProcessor.ServiceGroup',
     'spatialProcessor.Project',
-    'spatialProcessor.services.ServiceContainer'
-], function (ServiceGroup, Project, ServiceContainer) {
+    'spatialProcessor.services.ServiceContainer',
+    'spatialProcessor.DataFilter'
+], function (ServiceGroup, Project, ServiceContainer, DataFilter) {
 
     /**
      * @alias sGis.spatialProcessor.LayerManager
@@ -87,7 +88,7 @@ sGis.module('spatialProcessor.LayerManager', [
         if (desc.opacity !== undefined) container.layer.opacity = desc.opacity;
         if (desc.resolutionLimits) container.layer.resolutionLimits = desc.resolutionLimits;
         if (desc.isDisplayed !== undefined && container.service) container.service.isDisplayed = desc.isDisplayed;
-        if (desc.filter && container.service && container.service.setCustomFilter) container.service.setCustomFilter(desc.filter);
+        if (desc.filter && container.service && container.service.setDataFilter) container.service.setDataFilter(DataFilter.deserialize(desc.filter));
         if (desc.meta && container.service) container.service.meta = desc.meta;
 
         if (desc.isFolder && desc.children) {
@@ -110,7 +111,7 @@ sGis.module('spatialProcessor.LayerManager', [
             opacity: container.layer && container.layer.opacity,
             resolutionLimits: container.layer && container.layer.resolutionLimits,
             isDisplayed: container.service && container.service.isDisplayed,
-            filter: container.service && container.service.customFilter,
+            filter: container.service && container.service.dataFilter && container.service.dataFilter.serialize(),
             meta: container.service && container.service.meta,
             children: saveChildren(container.service)
         };

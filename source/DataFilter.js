@@ -1,8 +1,9 @@
 sGis.module('spatialProcessor.DataFilter', [
     'serializer.symbolSerializer',
     'spatialProcessor.Labeling',
-    'spatialProcessor.ClusterSymbol'
-], (serializer, LabelingConst, ClusterSymbol) => {
+    'spatialProcessor.ClusterSymbol',
+    'utils'
+], (serializer, LabelingConst, ClusterSymbol, utils) => {
 
     'use strict';
 
@@ -11,16 +12,30 @@ sGis.module('spatialProcessor.DataFilter', [
             Object.assign(this, options);
         }
 
-        static deserialize({ Title, Symbol, Condition, Labeling, MaxResolution, MinResolution, ChildFilters = []}) {
-            return new DataFilter({
+        static deserialize({ Title, Symbol, Condition, Labeling, MaxResolution, MinResolution, ChildFilters, SerializationData}) {
+            let serializationData = {};
+            try {
+                serializationData = utils.parseJSON(SerializationData) || {};
+            } catch (e) {}
+
+            let result = new DataFilter({
                 condition: Condition,
                 minResolution: MinResolution,
                 maxResolution: MaxResolution,
                 symbol: Symbol && serializer.deserialize(Symbol, 'hex8'),
                 labeling: Labeling && new LabelingConst(Labeling) || new LabelingConst(),
                 title: Title,
-                childFilters: ChildFilters.map(x => DataFilter.deserialize(x))
+                childFilters: ChildFilters && ChildFilters.map(x => DataFilter.deserialize(x)) || [],
+                serializationData: serializationData.serializationData
             });
+
+            if (serializationData.clusterSymbol) {
+                result.symbol = new ClusterSymbol(serializationData.clusterSymbol);
+                result.labeling = serializationData.clusterLabel;
+                result.aggregations = serializationData.aggregations;
+            }
+
+            return result;
         }
 
         serialize() {
@@ -31,17 +46,22 @@ sGis.module('spatialProcessor.DataFilter', [
                 Labeling: null,
                 MaxResolution: this.maxResolution,
                 MinResolution: this.minResolution,
-                ChildFilters: null
+                ChildFilters: null,
+                SerializationData: { serializationData: this.serializationData }
             };
 
             if (this.symbol instanceof ClusterSymbol) {
-                this.symbol.classifiers = this.childFilters;
-                return serialized;
+                serialized.SerializationData.clusterSymbol = this.symbol.serialize();
+                serialized.SerializationData.clusterLabel = this.labeling && this.labeling.serialize();
+                serialized.SerializationData.aggregations = this.aggregations;
+            } else {
+                serialized.Symbol = this.symbol && serializer.serialize(this.symbol, 'hex');
+                serialized.Labeling = this.labeling && this.labeling.serialize();
             }
 
-            serialized.Symbol = this.symbol && serializer.serialize(this.symbol, 'hex');
-            serialized.Labeling = this.labeling && this.labeling.serialize();
             serialized.ChildFilters = this._serializeChildren();
+
+            serialized.SerializationData = JSON.stringify(serialized.SerializationData);
 
             return serialized;
         }
@@ -64,13 +84,17 @@ sGis.module('spatialProcessor.DataFilter', [
 
         clone() {
             return new DataFilter({
+                title: this.title,
                 condition: this.condition,
                 minResolution: this.minResolution,
                 maxResolution: this.maxResolution,
                 symbol: this.symbol && this.symbol.clone(),
                 labeling: this.labeling && this.labeling.clone() || new LabelingConst(),
                 childFilters: this.childFilters.map(x => x.clone()),
-                customDisplaySettings: this.customDisplaySettings
+
+                aggregations: this.aggregations && this.aggregations.slice(),
+
+                serializationData: this.serializationData
             });
         }
     }
@@ -83,84 +107,13 @@ sGis.module('spatialProcessor.DataFilter', [
         labeling: null,
         childFilters: [],
         title: null,
-        customDisplaySettings: null
+
+        aggregations: null,
+
+        serializationData: null
     });
 
     return DataFilter;
-
-});
-
-sGis.module('spatialProcessor.dataFilter.Classifier', ['utils.Color'], (Color) => {
-
-    'use strict';
-
-    class Classifier {
-        constructor(options = {}) {
-            Object.assign(this, options);
-        }
-
-        unfold(baseFilters) {
-            let result = [];
-            baseFilters.forEach(base => {
-                result = result.concat(this._unfold(base));
-            });
-
-            return result;
-        }
-
-        _unfold(base) {
-            if (!this.values) return [];
-            return this.values.map(val => {
-                let clone = base.clone();
-
-                let condition = [];
-                if (clone.condition) conditions.push(clone.consitions);
-                let titles = [];
-                if (clone.title) titles.push(clone.title);
-
-                if (val.attributeValue) {
-                    condition.push(`${this.attributeName}==${formatVal(val.attributeValue)}`);
-                    titles.push(`${this.attributeName}: ${val.attributeValue}`)
-                }
-                if (val.attributeMinValue && isFinite(val.attributeMinValue)) {
-                    condition.push(`${this.attributeName}>=${formatVal(val.attributeMinValue)}`);
-                    titles.push(`${this.attributeName} > ${val.attributeMinValue}`)
-                }
-                if (val.attributeMaxValue && isFinite(val.attributeMaxValue)) {
-                    condition.push(`${this.attributeName}<${formatVal(val.attributeMaxValue)}`);
-                    titles.push(`${this.attributeName} < ${val.attributeMaxValue}`)
-                }
-
-                clone.condition = condition.join(' && ');
-                clone.symbol[this.propertyName] = this.propertyType === 'color' ? formatColor(val.propertyValue) : val.propertyValue;
-                clone.title = titles.join('\n');
-
-                return clone;
-            });
-        }
-
-        get title() { return 'Классификатор: ' + this.propertyName; }
-    }
-
-    function formatVal(val) {
-        if (typeof val === 'string') return `"${val}"`;
-        return val;
-    }
-
-    function formatColor(colorString) {
-        let color = new Color(colorString);
-        if (color.isValid) return color.toString('hex');
-        return colorString;
-    }
-
-    Object.assign(Classifier.prototype, {
-        propertyName: null,
-        propertyType: null,
-        attributeName: null,
-        values: null
-    });
-
-    return Classifier;
 
 });
 

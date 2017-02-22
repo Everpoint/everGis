@@ -28,15 +28,22 @@ sGis.module('spatialProcessor.layers.DataViewLayer', [
         }
 
         _fillResolutionGroups(filter) {
+            if (filter.childFilters && filter.childFilters.length > 0) {
+                filter.childFilters.forEach(x => this._fillResolutionGroups(x));
+                return;
+            }
+
             if (filter.symbol && filter.symbol instanceof ClusterSymbol) {
                 let layer = new ClusterLayer(this._service.url, this._service.connector.sessionId, filter.symbol);
-                layer.on('propertyChange', this.redraw);
+                layer.aggregationParameters = [{ filters: filter.condition, aggregations: filter.aggregations && filter.aggregations.join(',')}];
+                layer.algorithm = 'adjustedGrid';
+                layer.on('propertyChange', () => {
+                    this.redraw();
+                });
                 this._resolutionGroups.push({ minResolution: filter.minResolution, maxResolution: filter.maxResolution, layer: layer });
             } else {
                 this._resolutionGroups.push({ minResolution: filter.minResolution, maxResolution: filter.maxResolution, layer: this._dynamicLayer });
             }
-
-            if (filter.childFilters) filter.childFilters.forEach(x => this._fillResolutionGroups(x));
         }
 
         getFeatures(bbox, resolution) {
