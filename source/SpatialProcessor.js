@@ -3,13 +3,13 @@ sGis.module('SpatialProcessor', [
     'Point',
     'Map',
     'painter.DomPainter',
-    'spatialProcessor.Connector',
-    'spatialProcessor.LayerManager',
-    'spatialProcessor.DataAccessService',
+    'sp.Connector',
+    'sp.LayerManager',
+    'sp.DataAccessService',
     'EventHandler',
-    'spatialProcessor.ControllerManager',
-    'spatialProcessor.Project',
-    'spatialProcessor.services.MapService'
+    'sp.ControllerManager',
+    'sp.Project',
+    'sp.services.MapService'
 ], function(utils, Point, Map, DomRenderer, Connector, LayerManager, DataAccessService, EventHandler, ControllerManager, Project, MapService) {
     'use strict';
     
@@ -69,6 +69,8 @@ sGis.module('SpatialProcessor', [
 
     SpatialProcessor.version = "0.2.3";
     SpatialProcessor.releaseDate = "30.01.2017";
+
+    sGis.spatialProcessor = sGis.sp;
 
     return SpatialProcessor;
     

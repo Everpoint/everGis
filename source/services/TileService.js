@@ -1,8 +1,8 @@
-sGis.module('spatialProcessor.services.TileService', [
-    'spatialProcessor.services.MapService',
+sGis.module('sp.services.TileService', [
+    'sp.services.MapService',
     'TileLayer',
     'TileScheme',
-    'spatialProcessor.services.ServiceContainer'
+    'sp.services.ServiceContainer'
 ], (MapService, TileLayer, TileScheme, ServiceContainer) => {
 
     'use strict';

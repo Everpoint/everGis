@@ -1,4 +1,4 @@
-sGis.module('spatialProcessor.ServiceGroup', [
+sGis.module('sp.ServiceGroup', [
     'utils',
     'LayerGroup',
     'EventHandler'

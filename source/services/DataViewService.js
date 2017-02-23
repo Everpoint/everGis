@@ -1,9 +1,9 @@
-sGis.module('spatialProcessor.services.DataViewService', [
-    'spatialProcessor.services.MapService',
-    'spatialProcessor.ClusterLayer',
-    'spatialProcessor.services.ServiceContainer',
-    'spatialProcessor.DataFilter',
-    'spatialProcessor.layers.DataViewLayer'
+sGis.module('sp.services.DataViewService', [
+    'sp.services.MapService',
+    'sp.ClusterLayer',
+    'sp.services.ServiceContainer',
+    'sp.DataFilter',
+    'sp.layers.DataViewLayer'
 ], (MapService, ClusterLayer, ServiceContainer, DataFilter, DataViewLayer) => {
 
     'use strict';

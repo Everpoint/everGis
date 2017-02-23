@@ -1,8 +1,8 @@
-sGis.module('spatialProcessor.ClusterLayer', [
+sGis.module('sp.ClusterLayer', [
     'Point',
     'feature.Point',
     'feature.Polygon',
-    'spatialProcessor.ClusterSymbol',
+    'sp.ClusterSymbol',
     'Layer',
     'utils'
 ], function(Point, PointF, Polygon, ClusterSymbol, /** {sGis.Layer} */ Layer, /** {sGis.utils} */ utils) {
@@ -16,7 +16,7 @@ sGis.module('spatialProcessor.ClusterLayer', [
     };
 
     /**
-     * @class sGis.spatialProcessor.ClusterLayer
+     * @class sGis.sp.ClusterLayer
      * @extends sGis.Layer
      */
     class ClusterLayer extends Layer {
@@ -128,7 +128,7 @@ sGis.module('spatialProcessor.ClusterLayer', [
     return ClusterLayer;
 });
 
-sGis.module('spatialProcessor.ClusterSymbol', [
+sGis.module('sp.ClusterSymbol', [
     'utils',
     'symbol.point.Point',
     'render.Arc'

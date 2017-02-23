@@ -1,6 +1,6 @@
 sGis.module('spatialProcessor.controller.ObjectSelector', [
-    'spatialProcessor.Controller',
-    'spatialProcessor.ControllerManager'
+    'sp.Controller',
+    'sp.ControllerManager'
 ], function(Controller, ControllerManager) {
     'use strict';
 
@@ -15,7 +15,7 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
 
     };
 
-    ObjectSelector.prototype = new sGis.spatialProcessor.Controller({
+    ObjectSelector.prototype = new sGis.sp.Controller({
         _type: 'objectSelector',
 
         _setNotificationListener: function() {

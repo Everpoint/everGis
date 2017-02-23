@@ -1,4 +1,4 @@
-sGis.module('spatialProcessor.JsonSerializer', [
+sGis.module('sp.JsonSerializer', [
     'utils',
     'feature.Point',
     'feature.Polyline',

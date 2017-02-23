@@ -1,6 +1,6 @@
-sGis.module('spatialProcessor.controller.ImportData', [
-    'spatialProcessor.Controller',
-    'spatialProcessor.ControllerManager'
+sGis.module('sp.controller.ImportData', [
+    'sp.Controller',
+    'sp.ControllerManager'
 ], function(Controller, ControllerMangager) {
     'use strict';
 
@@ -10,7 +10,7 @@ sGis.module('spatialProcessor.controller.ImportData', [
         });
     };
 
-    ImportData.prototype = new sGis.spatialProcessor.Controller({
+    ImportData.prototype = new sGis.sp.Controller({
         _type: 'importData',
 
         load: function(properties) {

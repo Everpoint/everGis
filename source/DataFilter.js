@@ -1,7 +1,7 @@
-sGis.module('spatialProcessor.DataFilter', [
+sGis.module('sp.DataFilter', [
     'serializer.symbolSerializer',
-    'spatialProcessor.Labeling',
-    'spatialProcessor.ClusterSymbol',
+    'sp.Labeling',
+    'sp.ClusterSymbol',
     'utils'
 ], (serializer, LabelingConst, ClusterSymbol, utils) => {
 
@@ -117,7 +117,7 @@ sGis.module('spatialProcessor.DataFilter', [
 
 });
 
-sGis.module('spatialProcessor.Labeling', [], () => {
+sGis.module('sp.Labeling', [], () => {
 
     class Labeling {
         constructor(options = {}) {

@@ -1,4 +1,4 @@
-sGis.module('spatialProcessor.ControllerManager', [
+sGis.module('sp.ControllerManager', [
     'utils'
 ], (utils) => {
     

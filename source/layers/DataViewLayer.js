@@ -1,8 +1,8 @@
-sGis.module('spatialProcessor.layers.DataViewLayer', [
+sGis.module('sp.layers.DataViewLayer', [
     'Layer',
-    'spatialProcessor.ClusterLayer',
+    'sp.ClusterLayer',
     'DynamicLayer',
-    'spatialProcessor.ClusterSymbol'
+    'sp.ClusterSymbol'
 ], (Layer, ClusterLayer, DynamicLayer, ClusterSymbol) => {
 
     'use strict';

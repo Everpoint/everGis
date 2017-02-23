@@ -1,7 +1,7 @@
-sGis.module('spatialProcessor.Connector', [
+sGis.module('sp.Connector', [
     'utils',
     'EventHandler',
-    'spatialProcessor.Api'
+    'sp.Api'
 ], function(utils, EventHandler, Api) {
     'use strict';
 
@@ -24,8 +24,6 @@ sGis.module('spatialProcessor.Connector', [
     }
 
     let ext = {
-        _synchronizationTimer: null,
-
         apiLoginUrl: '%sp%Strategis.JsClient/ApiLogin.aspx',
 
         addNotificationListner: function(tag, string, callback) {
@@ -78,58 +76,12 @@ sGis.module('spatialProcessor.Connector', [
             }
 
             function initialize(id) {
-                setListners(self, self._rootMapItem);
                 self._sessionId = encodeURIComponent(id);
                 // self.synchronize();
                 self.requestNotifications();
 
                 escapePrintMethod(self);
             }
-        },
-
-        synchronize: function() {
-            // var self = this;
-            // this._synchronized = false;
-            // if (this._synchronizationTimer === undefined) {
-            //
-            //     var mapItems = this._rootMapItem.getChildren(true),
-            //         structure = {Structure: []};
-            //
-            //     for (var i in mapItems) {
-            //         structure.Structure.push(getMapItemDescription(mapItems[i], false));
-            //     }
-            //
-            //     structure.Structure.push(getMapItemDescription(this._rootMapItem, true));
-            //
-            //     var self = this,
-            //         data = 'f=json&data=' + encodeURIComponent(JSON.stringify(structure));
-            //
-            //
-            //     sGis.utils.ajax({
-            //         type: 'POST',
-            //         url: this._url + 'MapItemStates/?_sb=' + this._sessionId,
-            //         data: data,
-            //         success: function(data) {
-            //             if (data !== 'true') {
-            //                 self._synchronized = false;
-            //             } else {
-            //                 if (!self._synchronizationTimer) {
-            //                     self._synchronized = true;
-            //                     self.fire('synchronize');
-            //                 }
-            //             }
-            //         },
-            //         error: function() {
-            //             debugger;
-            //         }
-            //     });
-            //     this._synchronizationTimer = null;
-            // } else if (this._synchronizationTimer === null) {
-            //     this._synchronizationTimer = setTimeout(function() {
-            //         self._synchronizationTimer = undefined;
-            //         self.synchronize();
-            //     }, 500);
-            // }
         },
 
         requestNotifications: function() {
@@ -146,8 +98,8 @@ sGis.module('spatialProcessor.Connector', [
                         }
                         if (data && data.Notifications) {
                             for (var i in data.Notifications) {
-                                if (sGis.spatialProcessor.processNotification[data.Notifications[i].tag]) {
-                                    sGis.spatialProcessor.processNotification[data.Notifications[i].tag](self, data.Notifications[i].data, data.Notifications[i].type);
+                                if (notificationProcessors[data.Notifications[i].tag]) {
+                                    notificationProcessors[data.Notifications[i].tag](self, data.Notifications[i].data, data.Notifications[i].type);
                                 } else {
                                     sGis.utils.message(data.Notifications[i].tag);
                                 }
@@ -186,15 +138,6 @@ sGis.module('spatialProcessor.Connector', [
             if (this._notificationRequestObject) this._notificationRequestObject.abort();
         },
 
-        getMapItemById: function(id) {
-            var mapItems = this._rootMapItem.getChildren(true);
-            for (var i in mapItems) {
-                if (mapItems[i].id === id) {
-                    return mapItems[i];
-                }
-            }
-        },
-
         registerOperation: function(operationId, callback, progressCallback) {
             if (this._latestOperationNotification && (this._latestOperationNotification.operation.id === operationId)) {
                 callback(this._latestOperationNotification);
@@ -202,23 +145,6 @@ sGis.module('spatialProcessor.Connector', [
             } else {
                 this._operationList[operationId] = { finalCallback: callback, progressCallback: progressCallback };
             }
-        },
-
-        getServiceList: function(callback) {
-            sGis.utils.ajax({
-                url: this._url + '?f=json' + this.sessionSuffix,
-                success: function(data) {
-                    try {
-                        var response = JSON.parse(data);
-                    } catch(e) {
-                        response = data;
-                    }
-                    callback(response);
-                },
-                error: function(data) {
-                    callback(data);
-                }
-            });
         }
     };
 
@@ -256,7 +182,7 @@ sGis.module('spatialProcessor.Connector', [
 
     utils.extend(Connector.prototype, ext);
 
-    sGis.spatialProcessor.processNotification = {
+    let notificationProcessors = {
         'dynamic layer': function(connector, data, type) {
             if (connector._notificationListners['dynamic layer'] && connector._notificationListners['dynamic layer'][data]) {
                 connector._notificationListners['dynamic layer'][data]();
@@ -264,7 +190,7 @@ sGis.module('spatialProcessor.Connector', [
         },
 
         'DAS': function(connector, data, type) {
-            var response = sGis.spatialProcessor.parseXML(data);
+            var response = sGis.sp.parseXML(data);
             if (connector._operationList[response.operation.id]) {
                 if ( response.operation.status === 'Running') {
                     if (connector._operationList[response.operation.id].progressCallback) connector._operationList[response.operation.id].progressCallback(response);
@@ -289,65 +215,6 @@ sGis.module('spatialProcessor.Connector', [
             }
         }
     };
-
-    function setListners(connector, mapItem) {
-        // var handler = function() { connector.synchronize(); };
-        // var childAddHandler = function(sGisEvent) {
-        //     setListners(connector, sGisEvent.child);
-        //     connector.synchronize();
-        // };
-        // var childRemoveHandler = function(sGisEvent) {
-        //     sGisEvent.child.removeListener('.sGis-connector');
-        //     connector.synchronize();
-        // };
-        //
-        // if (!mapItem.hasListener('addChild', childAddHandler)) {
-        //     mapItem.addListeners({
-        //         'addChild.sGis-connector': childAddHandler,
-        //         'removeChild.sGis-connector': childRemoveHandler,
-        //         'propertyChange.sGis-connector': handler,
-        //         'childOrderChange.sGis-connector': handler,
-        //         'serviceInfoUpate.sGis-connector': handler,
-        //         'activate.sGis-connector': handler,
-        //         'deactivate.sGis-connector': handler
-        //     });
-        // }
-        //
-        // var children = mapItem.children;
-        // if (children) {
-        //     for (var i = 0, len = children.length; i < len; i++) {
-        //         setListners(connector, children[i]);
-        //     }
-        // }
-    }
-
-    function getMapItemDescription(mapItem, isRoot) {
-        var description = {
-            Id: mapItem.id,
-            IsVisible: mapItem.isActive,
-            Name: mapItem.name,
-            IsRoot: isRoot,
-            Operations: mapItem.serverOperations,
-            Children: []
-        };
-        //TODO: mapItem does not have opacity any more
-        if (mapItem.getOpacity) {
-            description.Opacity = mapItem.getOpacity();
-        } else {
-            description.Opacity = 1.0;
-        }
-
-        if (mapItem.getChildren) {
-            var children = mapItem.getChildren();
-            if (sGis.utils.isArray(children)) {
-                for (var i in children) {
-                    description.Children.push(children[i].id);
-                }
-            }
-        }
-
-        return description;
-    }
 
     function escapePrintMethod(connector) {
         var print = window.print;

@@ -1,6 +1,6 @@
-sGis.module('spatialProcessor.services.ServiceGroup', [
-    'spatialProcessor.ServiceGroup',
-    'spatialProcessor.services.ServiceContainer'
+sGis.module('sp.services.ServiceGroup', [
+    'sp.ServiceGroup',
+    'sp.services.ServiceContainer'
 ], (ServiceGroup, ServiceContainer) => {
     'use strict';
 

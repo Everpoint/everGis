@@ -1,4 +1,4 @@
-sGis.module('spatialProcessor.Project', [
+sGis.module('sp.Project', [
     'utils'
 ], (utils) => {
     

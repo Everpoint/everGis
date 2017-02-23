@@ -1,11 +1,11 @@
-sGis.module('spatialProcessor.DataAccessService', [
-    'spatialProcessor.Controller'
+sGis.module('sp.DataAccessService', [
+    'sp.Controller'
 ], function(Controller) {
     'use strict';
 
     /**
      * Object for interactions with SpatialProcessor Data Access Service
-     * @param {sGis.spatialProcessor.Connector} serverConnector
+     * @param {sGis.sp.Connector} serverConnector
      * @param {String} name - name of the service on server
      * @constructor
      */
@@ -21,14 +21,14 @@ sGis.module('spatialProcessor.DataAccessService', [
 
     //TODO: this operations should be united with controller operations
     DataAccessService.prototype = {
-        __operation: sGis.spatialProcessor.Controller.prototype.__operation,
-        query: sGis.spatialProcessor.Controller.prototype.query,
-        queryByGeometry: sGis.spatialProcessor.Controller.prototype.queryByGeometry,
-        save: sGis.spatialProcessor.Controller.prototype.save,
-        createObject: sGis.spatialProcessor.Controller.prototype.createObject,
-        autoComplete: sGis.spatialProcessor.Controller.prototype.autoComplete,
-        reshape: sGis.spatialProcessor.Controller.prototype.reshape,
-        cut: sGis.spatialProcessor.Controller.prototype.cut,
+        __operation: sGis.sp.Controller.prototype.__operation,
+        query: sGis.sp.Controller.prototype.query,
+        queryByGeometry: sGis.sp.Controller.prototype.queryByGeometry,
+        save: sGis.sp.Controller.prototype.save,
+        createObject: sGis.sp.Controller.prototype.createObject,
+        autoComplete: sGis.sp.Controller.prototype.autoComplete,
+        reshape: sGis.sp.Controller.prototype.reshape,
+        cut: sGis.sp.Controller.prototype.cut,
 
         /**
          * Requests the information about the available services from the server
@@ -66,7 +66,7 @@ sGis.module('spatialProcessor.DataAccessService', [
                         if (properties.success) {
                             var templates = [];
                             for (var i = 0; i < response.content.length; i++) {
-                                templates.push(new sGis.spatialProcessor.Template(response.content[i].Content, response.content[i].FileName));
+                                templates.push(new sGis.sp.Template(response.content[i].Content, response.content[i].FileName));
                             }
 
                             properties.success(templates);
@@ -88,7 +88,7 @@ sGis.module('spatialProcessor.DataAccessService', [
             });
         },
 
-        projectGeometry: sGis.spatialProcessor.Controller.prototype.projectGeometry,
+        projectGeometry: sGis.sp.Controller.prototype.projectGeometry,
 
         getScalarValue: function(properties) {
             this.__operation(function() {

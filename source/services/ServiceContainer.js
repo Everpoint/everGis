@@ -1,8 +1,8 @@
-sGis.module('spatialProcessor.services.ServiceContainer', [
+sGis.module('sp.services.ServiceContainer', [
     'FeatureLayer',
     'EventHandler',
     'utils',
-    'spatialProcessor.utils',
+    'sp.utils',
 ], (FeatureLayer, EventHandler, utils) => {
 
     'use strict';

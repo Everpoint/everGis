@@ -1,6 +1,6 @@
-sGis.module('spatialProcessor.Api', [
+sGis.module('sp.Api', [
     'utils',
-    'spatialProcessor.JsonSerializer'
+    'sp.JsonSerializer'
 ], function(utils, JsonSerializer) {
 
     'use strict';

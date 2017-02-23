@@ -1,4 +1,4 @@
-sGis.module('spatialProcessor.parseXML', [
+sGis.module('sp.parseXML', [
     'feature.Point',
     'feature.Polyline',
     'feature.Polygon'
@@ -313,15 +313,15 @@ sGis.module('spatialProcessor.parseXML', [
      * SERIALIZER
      */
 
-    if (!sGis.spatialProcessor) sGis.spatialProcessor = {};
+    if (!sGis.sp) sGis.sp = {};
     let tempId = -1;
 
-    sGis.spatialProcessor.serializeGeometry = function(features) {
+    sGis.sp.serializeGeometry = function(features) {
         var formatedData = getFormatedData(features);
         return getXML(formatedData);
     };
 
-    sGis.spatialProcessor.serializeGeometryEdit = function(editDescription, attributesOnly, ignoreSymbol) {
+    sGis.sp.serializeGeometryEdit = function(editDescription, attributesOnly, ignoreSymbol) {
         tempId = -1;
         var featureList = [];
         for (var i in editDescription) {
@@ -332,7 +332,7 @@ sGis.module('spatialProcessor.parseXML', [
         return getXML(formatedData, editDescription, attributesOnly, ignoreSymbol);
     };
 
-    sGis.spatialProcessor.serializeSymbols = function(symbols) {
+    sGis.sp.serializeSymbols = function(symbols) {
         var features = [];
         for (var i = 0, len = symbols.length; i < len; i++) {
             features.push(new featureClasses[symbols[i].type]([], { symbol: symbols[i] }));
@@ -350,7 +350,7 @@ sGis.module('spatialProcessor.parseXML', [
         return text;
     };
 
-    sGis.spatialProcessor.serializeAttributes = function(attributes) {
+    sGis.sp.serializeAttributes = function(attributes) {
         var data = {
             resources: {
                 attributesDefinitions: {},

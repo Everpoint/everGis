@@ -1,4 +1,4 @@
-sGis.module('spatialProcessor.ClusteringService', [
+sGis.module('sp.ClusteringService', [
     'utils',
     'FeatureLayer',
     'feature.Point',

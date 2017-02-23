@@ -1,12 +1,12 @@
-sGis.module('spatialProcessor.LayerManager', [
-    'spatialProcessor.ServiceGroup',
-    'spatialProcessor.Project',
-    'spatialProcessor.services.ServiceContainer',
-    'spatialProcessor.DataFilter'
+sGis.module('sp.LayerManager', [
+    'sp.ServiceGroup',
+    'sp.Project',
+    'sp.services.ServiceContainer',
+    'sp.DataFilter'
 ], function (ServiceGroup, Project, ServiceContainer, DataFilter) {
 
     /**
-     * @alias sGis.spatialProcessor.LayerManager
+     * @alias sGis.sp.LayerManager
      */
     class LayerManager extends ServiceGroup {
         constructor(connector, map) {

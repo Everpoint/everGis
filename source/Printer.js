@@ -1,4 +1,4 @@
-sGis.module('spatialProcessor.Printer', [
+sGis.module('sp.Printer', [
     'utils'
 ], function(utils) {
     'use strict';

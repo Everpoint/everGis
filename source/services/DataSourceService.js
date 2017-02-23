@@ -1,7 +1,7 @@
-sGis.module('spatialProcessor.services.DataSourceService', [
+sGis.module('sp.services.DataSourceService', [
     'EventHandler',
-    'spatialProcessor.controller.TempView',
-    'spatialProcessor.services.ServiceContainer'
+    'sp.controller.TempView',
+    'sp.services.ServiceContainer'
 ], (EventHandler, TempView, ServiceContainer) => {
 
     'use strict';

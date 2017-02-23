@@ -1,15 +1,15 @@
-sGis.module('spatialProcessor.Controller', [
+sGis.module('sp.Controller', [
     'utils',
-    'spatialProcessor.utils',
+    'sp.utils',
     'feature.Point',
     'feature.Polyline',
     'feature.Polygon',
-    'spatialProcessor.parseXML',
+    'sp.parseXML',
     'EventHandler',
     'symbol.point.Point',
     'symbol.polyline.Simple',
     'symbol.polygon.Simple',
-    'spatialProcessor.services.ServiceContainer'
+    'sp.services.ServiceContainer'
 ], function(utils, spUtils, Point, Polyline, Polygon, parseXML, EventHandler, pointSymbols, polylineSymbols, polygonSymbols, ServiceContainer) {
     'use strict';
 
@@ -246,7 +246,7 @@ sGis.module('spatialProcessor.Controller', [
             if (!properties.added && !properties.updated && !properties.deleted) sGis.utils.error('Edit description must contain at least one feature');
 
             var edit = {added: properties.added, updated: properties.updated, deleted: properties.deleted},
-                xmlString = encodeURIComponent('<?xml version="1.0" encoding="utf-8"?>' + sGis.spatialProcessor.serializeGeometryEdit(edit, false, properties.ignoreSymbol));
+                xmlString = encodeURIComponent('<?xml version="1.0" encoding="utf-8"?>' + sGis.sp.serializeGeometryEdit(edit, false, properties.ignoreSymbol));
 
             xmlString += '&serviceName=' + encodeURIComponent(properties.serviceName);
             this.__operation(function() {
