@@ -25,9 +25,9 @@ sGis.module('sp.LayerManager', [
 
             let container = new ServiceContainer(this._connector, name);
             if (parent) {
-                parent.insertService(container);
+                parent.insertService(container, index);
             } else {
-                this.insertService(container);
+                this.insertService(container, index);
             }
 
             return container;
