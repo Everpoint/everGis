@@ -6,18 +6,19 @@ sGis.module('sp.Connector', [
     'use strict';
 
     class Connector extends EventHandler {
-        constructor (url, login, password) {
+        constructor (url, authServiceUrl, { login, password, sessionId }) {
             super();
-            // if (!sGis.utils.isString(url) || !sGis.utils.isString(login) || !(rootMapItem instanceof sGis.MapItem)) sGis.utils.error('Incorrect parameters for Spatial Processor initialization');
 
             this._url = url;
+            this.apiLoginUrl = authServiceUrl;
+
             this._notificationListners = {};
             this._objectSelectorListeners = [];
             this._operationList = {};
             // this._rootMapItem = rootMapItem;
             this._failedNotificationRequests = 0;
 
-            if (login) this.initializeSession(login, password);
+            if (login) this.initializeSession({ login, password, sessionId });
             
             this.api = new Api(this);
         }
@@ -44,9 +45,9 @@ sGis.module('sp.Connector', [
             if (index !== -1) this._objectSelectorListeners.splice(index, 1);
         },
 
-        initializeSession: function(login, password) {
+        initializeSession: function({ login, password, sessionId }) {
             var self = this;
-            if (password) {
+            if (login && password) {
                 var spUrl = this._url.substr(-4, 4) === 'IIS/' ? this._url.substr(0, this._url.length - 4) : this._url,
                     url = this.apiLoginUrl.replace(/%sp%/, spUrl) + '?userName=' + login + '&password=' + encodeURIComponent(password) + '&ts=' + new Date().getTime();
                 sGis.utils.ajax({
@@ -72,7 +73,7 @@ sGis.module('sp.Connector', [
                     }
                 });
             } else {
-                initialize(login);
+                initialize(sessionId);
             }
 
             function initialize(id) {

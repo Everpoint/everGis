@@ -32,12 +32,14 @@ sGis.module('SpatialProcessor', [
          * @param {sGis.IPoint} [properties.centerPoint]
          */
         constructor(properties) {
-            let { sessionId, url, login, password, position, resolution, mapWrapper, services, projectName, baseService, centerPoint } = properties;
+            let { sessionId, url, login, password, position, resolution, mapWrapper, services, projectName, baseService, centerPoint, authServiceUrl } = properties;
+
+            if (!authServiceUrl) authServiceUrl = this._guessAuthServiceUrl(url);
 
             if (sessionId) {
-                this._connector = new Connector(url, sessionId);
+                this._connector = new Connector(url, authServiceUrl, {sessionId});
             } else {
-                this._connector = new Connector(url, login, password);
+                this._connector = new Connector(url, authServiceUrl, {login, password});
             }
 
             this._map = new Map();
@@ -108,6 +110,10 @@ sGis.module('SpatialProcessor', [
             }
 
             this._initMapParams(params);
+        }
+
+        _guessAuthServiceUrl(spUrl) {
+            return spUrl.replace('SpatialProcessor/IIS/', 'Strategis.Server.Authorization/Authorize.svc/Login');
         }
     }
 
