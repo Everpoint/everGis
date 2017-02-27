@@ -150,6 +150,12 @@ sGis.module('sp.Connector', [
     };
 
     Object.defineProperties(Connector.prototype, {
+        sid: {
+            get: function() {
+                return decodeURIComponent(this.sessionId);
+            }
+        },
+
         sessionId: {
             get: function() {
                 return this._sessionId;

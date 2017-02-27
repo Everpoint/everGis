@@ -81,6 +81,6 @@ sGis.module('sp.utils', [
         return newArray;
     };
 
-    return {};
+    return utils;
     
 });

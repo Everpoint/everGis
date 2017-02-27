@@ -9,8 +9,9 @@ sGis.module('sp.Controller', [
     'symbol.point.Point',
     'symbol.polyline.Simple',
     'symbol.polygon.Simple',
-    'sp.services.ServiceContainer'
-], function(utils, spUtils, Point, Polyline, Polygon, parseXML, EventHandler, pointSymbols, polylineSymbols, polygonSymbols, ServiceContainer) {
+    'sp.services.ServiceContainer',
+    'sp.DataOperation'
+], function(utils, spUtils, Point, Polyline, Polygon, parseXML, EventHandler, pointSymbols, polylineSymbols, polygonSymbols, ServiceContainer, DataOperation) {
     'use strict';
 
     class Controller extends EventHandler {
@@ -19,6 +20,13 @@ sGis.module('sp.Controller', [
             for (var key in extension) {
                 this[key] = extension[key];
             }
+
+            this.initializationPromise = new Promise((resolve, reject) => {
+                this._resolveInitialization = resolve;
+                this._rejectInitialization = reject;
+            });
+
+            this.type = this._type || this._id;
         }
     }
 
@@ -79,11 +87,13 @@ sGis.module('sp.Controller', [
 
                         if (!response.ServiceId) return self._failInitialization();
 
-                        self._id = response.ServiceId;
+                        self.id = self._id = response.ServiceId;
                         if (response.DataViewServiceName) {
                             self._layerName = response.DataViewServiceName;
                             self.createDataViewOnInit && self._createContainer();
                         }
+
+                        self._resolveInitialization();
 
                         if (callback) callback.call(self);
                         for (var i in self._operationQueue) {
@@ -113,6 +123,7 @@ sGis.module('sp.Controller', [
             sGis.utils.message('Could not create controller ' + this._type);
             this.fire('initError');
             this._failed = true;
+            this._rejectInitialization();
             this._operationQueue.forEach(operation => {
                 this.__operation(operation);
             });
@@ -122,6 +133,10 @@ sGis.module('sp.Controller', [
             sGis.utils.ajax({
                 url: this._url + '?_sb=' + this._sessionId + '&delete=' + this._id
             });
+        },
+
+        _operation: function(operationName, params) {
+            return new DataOperation(this._spatialProcessor, this, operationName, params);
         },
 
         __operation: function(f) {
@@ -402,7 +417,7 @@ sGis.module('sp.Controller', [
             return createFeatures(response, crs);
         },
 
-        _serializeGeometry: function(geometry) {
+        serializeGeometry: function(geometry) {
             var obj;
             var crs = geometry.crs || this._map && this._map.crs;
             if (geometry instanceof sGis.feature.Polygon) {
@@ -416,8 +431,11 @@ sGis.module('sp.Controller', [
             } else {
                 sGis.utils.error('Unknown geometry type');
             }
+            return obj;
+        },
 
-            return encodeURIComponent(JSON.stringify(obj));
+        _serializeGeometry: function(geometry) {
+            return encodeURIComponent(JSON.stringify(this.serializeGeometry(geometry)));
         }
     };
 
@@ -562,6 +580,11 @@ sGis.module('sp.Controller', [
         var c = new sGis.utils.Color(color);
         return c.toString();
     }
+
+    class Operation extends Promise {
+
+    }
+
 
     return Controller;
     

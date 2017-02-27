@@ -14,21 +14,34 @@ sGis.module('sp.DataAccessService', [
         this._spatialProcessor = serverConnector;
 
         this._url = this._spatialProcessor.url;
-        this._id = name;
+        this.id = this._id = name;
 
         this._operationQueue = [];
+
+        this.initializationPromise = new Promise(resolve => { resolve(); });
     };
 
     //TODO: this operations should be united with controller operations
     DataAccessService.prototype = {
+        type: 'DataAccessService',
+        _operation: sGis.sp.Controller.prototype._operation,
         __operation: sGis.sp.Controller.prototype.__operation,
         query: sGis.sp.Controller.prototype.query,
-        queryByGeometry: sGis.sp.Controller.prototype.queryByGeometry,
         save: sGis.sp.Controller.prototype.save,
         createObject: sGis.sp.Controller.prototype.createObject,
         autoComplete: sGis.sp.Controller.prototype.autoComplete,
         reshape: sGis.sp.Controller.prototype.reshape,
         cut: sGis.sp.Controller.prototype.cut,
+        serializeGeometry: sGis.sp.Controller.prototype.serializeGeometry,
+        _createFeatures: sGis.sp.Controller.prototype._createFeatures,
+
+        queryByGeometry: function(properties) {
+            let { serviceName, geometry, resolution } = properties;
+            let serialized = this.serializeGeometry(geometry);
+            return this._operation('queryByGeometry', { serviceName, geometry: serialized, resolution }).then(response => {
+                return this._createFeatures(response, geometry.crs);
+            });
+        },
 
         /**
          * Requests the information about the available services from the server
