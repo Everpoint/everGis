@@ -18,7 +18,7 @@ sGis.module('sp.Connector', [
             // this._rootMapItem = rootMapItem;
             this._failedNotificationRequests = 0;
 
-            if (login) this.initializeSession({ login, password, sessionId });
+            this.initializeSession({ login, password, sessionId });
             
             this.api = new Api(this);
         }
