@@ -88,6 +88,7 @@ sGis.module('sp.Controller', [
                         if (!response.ServiceId) return self._failInitialization();
 
                         self.id = self._id = response.ServiceId;
+                        self.name = 'ControllerService/' + self._id;
                         if (response.DataViewServiceName) {
                             self._layerName = response.DataViewServiceName;
                             self.createDataViewOnInit && self._createContainer();
@@ -421,13 +422,13 @@ sGis.module('sp.Controller', [
             var obj;
             var crs = geometry.crs || this._map && this._map.crs;
             if (geometry instanceof sGis.feature.Polygon) {
-                obj = {rings: geometry.coordinates, spatialReference: crs && crs.getWkidString()};
+                obj = {rings: geometry.coordinates, spatialReference: crs && crs.description};
             } else if (geometry instanceof sGis.feature.Point || geometry instanceof sGis.Point) {
-                obj = {x: geometry.x, y: geometry.y, spatialReference: crs && crs.getWkidString()};
+                obj = {x: geometry.x, y: geometry.y, spatialReference: crs && crs.description};
             } else if (geometry instanceof sGis.feature.Polyline) {
-                obj = {paths: geometry.coordinates, spatialReference: crs && crs.getWkidString()};
+                obj = {paths: geometry.coordinates, spatialReference: crs && crs.description};
             } else if (geometry instanceof sGis.Bbox) {
-                obj = {xmin: geometry.xMin, xmax: geometry.xMax, ymin: geometry.yMin, ymax: geometry.yMax, spatialReference: crs && crs.getWkidString()};
+                obj = {xmin: geometry.xMin, xmax: geometry.xMax, ymin: geometry.yMin, ymax: geometry.yMax, spatialReference: crs && crs.description};
             } else {
                 sGis.utils.error('Unknown geometry type');
             }

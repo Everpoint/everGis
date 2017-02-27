@@ -14,7 +14,7 @@ sGis.module('sp.DataAccessService', [
         this._spatialProcessor = serverConnector;
 
         this._url = this._spatialProcessor.url;
-        this.id = this._id = name;
+        this.name = this.id = this._id = name;
 
         this._operationQueue = [];
 

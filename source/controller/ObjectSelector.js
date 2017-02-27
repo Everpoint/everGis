@@ -25,6 +25,22 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
             });
         },
 
+        select: function(properties) {
+            let { geometry, mode = 0, services } = properties;
+            let serialized = this.serializeGeometry(geometry);
+
+            return this._operation('select', { geom: serialized, res: this._map.resolution, mode, services, sr: this._map.crs.description });
+        },
+
+        pickByGeometry: function(properties) {
+            let { geometry, services } = properties;
+            let serialized = this.serializeGeometry(geometry);
+
+            return this._operation('pick', { geom: serialized, res: this._map.resolution, services, sr: this._map.crs.description }).then(response => {
+                return this._createFeatures(response);
+            });
+        },
+
         identify: function(properties) {
             this.__operation(function() {
                 var param = 'geom=' + encodeURIComponent(JSON.stringify({rings: properties.geometry.coordinates, spatialReference: this._map.crs.getWkidString()})) + //TODO: spatial reference should be fixed
@@ -104,6 +120,7 @@ sGis.module('spatialProcessor.controller.ObjectSelector', [
                 };
             });
         },
+
 
         pickById: function({ ids, serviceName, mode = undefined, success, error, requested }) {
             this.__operation(function() {

@@ -11,7 +11,7 @@ sGis.module('sp.DataOperation', [
 
             super((resolve, reject) => {
                 controller.initializationPromise.then(() => {
-                    let url  = `${connector.url}${controller.id}/${operationName}`;
+                    let url  = `${connector.url}${controller.name}/${operationName}`;
                     let params = Object.assign({'_sb': connector.sid}, properties);
                     let paramsStrings = Object.keys(params).filter(key => params[key] !== null && params[key] !== undefined).map(key => {
                         let value = params[key] instanceof Object ? JSON.stringify(params[key]) : params[key];
