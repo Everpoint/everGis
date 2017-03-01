@@ -35,7 +35,7 @@ sGis.module('sp.controllers.DataAccessService', [
         }
 
         deleteFeatures(properties) {
-            let { ids, serivceName } = properties;
+            let { ids, serviceName } = properties;
             let serialized = xmlSerializer.serializeGeometryEdit({ deleted: ids }, false, true);
             return this.operation('edit', { action: 'edit', edit: serialized, serviceName });
         }

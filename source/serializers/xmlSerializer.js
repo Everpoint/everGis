@@ -555,10 +555,10 @@ sGis.module('sp.serializers.xmlSerializer', [
         return node;
     }
 
-    function getDeleteObjectNode(feature, xml) {
+    function getDeleteObjectNode(id, xml) {
         var node = xml.createElement('DeleteObject');
         setNodeAttributes(node, {
-            Id: feature.id
+            Id: id
         });
         return node;
     }
