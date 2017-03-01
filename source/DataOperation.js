@@ -5,11 +5,9 @@ sGis.module('sp.DataOperation', [
 
     'use strict';
 
-    class DataOperation extends Promise {
+    class DataOperation {
         constructor(connector, controller, operationName, properties) {
-            if (arguments.length <3) return super(connector, controller);
-
-            super((resolve, reject) => {
+            this._promise = new Promise((resolve, reject) => {
                 controller.initializationPromise.then(() => {
                     let url  = `${connector.url}${controller.name}/${operationName}`;
                     let params = Object.assign({'_sb': connector.sid}, properties);
@@ -42,6 +40,14 @@ sGis.module('sp.DataOperation', [
 
             this._controller = controller;
             this._operationName = operationName;
+        }
+
+        then(func) {
+            return this._promise.then(func);
+        }
+
+        catch() {
+            return this._promise.catch(func);
         }
 
         _finalHandler({ operation, content }) {
