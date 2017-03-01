@@ -1,6 +1,8 @@
 sGis.module('sp.ControllerManager', [
-    'utils'
-], (utils) => {
+    'utils',
+    'LayerGroup',
+    'sp.controllers.ViewableController'
+], (utils, LayerGroup, ViewableController) => {
     
     let registry = {};
     
@@ -9,6 +11,9 @@ sGis.module('sp.ControllerManager', [
             this._controllers = {};
             this._connector = connector;
             this._map = map;
+
+            this._layerGroup = new LayerGroup();
+            this._map.addLayer(this._layerGroup);
         }
         
         static registerController(name, constructor) {
@@ -23,7 +28,15 @@ sGis.module('sp.ControllerManager', [
         
         createController(name) {
             if (!registry[name]) utils.error('Unknown controller: ' + name);
-            return new registry[name](this._connector, {map: this._map});
+            let controller = new registry[name](this._connector, {map: this._map});
+
+            if (controller instanceof ViewableController) {
+                controller.updateView().then(() => {
+                    this._layerGroup.addLayer(controller.service.layer);
+                });
+            }
+
+            return controller;
         }
     }
     

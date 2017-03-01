@@ -1,4 +1,4 @@
-sGis.module('sp.JsonSerializer', [
+sGis.module('sp.serializers.JsonSerializer', [
     'utils',
     'feature.Point',
     'feature.Polyline',

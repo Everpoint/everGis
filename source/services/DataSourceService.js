@@ -1,6 +1,6 @@
 sGis.module('sp.services.DataSourceService', [
     'EventHandler',
-    'sp.controller.TempView',
+    'sp.controllers.TempView',
     'sp.services.ServiceContainer'
 ], (EventHandler, TempView, ServiceContainer) => {
 
@@ -18,26 +18,10 @@ sGis.module('sp.services.DataSourceService', [
         }
 
         _initialize() {
-            this._initializationPromise = new Promise((resolve, reject) => {
-                this._tempViewController = new TempView(this._connector, this.name);
-                this._tempViewController.resetView({
-                    sourceServiceName: this._name,
-                    success: () => {
-                        this._setForwardListeners();
-                        resolve();
-                    },
-                    error: (error) => {
-                        reject(error);
-                    }
-                });
-
-                this._tempViewController.on('viewUpdate', () => {
-                    resolve();
-                });
-
-                this._tempViewController.on('initError', () => {
-                    reject('TempView controller initialization failed.');
-                });
+            this._tempViewController = new TempView(this._connector, this.name);
+            this._tempViewController.resetView({ sourceServiceName: this._name }).then(() => {
+                this._setForwardListeners();
+                this.fire('stateUpdate');
             });
         }
 
@@ -46,14 +30,13 @@ sGis.module('sp.services.DataSourceService', [
         get name() { return this._name; }
         get alias() { return this.serviceInfo && this.serviceInfo.alias; }
         get description() { return this.serviceInfo && this.serviceInfo.description; }
-        get view() { return this._tempViewController.mapService; }
-        get viewContainer() { return this._tempViewController.container; }
+        get view() { return this._tempViewController.service; }
 
         get isDisplayed() { return this.view && this.view.isDisplayed; }
         set isDisplayed(bool) { if (this.view) this.view.isDisplayed = bool; }
 
         _setForwardListeners() {
-            this._tempViewController.mapService.on('visibilityChange legendUpdate', this.forwardEvent.bind(this));
+            this._tempViewController.service.on('visibilityChange legendUpdate', this.forwardEvent.bind(this));
         }
 
         get crs() { return this.view && this.view.crs; }
@@ -66,7 +49,6 @@ sGis.module('sp.services.DataSourceService', [
         getMeta() { return this.view && this.view.getMeta.apply(this.view, arguments); }
 
         get geometryType() { return this.view && this.view.geometryType; }
-        get permissions() { return this.view && this.view.permissions; }
 
         get fullExtent() { return this.view && this.view.fullExtent; }
         get initialExtent() { return this.view && this.view.initialExtent; }

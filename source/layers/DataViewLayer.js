@@ -49,11 +49,12 @@ sGis.module('sp.layers.DataViewLayer', [
         getFeatures(bbox, resolution) {
             if (!this.checkVisibility(resolution)) return [];
 
+            if (this._resolutionGroups.length === 0) return this._dynamicLayer.getFeatures(bbox, resolution);
+
             let dynamicLayerUsed = false;
             let features = [];
             this._resolutionGroups.forEach(group => {
                 if (group.minResolution > 0 && group.minResolution > resolution || group.maxResolution > 0 && group.maxResolution < resolution) return;
-                if (group.layer === this._dynamicLayer && dynamicLayerUsed) return;
 
                 features = features.concat(group.layer.getFeatures(bbox, resolution));
             });
@@ -83,6 +84,7 @@ sGis.module('sp.layers.DataViewLayer', [
         get opacity() { return this._dynamicLayer.opacity; }
         set opacity(opacity) {
             this._dynamicLayer.opacity = opacity;
+            this.fire('propertyChange', {property: 'opacity'});
         }
 
         forceUpdate() { this._dynamicLayer.forceUpdate(); }

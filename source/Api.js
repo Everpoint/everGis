@@ -1,6 +1,6 @@
 sGis.module('sp.Api', [
     'utils',
-    'sp.JsonSerializer'
+    'sp.serializers.JsonSerializer'
 ], function(utils, JsonSerializer) {
 
     'use strict';

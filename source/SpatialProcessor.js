@@ -5,7 +5,7 @@ sGis.module('SpatialProcessor', [
     'painter.DomPainter',
     'sp.Connector',
     'sp.LayerManager',
-    'sp.DataAccessService',
+    'sp.controllers.DataAccessService',
     'EventHandler',
     'sp.ControllerManager',
     'sp.Project',

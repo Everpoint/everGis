@@ -28,7 +28,7 @@ sGis.module('sp.DataOperation', [
                         data: paramsStrings.join('&')
                     }).then(data => {
                         let response = parseOperationResponse(data[0]);
-                        if (!response || response.status !== 'success') reject(`Unexpected response from server for ${this._controller.type}/${this._operationName} operation`);
+                        if (!response || response.status !== 'success') reject(`Unexpected response from server for ${this._controller.name}/${this._operationName} operation`);
                         this.id = response.operationId;
                         connector.registerOperation(response.operationId, this._finalHandler.bind(this), this._progressHandler.bind(this));
                         this.fire('requested');
@@ -44,12 +44,16 @@ sGis.module('sp.DataOperation', [
             this._operationName = operationName;
         }
 
-        _finalHandler(result) {
-            this.resolve(result);
+        _finalHandler({ operation, content }) {
+            if (operation.status === 'Success') {
+                this.resolve(content);
+            } else {
+                this.reject(`Operation ${this._operationName} failed`);
+            }
         }
 
-        _progressHandler(progress) {
-            this.fire('progressUpdate', progress);
+        _progressHandler(data) {
+            this.fire('progressUpdate', { progress: data.content });
         }
     }
 

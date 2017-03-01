@@ -1,8 +1,9 @@
 sGis.module('sp.Connector', [
     'utils',
     'EventHandler',
-    'sp.Api'
-], function(utils, EventHandler, Api) {
+    'sp.Api',
+    'sp.serializers.xmlSerializer'
+], function(utils, EventHandler, Api, xmlSerializer) {
     'use strict';
 
     class Connector extends EventHandler {
@@ -197,7 +198,7 @@ sGis.module('sp.Connector', [
         },
 
         'DAS': function(connector, data, type) {
-            var response = sGis.sp.parseXML(data);
+            var response = xmlSerializer.deserialize(data);
             if (connector._operationList[response.operation.id]) {
                 if ( response.operation.status === 'Running') {
                     if (connector._operationList[response.operation.id].progressCallback) connector._operationList[response.operation.id].progressCallback(response);
