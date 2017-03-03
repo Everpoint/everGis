@@ -47,43 +47,48 @@ sGis.module('sp.Connector', [
         },
 
         initializeSession: function({ login, password, sessionId }) {
-            var self = this;
-            if (login && password) {
-                var spUrl = this._url.substr(-4, 4) === 'IIS/' ? this._url.substr(0, this._url.length - 4) : this._url,
-                    url = this.apiLoginUrl.replace(/%sp%/, spUrl) + '?userName=' + login + '&password=' + encodeURIComponent(password) + '&ts=' + new Date().getTime();
-                sGis.utils.ajax({
-                    url: url,
-                    success: function(data, textStatus) {
-                        if (data === '') {
-                            sGis.utils.message('Could not get session ID');
-                        } else {
-                            var response = JSON.parse(data);
-
-                            if (response.Success && response.Message) {
-                                initialize(response.Message);
-
-                                self.fire('sessionInitialized');
+            this.initializationPromise = new Promise((resolve, reject) => {
+                var self = this;
+                if (login && password) {
+                    var spUrl = this._url.substr(-4, 4) === 'IIS/' ? this._url.substr(0, this._url.length - 4) : this._url,
+                        url = this.apiLoginUrl.replace(/%sp%/, spUrl) + '?userName=' + login + '&password=' + encodeURIComponent(password) + '&ts=' + new Date().getTime();
+                    sGis.utils.ajax({
+                        url: url,
+                        success: function(data, textStatus) {
+                            if (data === '') {
+                                sGis.utils.message('Could not get session ID');
                             } else {
-                                sGis.utils.error('Could not get session. Server responded with: ' + data);
+                                var response = JSON.parse(data);
+
+                                if (response.Success && response.Message) {
+                                    initialize(response.Message);
+
+                                    self.fire('sessionInitialized');
+                                } else {
+                                    sGis.utils.error('Could not get session. Server responded with: ' + data);
+                                    reject('Could not get session. Server responded with: ' + data);
+                                }
                             }
+                        },
+
+                        error: function() {
+                            sGis.utils.message('Could not get session ID');
+                            reject('Could not get session ID');
                         }
-                    },
+                    });
+                } else {
+                    initialize(sessionId);
+                }
 
-                    error: function() {
-                        sGis.utils.message('Could not get session ID');
-                    }
-                });
-            } else {
-                initialize(sessionId);
-            }
+                function initialize(id) {
+                    self._sessionId = encodeURIComponent(id);
+                    // self.synchronize();
+                    self.requestNotifications();
 
-            function initialize(id) {
-                self._sessionId = encodeURIComponent(id);
-                // self.synchronize();
-                self.requestNotifications();
-
-                escapePrintMethod(self);
-            }
+                    escapePrintMethod(self);
+                    resolve(id);
+                }
+            });
         },
 
         requestNotifications: function() {

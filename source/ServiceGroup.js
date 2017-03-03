@@ -90,12 +90,17 @@ sGis.module('sp.ServiceGroup', [
         }
 
         getService(serviceName, recurse = true) {
+            let container = this.getServiceContainer(serviceName, recurse);
+            return container && container.service || null;
+        }
+
+        getServiceContainer(serviceName, recurse = true) {
             if (!serviceName) return null;
 
             for (let i = 0; i < this._children.length; i++) {
                 if (this._children[i].name === serviceName || this._children[i].localName === serviceName) return this._children[i];
                 if (recurse && this._children[i].service && this._children[i].service.children) {
-                    let found = this._children[i].service.getService(serviceName, true);
+                    let found = this._children[i].service.getServiceContainer(serviceName, true);
                     if (found) return found;
                 }
             }

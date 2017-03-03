@@ -13,15 +13,15 @@ sGis.module('sp.LayerManager', [
             super('__root');
             this._map = map;
             this._connector = connector;
+            this._map.addLayer(this.layer);
         }
 
         init(services = []) {
-            this._map.addLayer(this.layer);
             services.forEach(name => this.loadService(name));
         }
 
         loadService(name, index = -1, parent = null) {
-            if (this.getService(name, true)) throw new Error(`Service ${name} is already in the list`);
+            if (this.getServiceContainer(name, true)) throw new Error(`Service ${name} is already in the list`);
 
             let container = new ServiceContainer(this._connector, name);
             if (parent) {
@@ -47,7 +47,7 @@ sGis.module('sp.LayerManager', [
         }
 
         updateService (name) {
-            let service = this.getService(name, false);
+            let service = this.getServiceContainer(name, false);
             let index = this.children.indexOf(service);
             this.removeService(service);
             this.loadService(name, index);
@@ -62,7 +62,7 @@ sGis.module('sp.LayerManager', [
 
 
         descriptions.forEach(serviceDesc => {
-            let container = layerManager.getService(serviceDesc.serviceName, false);
+            let container = layerManager.getServiceContainer(serviceDesc.serviceName, false);
             if (container) return restoreServiceParameters(container, serviceDesc, layerManager);
 
             restoreService(layerManager, serviceDesc);

@@ -36,6 +36,8 @@ sGis.module('sp.services.DataViewService', [
             let promise = this.connector.api.setDataFilter(this.name, JSON.stringify(serialized));
 
             this.fire('dataFilterChange');
+
+            return promise;
         }
         
         get customFilter() { return this._customFilter; }

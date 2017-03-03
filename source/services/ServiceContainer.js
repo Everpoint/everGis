@@ -59,7 +59,8 @@ sGis.module('sp.services.ServiceContainer', [
 
         _loadServiceInfo() {
             const url = this.url + '/' + (this._connector.sessionId ? '?_sb=' + this._connector.sessionId : '');
-            return utils.ajaxp({url})
+
+            return this._connector.initializationPromise.then(utils.ajaxp.bind(utils, {url}))
                 .then(([response]) => {
                     return utils.parseJSON(response);
                 });
