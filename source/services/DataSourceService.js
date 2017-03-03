@@ -36,7 +36,7 @@ sGis.module('sp.services.DataSourceService', [
         set isDisplayed(bool) { if (this.view) this.view.isDisplayed = bool; }
 
         _setForwardListeners() {
-            this._tempViewController.service.on('visibilityChange legendUpdate', this.forwardEvent.bind(this));
+            this._tempViewController.service.on('visibilityChange legendUpdate layerChange', this.forwardEvent.bind(this));
         }
 
         get crs() { return this.view && this.view.crs; }
