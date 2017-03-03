@@ -123,7 +123,7 @@ sGis.module('sp.ServiceGroup', [
             return this.getServices(recurse).filter(s => s.layer && s.isDisplayed && !(s.layer instanceof LayerGroup));
         }
 
-        contains (container, recurse = true) {
+        contains(container, recurse = true) {
             let isContain = false;
             this._children.forEach(child => {
                 if (child === container ||
@@ -134,6 +134,16 @@ sGis.module('sp.ServiceGroup', [
             });
 
             return isContain;
+        }
+
+        getParent(container) {
+            if (this._children.includes(container)) return this;
+            let groups = this.children.filter(x => x.service && x.service instanceof ServiceGroup);
+            for (let i = 0; i < groups.length; i++) {
+                let parent = groups[i].service.getParent(container);
+                if (parent) return parent;
+            }
+            return null;
         }
     }
 

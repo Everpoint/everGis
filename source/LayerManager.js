@@ -2,8 +2,9 @@ sGis.module('sp.LayerManager', [
     'sp.ServiceGroup',
     'sp.Project',
     'sp.services.ServiceContainer',
-    'sp.DataFilter'
-], function (ServiceGroup, Project, ServiceContainer, DataFilter) {
+    'sp.DataFilter',
+    'utils'
+], function (ServiceGroup, Project, ServiceContainer, DataFilter, utils) {
 
     /**
      * @alias sGis.sp.LayerManager
@@ -46,11 +47,26 @@ sGis.module('sp.LayerManager', [
             });
         }
 
-        updateService (name) {
-            let service = this.getServiceContainer(name, false);
-            let index = this.children.indexOf(service);
-            this.removeService(service);
-            this.loadService(name, index);
+        updateService(name) {
+            let container = this.getServiceContainer(name, true);
+            if (!container) utils.error('Service is not in the group');
+
+            let parent = this.getParent(container);
+            let index = parent.children.indexOf(container);
+            parent.removeService(container);
+
+            this.loadService(name, index, parent);
+        }
+
+        replaceService(oldName, newName) {
+            let current = this.getServiceContainer(oldName, true);
+            if (!current) utils.error('Service is not in the group');
+
+            let parent = this.getParent(current);
+            let index = parent.children.indexOf(current);
+            parent.removeService(current);
+
+            this.loadService(newName, index, parent);
         }
     }
 
