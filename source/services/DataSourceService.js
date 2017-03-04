@@ -21,6 +21,7 @@ sGis.module('sp.services.DataSourceService', [
             this._tempViewController = new TempView(this._connector, this.name);
             this._tempViewController.resetView({ sourceServiceName: this._name }).then(() => {
                 this._setForwardListeners();
+                this.view.isDisplayed = this._isDisplayed;
                 this.fire('stateUpdate');
             });
         }
@@ -32,8 +33,14 @@ sGis.module('sp.services.DataSourceService', [
         get description() { return this.serviceInfo && this.serviceInfo.description; }
         get view() { return this._tempViewController.service; }
 
-        get isDisplayed() { return this.view && this.view.isDisplayed; }
-        set isDisplayed(bool) { if (this.view) this.view.isDisplayed = bool; }
+        get isDisplayed() { return this.view && this.view.isDisplayed || this._isDisplayed; }
+        set isDisplayed(bool) {
+            if (this.view) {
+                this.view.isDisplayed = bool;
+            } else {
+                this._isDisplayed = bool;
+            }
+        }
 
         _setForwardListeners() {
             this._tempViewController.service.on('visibilityChange legendUpdate layerChange', this.forwardEvent.bind(this));
@@ -68,6 +75,8 @@ sGis.module('sp.services.DataSourceService', [
 
         get permissions() { return this.serviceInfo.permissions; }
     }
+
+    DataSourceService.prototype._isDisplayed = true;
 
     ServiceContainer.register(serviceInfo => serviceInfo.serviceType === 'DataSourceService', DataSourceService);
 
