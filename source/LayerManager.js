@@ -104,10 +104,17 @@ sGis.module('sp.LayerManager', [
     }
 
     function restoreServiceParameters (container, desc, layerManager) {
+        let service = container.service;
+        let view = service && service.view || service;
+
         if (desc.opacity !== undefined) container.layer.opacity = desc.opacity;
         if (desc.resolutionLimits) container.layer.resolutionLimits = desc.resolutionLimits;
         if (desc.isDisplayed !== undefined && container.service) container.service.isDisplayed = desc.isDisplayed;
-        if (desc.filter && container.service && container.service.setDataFilter) container.service.setDataFilter(DataFilter.deserialize(desc.filter));
+        if (desc.filter && view && view.setDataFilter)  {
+            view.setDataFilter(DataFilter.deserialize(desc.filter));
+        } else if (desc.customFilter && view && view.setCustomFilter) {
+            view.setCustomFilter(desc.customFilter);
+        }
         if (desc.meta && container.service) container.service.meta = desc.meta;
 
         if (desc.isFolder && desc.children) {
@@ -130,7 +137,14 @@ sGis.module('sp.LayerManager', [
             opacity: container.layer && container.layer.opacity,
             resolutionLimits: container.layer && container.layer.resolutionLimits,
             isDisplayed: container.service && container.service.isDisplayed,
-            filter: container.service && container.service.dataFilter && container.service.dataFilter.serialize(),
+            filter: container.service && (
+                (container.service.tempFilterApplied && container.service.dataFilter.serialize()) ||
+                (container.service.view && container.service.view.tempFilterApplied && container.service.view.dataFilter.serialize())
+            ),
+            customFilter: container.service && (
+                container.service.customFilter ||
+                container.service.view && container.service.view.customFilter
+            ),
             meta: container.service && container.service.meta,
             children: saveChildren(container.service)
         };

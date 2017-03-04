@@ -11,7 +11,7 @@ sGis.module('sp.services.DataViewService', [
     class DataViewService extends MapService {
         constructor(name, connector, serviceInfo) {
             super(name, connector, serviceInfo);
-            if (serviceInfo.dataFilter) this._dataFilter = DataFilter.deserialize(serviceInfo.dataFilter);
+            if (serviceInfo.dataFilter) this._dataFilter = this._originalFilter = DataFilter.deserialize(serviceInfo.dataFilter);
             this._setLayer();
             if (connector.sessionId) this._subscribeForNotifications()
         }
@@ -28,6 +28,7 @@ sGis.module('sp.services.DataViewService', [
         get isFilterable() { return !!this.dataSource; }
 
         get dataFilter() { return this._dataFilter; }
+        get tempFilterApplied() { return this._dataFilter !== this._originalFilter; }
 
         setDataFilter(filter) {
             this._dataFilter = filter;

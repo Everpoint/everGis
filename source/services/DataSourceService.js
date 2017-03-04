@@ -19,7 +19,7 @@ sGis.module('sp.services.DataSourceService', [
 
         _initialize() {
             this._tempViewController = new TempView(this._connector, this.name);
-            this._tempViewController.resetView({ sourceServiceName: this._name }).then(() => {
+            this._initializationPromise = this._tempViewController.resetView({ sourceServiceName: this._name }).then(() => {
                 this._setForwardListeners();
                 this.view.isDisplayed = this._isDisplayed;
                 this.fire('stateUpdate');
