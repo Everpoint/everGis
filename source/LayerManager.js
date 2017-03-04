@@ -15,10 +15,13 @@ sGis.module('sp.LayerManager', [
             this._map = map;
             this._connector = connector;
             this._map.addLayer(this.layer);
+
+            this.ready = new Promise((resolve) => this._resolveReady = resolve);
         }
 
         init(services = []) {
-            services.forEach(name => this.loadService(name));
+            Promise.all(services.map(name => new Promise(resolve => this.loadWithPromise(name).then(resolve).catch(resolve))))
+                .then(this._resolveReady);
         }
 
         loadService(name, index = -1, parent = null) {

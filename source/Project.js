@@ -16,7 +16,7 @@ sGis.module('sp.Project', [
         
         load(name) {
             this._isLoading = true;
-            this._api.operation('projects/load', { name: name })
+            return this._api.operation('projects/load', { name: name })
                 .then((response) => {
                     this._isLoading = false;
                     this._name = name;
