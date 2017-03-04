@@ -84,11 +84,22 @@ sGis.module('sp.Printer', [
                     UniqueName: service.name || service.id,
                     Opactiy: service.layer.opacity,
                     IsVisible: service.isDisplayed,
-                    Title: service.Name,
+                    Title: service.name,
                     CustomParameters: {},
                     Layers: [{ LayerId: -1, LegendItemId: -1, Children: [] }]
                 });
             }
+
+            description.Legend = {
+                LayerId: -1,
+                LegendItemId: -1,
+                Children: services.filter(x => x.hasLegend).map(x => {
+                    return {
+                        Name: x.alias || x.name,
+                        ServiceFullName: x.name
+                    };
+                })
+            };
 
             return utils.ajaxp({
                 url: this._serverConnector.url + 'export/store/' + (this._serverConnector.sessionId ? '?_sb=' + this._serverConnector.sessionId : ''),
