@@ -1,4 +1,4 @@
-sGis.module('spatialProcessor.Project', [
+sGis.module('sp.Project', [
     'utils'
 ], (utils) => {
     
@@ -16,7 +16,7 @@ sGis.module('spatialProcessor.Project', [
         
         load(name) {
             this._isLoading = true;
-            this._api.operation('projects/load', { name: name })
+            return this._api.operation('projects/load', { name: name })
                 .then((response) => {
                     this._isLoading = false;
                     this._name = name;
@@ -59,12 +59,13 @@ sGis.module('spatialProcessor.Project', [
             });
         }
 
-        save() {
+        save(isShared) {
             let operation = this._isLoaded ? 'projects/update' : 'projects/create';
             return this._api.operation(operation, {
                 name: this.name,
                 alias: this.alias,
-                description: this.description
+                description: this.description,
+                isShared: !!isShared
             }, JSON.stringify(this._data));
         }
 

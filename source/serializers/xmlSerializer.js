@@ -1,11 +1,133 @@
-sGis.module('spatialProcessor.parseXML', [
+sGis.module('sp.serializers.xmlSerializer', [
     'feature.Point',
     'feature.Polyline',
-    'feature.Polygon'
-], function() {
+    'feature.Polygon',
+    'utils.Color'
+], function(Point, Polyline, Polygon, Color) {
     'use strict';
 
-    var parseXML = function(xml) {
+    let xmlSerializer = {};
+
+    xmlSerializer.deserializeFeatures = function(response) {
+        return createFeatures(response);
+    };
+
+    const DEFAULT_VD = {
+        point: {
+            shape: 'Circle',
+            size: 10,
+            fill: '#00000000',
+            color: '#00000000',
+            strokeThickness: 1
+        },
+        polyline: {
+            color: '#00000000',
+            strokeThickness: 1
+        },
+        polygon: {
+            fill: '#00000000',
+            color: '#00000000',
+            strokeThickness: 1
+        }
+    };
+
+    function createFeatures(response) {
+        var features = [];
+        if (response.objects) {
+            for (var i in response.objects) {
+                var object = response.objects[i];
+                let visualDefinition = object.visualDefinition || object.geometry && DEFAULT_VD[object.geometry.data.type];
+                if (object.geometry && visualDefinition) {
+                    var geometry = object.geometry.data,
+                        points = geometry.coordinates,
+                        attributes = object.attributes,
+                        color = visualDefinition.stroke ? parseColor(visualDefinition.stroke) : undefined,
+                        fillColor = visualDefinition.fill ? visualDefinition.fill : undefined;
+
+                    var serverCrs = object.geometry.data.crs;
+                    var crs;
+
+                    if (serverCrs.wkid === 102100 || serverCrs.wkid === 102113) {
+                        crs = sGis.CRS.webMercator;
+                    } else if (serverCrs.wkid === 77) {
+                        crs = new sGis.Crs({ wkid: 77 });
+                    } else {
+                        crs = new sGis.Crs(serverCrs);
+                    }
+
+                    var idAttribute = response.attributesDefinitions[object.attributesDefinition]._identity;
+                    var id = parseInt(object.attributes[idAttribute].value);
+
+                    if (geometry.type === 'polygon') {
+                        var feature = new sGis.feature.Polygon(points, {id: id, attributes: attributes, crs: crs, color: color, width: visualDefinition.strokeThickness});
+                        if (fillColor && fillColor.brush) {
+                            feature.symbol = new sGis.symbol.polygon.BrushFill({
+                                strokeWidth: parseFloat(visualDefinition.strokeThickness),
+                                strokeColor: color,
+                                fillBrush: fillColor.brush,
+                                fillForeground: parseColor(fillColor.foreground),
+                                fillBackground: parseColor(fillColor.background)
+                            });
+                        } else {
+                            feature.symbol = new sGis.symbol.polygon.Simple({
+                                strokeWidth: parseFloat(visualDefinition.strokeThickness),
+                                strokeColor: color,
+                                fillColor: fillColor ? parseColor(fillColor) : 'transparent'
+                            });
+                        }
+                    } else if (geometry.type === 'polyline') {
+                        let symbol = new sGis.symbol.polyline.Simple({ strokeColor: color, strokeWidth: parseFloat(visualDefinition.strokeThickness)});
+                        feature = new sGis.feature.Polyline(points, {id: id, attributes: attributes, crs: crs, symbol: symbol });
+                    } else if (geometry.type === 'point' || geometry.type === 'multipoint') {
+                        var symbol;
+
+                        if (visualDefinition.imageSrc) {
+                            symbol = new sGis.symbol.point.Image({
+                                source: visualDefinition.imageSrc,
+                                width: parseFloat(visualDefinition.size),
+                                height: null,
+                                anchorPoint: visualDefinition.anchorPoint
+                            });
+                        } else if (visualDefinition.shape === 'Circle') {
+                            symbol = new sGis.symbol.point.Point({
+                                size: parseFloat(visualDefinition.size),
+                                fillColor: fillColor ? parseColor(fillColor) : 'transparent',
+                                strokeColor: color,
+                                strokeWidth: parseFloat(visualDefinition.strokeThickness)
+                            });
+                        } else {
+                            symbol = new sGis.symbol.point.Square({
+                                size: parseFloat(visualDefinition.size),
+                                strokeWidth: parseFloat(visualDefinition.strokeThickness),
+                                strokeColor: color,
+                                fillColor: fillColor ? parseColor(fillColor) : 'transparent'
+                            });
+                        }
+
+                        var featureClass = geometry.type === 'point' ? sGis.feature.Point : sGis.feature.MultiPoint;
+                        if (geometry.type === 'multipoint') points = points[0];
+                        feature = new featureClass(points, {id: id, attributes: attributes, crs: crs, symbol: symbol});
+                    }
+                }
+
+                if (feature && response.attributesDefinitions && object.attributesDefinition) {
+                    feature.displayField = response.attributesDefinitions[object.attributesDefinition]._display;
+                    feature.visualDefinitionId = object.visualDefinitionId;
+                    feature.generatorId = object.generatorId;
+                    features.push(feature);
+                }
+            }
+        }
+
+        return features;
+    }
+
+    function parseColor(color) {
+        var c = new sGis.utils.Color(color);
+        return c.toString();
+    }
+
+    xmlSerializer.deserialize = function(xml) {
         var parser = new DOMParser(),
             nodes = parser.parseFromString(xml, 'text/xml'),
             parsed = {};
@@ -19,11 +141,7 @@ sGis.module('spatialProcessor.parseXML', [
         for (var i in nodes.childNodes) {
             var tagName = nodes.childNodes[i].tagName;
             if (serializer[tagName]) {
-//            try {
                 serializer[tagName](nodes.childNodes[i], parsed, reference);
-//            } catch (e) {
-//                debugger;
-//            }
             }
         }
     }
@@ -48,7 +166,8 @@ sGis.module('spatialProcessor.parseXML', [
         Content: function(node, parsed) {
             var attributes = getNodeAttributes(node);
             if (attributes.ContentType === 'Visuals') {
-                serialize(node, parsed);
+                parsed.content = {};
+                serialize(node, parsed.content);
             } else if (attributes.ContentType === 'JSON') {
                 parsed.content = sGis.utils.parseXmlJsonNode(node);
             } else if (attributes.ContentType === 'Text') {
@@ -313,15 +432,15 @@ sGis.module('spatialProcessor.parseXML', [
      * SERIALIZER
      */
 
-    if (!sGis.spatialProcessor) sGis.spatialProcessor = {};
+    if (!sGis.sp) sGis.sp = {};
     let tempId = -1;
 
-    sGis.spatialProcessor.serializeGeometry = function(features) {
+    sGis.sp.serializeGeometry = function(features) {
         var formatedData = getFormatedData(features);
         return getXML(formatedData);
     };
 
-    sGis.spatialProcessor.serializeGeometryEdit = function(editDescription, attributesOnly, ignoreSymbol) {
+    xmlSerializer.serializeGeometryEdit = function(editDescription, attributesOnly, ignoreSymbol) {
         tempId = -1;
         var featureList = [];
         for (var i in editDescription) {
@@ -329,10 +448,14 @@ sGis.module('spatialProcessor.parseXML', [
         }
 
         var formatedData = getFormatedData(featureList, attributesOnly);
-        return getXML(formatedData, editDescription, attributesOnly, ignoreSymbol);
+        return addTitle(getXML(formatedData, editDescription, attributesOnly, ignoreSymbol));
     };
 
-    sGis.spatialProcessor.serializeSymbols = function(symbols) {
+    function addTitle(xml) {
+        return '<?xml version="1.0" encoding="utf-8"?>' + xml;
+    }
+
+    sGis.sp.serializeSymbols = function(symbols) {
         var features = [];
         for (var i = 0, len = symbols.length; i < len; i++) {
             features.push(new featureClasses[symbols[i].type]([], { symbol: symbols[i] }));
@@ -350,7 +473,7 @@ sGis.module('spatialProcessor.parseXML', [
         return text;
     };
 
-    sGis.spatialProcessor.serializeAttributes = function(attributes) {
+    sGis.sp.serializeAttributes = function(attributes) {
         var data = {
             resources: {
                 attributesDefinitions: {},
@@ -432,10 +555,10 @@ sGis.module('spatialProcessor.parseXML', [
         return node;
     }
 
-    function getDeleteObjectNode(feature, xml) {
+    function getDeleteObjectNode(id, xml) {
         var node = xml.createElement('DeleteObject');
         setNodeAttributes(node, {
-            Id: feature.id
+            Id: id
         });
         return node;
     }
@@ -938,6 +1061,6 @@ sGis.module('spatialProcessor.parseXML', [
         return c.toString('hex');
     }
 
-    return parseXML;
+    return xmlSerializer;
 
 });

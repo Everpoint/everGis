@@ -1,6 +1,6 @@
 {
   "name": "evergis",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "",
   "main": "source/spatialProcessor.js",
   "directories": {
@@ -25,6 +25,12 @@
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-concat": "^2.6.0",
-    "gulp-replace": "^0.5.4"
+    "gulp-replace": "^0.5.4",
+    "jasmine-core": "^2.5.2",
+    "karma": "^1.2.0",
+    "karma-chrome-launcher": "^2.0.0",
+    "karma-coverage": "^1.1.1",
+    "karma-jasmine": "^1.0.2",
+    "karma-jasmine-matchers": "^3.0.1"
   }
 }

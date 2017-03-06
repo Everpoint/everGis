@@ -1,4 +1,4 @@
-sGis.module('spatialProcessor.utils', [
+sGis.module('sp.utils', [
     'utils'
 ], function(utils) {
     'use strict';
@@ -81,6 +81,6 @@ sGis.module('spatialProcessor.utils', [
         return newArray;
     };
 
-    return {};
+    return utils;
     
 });

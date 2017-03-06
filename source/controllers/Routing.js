@@ -1,6 +1,6 @@
-sGis.module('spatialProcessor.controller.Routing', [
-    'spatialProcessor.Controller',
-    'spatialProcessor.ControllerManager'
+sGis.module('sp.controller.Routing', [
+    'sp.Controller',
+    'sp.ControllerManager'
 ], function(Controller, ControllerManager) {
     'use strict';
 
@@ -12,7 +12,7 @@ sGis.module('spatialProcessor.controller.Routing', [
         });
     };
 
-    Routing.prototype = new sGis.spatialProcessor.Controller({
+    Routing.prototype = new sGis.sp.Controller({
         _type: 'route',
 
         buildRoute: function(properties) {

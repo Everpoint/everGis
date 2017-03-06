@@ -1,6 +1,7 @@
-sGis.module('spatialProcessor.Api', [
+sGis.module('sp.Api', [
     'utils',
-], function(utils) {
+    'sp.serializers.JsonSerializer'
+], function(utils, JsonSerializer) {
 
     'use strict';
 
@@ -27,7 +28,10 @@ sGis.module('spatialProcessor.Api', [
             return this._operation('serviceCatalog/list', {
                 filter: properties.filter,
                 jsfilter: properties.jsfilter,
-                serviceTypes: ['DataView', 'LayerGroup', 'DataSourceService']
+                serviceTypes: properties.serviceTypes,
+                owners: properties.owners,
+                startFrom: properties.startFrom,
+                take: properties.take
             });
         }
 
@@ -254,12 +258,13 @@ sGis.module('spatialProcessor.Api', [
             });
         }
 
-        publishDataSource({name, alias, description, isShared, srid, geometryType, attributeDefinition}) {
+        publishDataSource({name, alias, description, preview, isShared, srid, geometryType, attributeDefinition}) {
             return this._publishService('DataSourceService', {
                 Name: name,
                 Alias: alias,
                 Description: description,
                 IsShared: isShared,
+                Preview: preview,
                 AttributesDefinition: attributeDefinition,
                 Srid: srid,
                 GeometryType: geometryType
@@ -367,6 +372,12 @@ sGis.module('spatialProcessor.Api', [
             return this._operation('data/get', params);
         }
 
+        pickByGeometry({ services, geometry, resolution}) {
+            return this._operation('data/pickByGeometry', { services, geom: JSON.stringify(JsonSerializer.serializeGeometry(geometry)), res: resolution}).then(response => {
+                return response.map(x => JsonSerializer.deserializeFeature(x, geometry.crs));
+            });
+        }
+
         getFunctionList({ targetServiceName }) {
             return this._operation('functions/list', { targetServiceName });
         }
@@ -386,7 +397,7 @@ sGis.module('spatialProcessor.Api', [
          * @param {sGis.Crs} [crs=sGis.CRS.wgs84]
          * @returns {Promise.<AddressSearchResult[]>}
          */
-        geocode (query, providers, crs = sGis.CRS.wgs84) {
+        geocode(query, providers, crs = sGis.CRS.wgs84) {
             let requestCRS = crs === sGis.CRS.geo ? sGis.CRS.wgs84 : crs;
 
             let sr = requestCRS.stringDescription;

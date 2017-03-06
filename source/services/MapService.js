@@ -1,4 +1,4 @@
-sGis.module('spatialProcessor.services.MapService', [
+sGis.module('sp.services.MapService', [
     'utils',
     'CRS',
     'EventHandler',

@@ -1,5 +1,5 @@
-sGis.module('spatialProcessor.controller.DitIntegration', [
-    'spatialProcessor.Controller'
+sGis.module('sp.controller.DitIntegration', [
+    'sp.Controller'
 ], function(Controller) {
     'use strict';
 
@@ -16,7 +16,7 @@ sGis.module('spatialProcessor.controller.DitIntegration', [
         });
     };
 
-    DitIntegration.prototype = new sGis.spatialProcessor.Controller({
+    DitIntegration.prototype = new sGis.sp.Controller({
         _type: 'integrationLayer',
 
         loadLayerData: function(properties) {
