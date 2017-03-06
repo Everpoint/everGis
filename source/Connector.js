@@ -82,8 +82,8 @@ sGis.module('sp.Connector', [
 
                 function initialize(id) {
                     self._sessionId = encodeURIComponent(id);
-                    // self.synchronize();
-                    self.requestNotifications();
+
+                    if (id) self.requestNotifications();
 
                     escapePrintMethod(self);
                     resolve(id);
