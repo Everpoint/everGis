@@ -11,7 +11,7 @@ sGis.module('sp.controllers.ViewableController', [
         }
 
         _checkInitialization() {
-            if (!this.initData.DataViewServiceName) throw new Error(`Controller ${type} initialization failed: server did not return view name.`);
+            if (!this.initData.DataViewServiceName) throw new Error(`Controller ${this.type} initialization failed: server did not return view name.`);
         }
 
         updateView() {
@@ -25,7 +25,7 @@ sGis.module('sp.controllers.ViewableController', [
                             this._service = container.service;
                             resolve();
                         } else {
-                            reject(`Controller ${type} update failed: failed to update view.`);
+                            reject(`Controller ${this.type} update failed: failed to update view.`);
                         }
                     });
                 });
