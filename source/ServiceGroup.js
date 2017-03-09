@@ -53,11 +53,11 @@ sGis.module('sp.ServiceGroup', [
         }
 
         _setListeners(container) {
-            container.on('stateUpdate', this._onStateUpdate);
+            container.on('stateUpdate contentChange', this._onStateUpdate);
         }
 
         _removeListeners(container) {
-            container.off('stateUpdate', this._onStateUpdate);
+            container.off('stateUpdate contentChange', this._onStateUpdate);
         }
 
         _onStateUpdate(e) {
