@@ -72,7 +72,7 @@ sGis.module('sp.ServiceGroup', [
             this._children.splice(index, 1);
             this._updateChildLayers();
             this._removeListeners(container);
-            this.fire('contentChange');
+            this.fire('contentChange', {deleted: container});
         }
 
         _updateChildLayers() {
