@@ -110,6 +110,7 @@ sGis.module('sp.ServiceGroup', [
 
         getServices(recurse) {
             let children = [];
+  
             this._children.forEach(c => {
                 if (!c.service) return;
                 children.push(c.service);
@@ -120,7 +121,21 @@ sGis.module('sp.ServiceGroup', [
         }
 
         getDisplayedServices(recurse = true) {
-            return this.getServices(recurse).filter(s => s.layer && s.isDisplayed && !(s.layer instanceof LayerGroup));
+            let children = [];
+            
+            if (this.isDisplayed) {
+                this._children.forEach(c => {
+                    if (!c.service || !c.service.isDisplayed) return;
+                    
+                    if (recurse && c.service.getServices) {
+                        children = children.concat(c.service.getDisplayedServices(true));
+                    } else {
+                        children.push(c.service);
+                    }
+                });
+            }
+
+            return children;
         }
 
         contains(container, recurse = true) {
