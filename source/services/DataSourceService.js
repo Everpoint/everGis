@@ -33,7 +33,11 @@ sGis.module('sp.services.DataSourceService', [
         get description() { return this.serviceInfo && this.serviceInfo.description; }
         get view() { return this._tempViewController.service; }
 
-        get isDisplayed() { return this.view && this.view.isDisplayed || this._isDisplayed; }
+        get isDisplayed() {
+            return this.view && this.view.isDisplayed !== undefined
+                ?  this.view.isDisplayed
+                : this._isDisplayed;
+        }
         set isDisplayed(bool) {
             if (this.view) {
                 this.view.isDisplayed = bool;
