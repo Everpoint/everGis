@@ -53,11 +53,11 @@ sGis.module('sp.ServiceGroup', [
         }
 
         _setListeners(container) {
-            container.on('stateUpdate', this._onStateUpdate);
+            container.on('stateUpdate contentChange', this._onStateUpdate);
         }
 
         _removeListeners(container) {
-            container.off('stateUpdate', this._onStateUpdate);
+            container.off('stateUpdate contentChange', this._onStateUpdate);
         }
 
         _onStateUpdate(e) {
@@ -72,7 +72,7 @@ sGis.module('sp.ServiceGroup', [
             this._children.splice(index, 1);
             this._updateChildLayers();
             this._removeListeners(container);
-            this.fire('contentChange');
+            this.fire('contentChange', {deleted: container});
         }
 
         _updateChildLayers() {

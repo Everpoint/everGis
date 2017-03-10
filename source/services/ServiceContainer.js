@@ -37,7 +37,7 @@ sGis.module('sp.services.ServiceContainer', [
 
         _setListeners(service) {
             service.on('visibilityChange childUpdate layerChange', this._fireUpdate.bind(this));
-            service.on('stateUpdate', this.forwardEvent.bind(this));
+            service.on('stateUpdate contentChange', this.forwardEvent.bind(this));
         }
 
         _init(serviceInfo) {
