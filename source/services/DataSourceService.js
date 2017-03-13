@@ -61,7 +61,7 @@ sGis.module('sp.services.DataSourceService', [
         get initialExtent() { return this.view && this.view.initialExtent; }
 
         get serviceInfo() { return this._serviceInfo; }
-        get isEditable() { return this.view.isEditable; }
+        get isEditable() { return this.permissions.indexOf('Write') !== -1; }
         get isFilterable() { return this.view && this.view.isFilterable; }
 
         get filter() { return this.view && this.view.filter; }
