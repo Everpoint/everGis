@@ -21,10 +21,16 @@ sGis.module('sp.services.DataViewService', [
         }
 
         get dataSource() {
+            return this._serviceInfo.dataSourceServiceName;
+        }
+        
+        get dataSourceInfo() {
             return this._serviceInfo.sourceServiceInfo;
         }
         
-        get isEditable() { return this.dataSource.permissions.indexOf('Write'); }
+        get isEditable() {
+            return this.dataSourceInfo && this.dataSourceInfo.permissions && this.dataSourceInfo.permissions.indexOf('Write');
+        }
         get isFilterable() { return !!this.dataSource; }
 
         get dataFilter() { return this._dataFilter; }
