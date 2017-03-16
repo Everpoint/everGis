@@ -80,8 +80,16 @@ sGis.module('sp.serializers.xmlSerializer', [
                         feature = new sGis.feature.Polyline(points, {id: id, attributes: attributes, crs: crs, symbol: symbol });
                     } else if (geometry.type === 'point' || geometry.type === 'multipoint') {
                         var symbol;
-
-                        if (visualDefinition.imageSrc) {
+                        
+                        if (visualDefinition.maskSrc) {
+                            symbol = new sGis.symbol.point.MaskedImage({
+                                imageSource: visualDefinition.imageSrc,
+                                maskSource: visualDefinition.maskSrc,
+                                width: parseFloat(visualDefinition.size),
+                                height: null,
+                                anchorPoint: visualDefinition.anchorPoint
+                            });
+                        } else if (visualDefinition.imageSrc) {
                             symbol = new sGis.symbol.point.Image({
                                 source: visualDefinition.imageSrc,
                                 width: parseFloat(visualDefinition.size),
@@ -321,7 +329,8 @@ sGis.module('sp.serializers.xmlSerializer', [
                 size: attributes.Size === '0' ? 10 : attributes.Size,
                 color: attributes.Color,
                 anchorPoint: {x: attributes.AnchorPointX, y: attributes.AnchorPointY},
-                imageSrc: parsed.image[attributes.Pixels].dataUrl
+                imageSrc: parsed.image[attributes.Pixels].dataUrl,
+                maskSrc: parsed.image[attributes.MaskPixels].dataUrl
             };
         },
 
