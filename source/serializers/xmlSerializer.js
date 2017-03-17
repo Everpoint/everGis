@@ -324,13 +324,16 @@ sGis.module('sp.serializers.xmlSerializer', [
             if (!parsed.symbol) parsed.symbol = {};
 
             var attributes = getNodeAttributes(node);
+            
+            const maskSrc = parsed.image[attributes.MaskPixels];
+            
             parsed.symbol[attributes.Key] = {
                 symbol: 'ImagePointSymbol',
                 size: attributes.Size === '0' ? 10 : attributes.Size,
                 color: attributes.Color,
                 anchorPoint: {x: attributes.AnchorPointX, y: attributes.AnchorPointY},
                 imageSrc: parsed.image[attributes.Pixels].dataUrl,
-                maskSrc: parsed.image[attributes.MaskPixels].dataUrl
+                maskSrc: maskSrc && maskSrc.dataUrl
             };
         },
 
