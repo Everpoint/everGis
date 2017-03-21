@@ -78,7 +78,7 @@ sGis.module('sp.services.DataSourceService', [
 
     DataSourceService.prototype._isDisplayed = true;
 
-    ServiceContainer.register(serviceInfo => serviceInfo.serviceType === 'DataSourceService', DataSourceService);
+    //ServiceContainer.register(serviceInfo => serviceInfo.serviceType === 'DataSourceService', DataSourceService);
 
     return DataSourceService;
 

@@ -1,12 +1,13 @@
 sGis.module('sp.serializers.JsonSerializer', [
     'utils',
+    'Crs',
     'feature.Point',
     'feature.Polyline',
     'feature.Polygon',
     'symbol.point.Point',
     'symbol.polyline.Simple',
     'symbol.polygon.Simple'
-], (utils, Point, Polyline, Polygon, PointSymbol, PolylineSymbol, PolygonSymbol) => {
+], (utils, Crs, Point, Polyline, Polygon, PointSymbol, PolylineSymbol, PolygonSymbol) => {
 
     let geometryTypeMap = { 'point': Point, 'polyline': Polyline, 'polygon': Polygon };
 

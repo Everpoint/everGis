@@ -1,10 +1,11 @@
 sGis.module('sp.services.DataViewService', [
+    'sp.utils',
     'sp.services.MapService',
     'sp.ClusterLayer',
     'sp.services.ServiceContainer',
     'sp.DataFilter',
     'sp.layers.DataViewLayer'
-], (MapService, ClusterLayer, ServiceContainer, DataFilter, DataViewLayer) => {
+], (utils, MapService, ClusterLayer, ServiceContainer, DataFilter, DataViewLayer) => {
 
     'use strict';
 
@@ -29,9 +30,9 @@ sGis.module('sp.services.DataViewService', [
         }
         
         get isEditable() {
-            return this.dataSourceInfo && this.dataSourceInfo.permissions && this.dataSourceInfo.permissions.indexOf('Write');
+            return this.serviceInfo.isEditable;
         }
-        get isFilterable() { return !!this.dataSource; }
+        get isFilterable() { return this.serviceInfo.capabilities && this.serviceInfo.capabilities.indexOf('setTempDataFilter') !== -1; }
 
         get dataFilter() { return this._dataFilter; }
         get tempFilterApplied() { return this._dataFilter !== this._originalFilter; }
@@ -40,7 +41,11 @@ sGis.module('sp.services.DataViewService', [
             this._dataFilter = filter;
 
             let serialized = filter.serialize();
-            let promise = this.connector.api.setDataFilter(this.name, JSON.stringify(serialized));
+            let promise = utils.ajaxp({
+                url: `${this.url}setTempDataFilter?_sb=${this.connector.sessionId}`,
+                type: 'POST',
+                data: 'filterDescription=' + JSON.stringify(serialized)
+            });
 
             this.fire('dataFilterChange');
 
@@ -59,7 +64,11 @@ sGis.module('sp.services.DataViewService', [
          */
         setCustomFilter(filter) {
             this._customFilter = filter;
-            return this.connector.api.setDataFilter(this.name, JSON.stringify(filter));
+            return utils.ajaxp({
+                url: `${this.url}setTempDataFilter?_sb=${this.connector.sessionId}`,
+                type: 'POST',
+                data: 'filterDescription=' + JSON.stringify(filter)
+            });
         }
         
         get allowsClustering() { return true; }
@@ -89,7 +98,7 @@ sGis.module('sp.services.DataViewService', [
     
     DataViewService.prototype._showAsClusters = false;
 
-    ServiceContainer.register(serviceInfo => serviceInfo.serviceType === 'DataView' && serviceInfo.capabilities.indexOf('tile') === -1, DataViewService);
+    ServiceContainer.register(serviceInfo => serviceInfo.serviceType === 'DataView' && serviceInfo.capabilities.indexOf('tile') === -1 || serviceInfo.serviceType === 'DataSourceService', DataViewService);
 
     return DataViewService;
 

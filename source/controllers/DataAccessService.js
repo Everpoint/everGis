@@ -66,7 +66,7 @@ sGis.module('sp.controllers.DataAccessService', [
 
         projectGeometry(properties) {
             let { features, sourceSr, destinationSr } = properties;
-            let geometry = features.map(x => { return { rings: x.rings }; });
+            let geometry = features.map(JsonSerializer.serializeGeometry);
             return this.operation('gcProject', { sourceGeom: geometry, sourceSr, destSr: destinationSr });
         }
 
