@@ -44,7 +44,7 @@ sGis.module('sp.services.DataViewService', [
             let promise = utils.ajaxp({
                 url: `${this.url}setTempDataFilter?_sb=${this.connector.sessionId}`,
                 type: 'POST',
-                data: 'filterDescription=' + JSON.stringify(serialized)
+                data: 'filterDescription=' + encodeURIComponent(JSON.stringify(serialized))
             });
 
             this.fire('dataFilterChange');
@@ -67,7 +67,7 @@ sGis.module('sp.services.DataViewService', [
             return utils.ajaxp({
                 url: `${this.url}setTempDataFilter?_sb=${this.connector.sessionId}`,
                 type: 'POST',
-                data: 'filterDescription=' + JSON.stringify(filter)
+                data: 'filterDescription=' + encodeURIComponent(JSON.stringify(filter))
             });
         }
         
