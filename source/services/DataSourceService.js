@@ -33,7 +33,7 @@ sGis.module('sp.services.DataSourceService', [
         get description() { return this.serviceInfo && this.serviceInfo.description; }
         get view() { return this._tempViewController.service; }
 
-        get isDisplayed() { return this.view && this.view.isDisplayed || this._isDisplayed; }
+        get isDisplayed() { return this.view ? this.view.isDisplayed : this._isDisplayed; }
         set isDisplayed(bool) {
             if (this.view) {
                 this.view.isDisplayed = bool;
@@ -61,7 +61,7 @@ sGis.module('sp.services.DataSourceService', [
         get initialExtent() { return this.view && this.view.initialExtent; }
 
         get serviceInfo() { return this._serviceInfo; }
-        get isEditable() { return this.view.isEditable; }
+        get isEditable() { return this.permissions.indexOf('Write') !== -1; }
         get isFilterable() { return this.view && this.view.isFilterable; }
 
         get filter() { return this.view && this.view.filter; }
@@ -78,7 +78,7 @@ sGis.module('sp.services.DataSourceService', [
 
     DataSourceService.prototype._isDisplayed = true;
 
-    ServiceContainer.register(serviceInfo => serviceInfo.serviceType === 'DataSourceService', DataSourceService);
+    //ServiceContainer.register(serviceInfo => serviceInfo.serviceType === 'DataSourceService', DataSourceService);
 
     return DataSourceService;
 

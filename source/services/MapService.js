@@ -57,7 +57,7 @@ sGis.module('sp.services.MapService', [
             }
         }
 
-        get hasLegend() { return this.serviceInfo && this.serviceInfo.capabilities.indexOf('legend') >= 0; }
+        get hasLegend() { return this.serviceInfo && this.serviceInfo.capabilities && this.serviceInfo.capabilities.indexOf('legend') >= 0; }
 
         updateLegend() {
             if (this.hasLegend) return this._requestLegend().then(legend => {
@@ -141,10 +141,8 @@ sGis.module('sp.services.MapService', [
                         } catch (e) {}
                     });
             }
-            
-            let p = new Promise();
-            Promise.resolve(p);
-            return p;
+
+            return new Promise(resolve => resolve());
         }
 
         get initializationPromise() { return null; }
