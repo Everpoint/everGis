@@ -54,7 +54,7 @@ sGis.module('sp.Connector', [
                         url = this.apiLoginUrl.replace(/%sp%/, spUrl) + '?userName=' + login + '&password=' + encodeURIComponent(password) + '&ts=' + new Date().getTime();
                     sGis.utils.ajax({
                         url: url,
-                        success: function(data, textStatus) {
+                        success: function (data, textStatus) {
                             if (data === '') {
                                 sGis.utils.message('Could not get session ID');
                             } else {
@@ -65,13 +65,13 @@ sGis.module('sp.Connector', [
 
                                     self.fire('sessionInitialized');
                                 } else {
-                                    sGis.utils.error('Could not get session. Server responded with: ' + data);
                                     reject('Could not get session. Server responded with: ' + data);
+                                    sGis.utils.error('Could not get session. Server responded with: ' + data);
                                 }
                             }
                         },
 
-                        error: function() {
+                        error: function () {
                             sGis.utils.message('Could not get session ID');
                             reject('Could not get session ID');
                         }
