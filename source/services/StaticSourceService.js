@@ -8,67 +8,76 @@ sGis.module('sp.services.StaticSourceService', [
 
     class StaticSourceService extends EventHandler {
         constructor(name, connector, serviceInfo) {
-
             super();
 
             this._seviceInfo = serviceInfo;
             this._connector = connector;
             this._name = name;
+            this._url = `${this._connector.url + this._name}/`;
         }
 
-        _getSessionTokenIfExists(){
-            return (this._connector.sessionId ? '?_sb=' + this._connector.sessionId : '');
-        }
-
-        url(){
-           return  this._connector.url + this._name + '/'
+        get url(){
+           return this._url
         }
 
         upload(fileName, file){
-
-            var data = new FormData();
-            data.append('file', file);
 
             if(!fileName || !file){
                 utils.error('Invalid parameters');
             }
 
-            let self = this;
+            var data = new FormData();
+            data.append('file', file);
 
+            let self = this;
             return utils.ajaxp({
 
-                url: this.url() + 'upload' + this._getSessionTokenIfExists() +  '&fileName=' + fileName,
+                url: `${this._url}upload?fileName=${fileName}${this._connector.sessionSuffix}`,
                 type: 'POST',
                 data: data,
-                processData: false,
                 contentType: 'super-binary',
-                dataType : 'json'
-
             }).then(response => {
                 let respObject = JSON.parse(response[0]);
                 if (respObject.success){
-                    return self.url() + 'download/' + fileName + self._getSessionTokenIfExists();
+                    return `${ self._url}download/${fileName}${self._connector.sessionSuffix}`;
                 } else if(respObject.error){
-                    utils.error(String.raw(respObject.error.message));
+                    utils.error(respObject.error.message);
                 } else {
-                    utils.error("Unknown error")
+                    utils.error(response[0]);
                 }
             }).catch(error=>{
                 utils.error(error)
             });
         }
 
-
         delete(fileName){
-            if(fileName){
-                utils.ajax({url: this.url() + "delete" + this._getSessionTokenIfExists() +  '&fileName=' + fileName});
+
+            if(!fileName){
+               utils.error("File name not set");
             }
+
+            return utils.ajaxp({url:`${this._url}delete?fileName=${fileName}${this._connector.sessionSuffix}`}).then(response=>{
+                let respObject = JSON.parse(response[0]);
+                if(respObject.success){
+                    return respObject.success
+                } else if(respObject.error){
+                    utils.error(respObject.error.message);
+                } else {
+                    utils.error(response[0]);
+                }
+            }).catch(error=>{
+                utils.error(error)
+            });
         }
 
-        describe(searchPattern, startFrom, take, orderBy){
-             return utils.ajaxp({
+        describe({ fileName = null, startFrom = null, take = null, orderBy = null}){
 
-                 url: this.url() + "describe" + this._getSessionTokenIfExists() + this.__hasSearchPattern(searchPattern) + this.__hasTakeLimit(take) + this.__hasOrderBy(orderBy) + this.__hasLimitFrom(startFrom)
+            let params = Object.assign(arguments[0], {_sb: this._connector.sessionId});
+            let paramsString = Object.keys(params).filter(key => params[key] !== null && params[key] !== undefined).map(key => `${key}=${encodeURIComponent(params[key])}`).join('&');
+
+            return utils.ajaxp({
+
+                 url:`${this._url}describe?${paramsString ? this._url + paramsString : this._url}`
 
                 }).then(response => {
                         let respObject = JSON.parse(response[0]);
@@ -78,27 +87,10 @@ sGis.module('sp.services.StaticSourceService', [
                         } else if(respObject.error){
                             utils.error(respObject.error.message);
                         } else {
-                            utils.error(String.raw('Unknown error'))
+                            utils.error(response[0]);
                         }
                 });
         }
-
-        __hasOrderBy(orderBy){
-            return orderBy ? "&orderBy=" + orderBy : ''
-        }
-
-        __hasLimitFrom(startFrom){
-            return startFrom ? "&startFrom=" + startFrom : '';
-        }
-
-        __hasTakeLimit(take){
-            return take ? "&take=" + take : '';
-        }
-
-        __hasSearchPattern(searchPattern){
-            return searchPattern ? "&fileName=" + searchPattern : '';
-        }
-
     }
 
     ServiceContainer.register(serviceInfo => serviceInfo.serviceType == 'StaticStorage', StaticSourceService);
