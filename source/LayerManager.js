@@ -151,7 +151,7 @@ sGis.module('sp.LayerManager', [
     }
 
     function saveChildren(service) {
-        if (!service.children) return;
+        if (!service || !service.children) return;
         return service.children.map(container => saveContainer(container));
     }
 
