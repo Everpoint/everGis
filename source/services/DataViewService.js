@@ -63,6 +63,7 @@ sGis.module('sp.services.DataViewService', [
          * @deprecated
          */
         setCustomFilter(filter) {
+            this._dataFilter = null;
             this._customFilter = filter;
             return utils.ajaxp({
                 url: `${this.url}setTempDataFilter?_sb=${this.connector.sessionId}`,
