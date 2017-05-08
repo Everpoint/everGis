@@ -138,8 +138,8 @@ sGis.module('sp.LayerManager', [
             resolutionLimits: container.layer && container.layer.resolutionLimits,
             isDisplayed: container.service && container.service.isDisplayed,
             filter: container.service && (
-                (container.service.tempFilterApplied && container.service.dataFilter.serialize()) ||
-                (container.service.view && container.service.view.tempFilterApplied && container.service.view.dataFilter.serialize())
+                (container.service.tempFilterApplied && container.service.dataFilter && container.service.dataFilter.serialize()) ||
+                (container.service.view && container.service.view.tempFilterApplied && container.service.view.dataFilter && container.service.view.dataFilter.serialize())
             ),
             customFilter: container.service && (
                 container.service.customFilter ||

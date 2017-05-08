@@ -67,22 +67,11 @@ sGis.module('sp.DataFilter', [
         }
 
         _serializeChildren() {
-            if (!this.childFilters || this.childFilters.length === 0) return null;
-            if (this.childFilters[0] instanceof DataFilter) {
-                return this.childFilters.map(child => child.serialize());
-            } else {
-                let base = new DataFilter({ condition: this.condition, symbol: this.symbol });
-                let unfolded = [base];
-                this.childFilters.forEach(child => {
-                    unfolded = child.unfold(unfolded);
-                });
-
-                if (unfolded.length === 0) return null;
-                return unfolded.map(child => child.serialize());
-            }
+            if (!this.childFilters) return null;
+            return this.childFilters.map(child => child.serialize());
         }
 
-        clone() {
+        clone(cloneSerializationDate = true) {
             return new DataFilter({
                 title: this.title,
                 condition: this.condition,
@@ -94,7 +83,7 @@ sGis.module('sp.DataFilter', [
 
                 aggregations: this.aggregations && this.aggregations.slice(),
 
-                serializationData: this.serializationData
+                serializationData: cloneSerializationDate ? this.serializationData : null
             });
         }
     }
