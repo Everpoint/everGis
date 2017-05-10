@@ -50,6 +50,7 @@ sGis.module('sp.ClusterLayer', [
         _update(bbox, resolution) {
             if (this._currentBbox && bbox.equals(this._currentBbox)) return;
 
+            this.updateProhibited = true;
             if (this._xhr) {
                 this._updateRequest = [bbox, resolution];
                 return;
@@ -68,6 +69,8 @@ sGis.module('sp.ClusterLayer', [
                         this._xhr = null;
                         return;
                     }
+
+                    this.updateProhibited = false;
 
                     if (this._updateRequest) {
                         this._update(this._updateRequest[0], this._updateRequest[1]);
@@ -130,24 +133,36 @@ sGis.module('sp.ClusterLayer', [
 
 sGis.module('sp.ClusterSymbol', [
     'utils',
+    'Symbol',
     'symbol.point.Point',
-    'render.Arc'
-], function(utils, PointSymbol, Arc) {
+    'render.Arc',
+    'render.VectorLabel',
+    'serializer.symbolSerializer'
+], function(utils, Symbol, PointSymbol, Arc, VectorLabel, symbolSerializer) {
 
     class ClusterSymbol extends PointSymbol {
         renderFunction(feature, resolution, crs) {
+            if (this.singleObjectSymbol && feature.objectCount === 1) return this.singleObjectSymbol.renderFunction(feature, resolution, crs);
+
             let renders = super.renderFunction.call(this, feature, resolution, crs);
             this._applySizeClassifier(renders[0], feature);
 
             if (this.pieAggregationIndex >= 0) {
                 let pieChart = this._applyChartClassifier(feature, renders[0].center, renders[0].radius);
                 if (pieChart && pieChart.length > 0) {
-                    renders[0].radius *= 0.5;
+                    renders[0].radius -= this.clusterSize;
                     renders = pieChart.concat(renders);
                 }
             }
 
+            if (this.labelText) renders.push(this._renderLabel(renders[0].center, feature));
+
             return renders;
+        }
+
+        _renderLabel(position, feature) {
+            let text = this.labelText.replace('{__qty}', feature.objectCount || '');
+            return new VectorLabel(position, text, {});
         }
 
         _applySizeClassifier(circleRender, feature) {
@@ -216,8 +231,19 @@ sGis.module('sp.ClusterSymbol', [
                 sizeAggregationIndex: this.sizeAggregationIndex,
                 sizeAggregationMaxValue: this.sizeAggregationMaxValue,
                 pieAggregationIndex: this.pieAggregationIndex,
-                _pieGroups: this._pieGroups
+                _pieGroups: this._pieGroups,
+                labelText: this.labelText,
+                singleObjectSymbol: this.singleObjectSymbol && (this.singleObjectSymbol.serialize && this.singleObjectSymbol.serialize() || symbolSerializer.serialize(this.singleObjectSymbol))
             };
+        }
+
+        get singleObjectSymbol() { return this._singleObjectSymbol; }
+        set singleObjectSymbol(symbol) {
+            if (symbol instanceof Symbol) {
+                this._singleObjectSymbol = symbol;
+            } else {
+                this._singleObjectSymbol = symbolSerializer.deserialize(symbol);
+            }
         }
     }
 
@@ -227,7 +253,7 @@ sGis.module('sp.ClusterSymbol', [
         strokeColor: 'white',
         strokeWidth: 2,
 
-        clusterSize: 64,
+        clusterSize: 10,
 
         minSize: 0,
         maxSize: 0,
@@ -235,46 +261,11 @@ sGis.module('sp.ClusterSymbol', [
         sizeAggregationMaxValue: 0,
 
         pieAggregationIndex: -1,
-        _pieGroups: {}
+        _pieGroups: {},
 
+        labelText: null,
+        _singleObjectSymbol: null
     });
-
-
-
-    // var symbolDefaults = {
-    //     maxCount: 1024,
-    //     minSize: 24,
-    //     maxSize: 72,
-    //     haloColor: 'rgba(0, 183, 255, 0.3)',
-    //     mainColor: 'rgba(0, 205, 255, 0.78)',
-    //     haloK: 1.5
-    // };
-    //
-    // class ClusterSymbol extends PointSymbol {
-    //     constructor() {
-    //         super();
-    //
-    //         this.strokeColor = '#003d63';
-    //         this.fillColor = 'rgba(0, 183, 255, 0.78)';
-    //     }
-    //
-    //     renderFunction(feature, resolution, crs) {
-    //         var points = super.renderFunction(feature, resolution, crs);
-    //         if (feature.objectCount === 1) return points;
-    //
-    //         var k = Math.log2(feature.objectCount) / Math.log2(this.maxCount);
-    //         if (k > 1) k = 1;
-    //         var size = this.minSize + (this.maxSize - this.minSize) * k;
-    //         points[0].radius = size / 2;
-    //         points[0].strokeColor = 'transparent';
-    //         points[0].fillColor = this.haloColor;
-    //
-    //         points[1] = new Arc(points[0].center, { radius: points[0].radius / this.haloK, fillColor: this.mainColor, strokeColor: 'transparent' });
-    //         return points;
-    //     }
-    // }
-    //
-    // utils.extend(ClusterSymbol.prototype, symbolDefaults);
 
     return ClusterSymbol;
 

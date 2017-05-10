@@ -88,6 +88,13 @@ sGis.module('sp.layers.DataViewLayer', [
         }
 
         forceUpdate() { this._dynamicLayer.forceUpdate(); }
+
+        get updateProhibited() {
+            for (let i = 0; i < this._resolutionGroups.length; i++) {
+                if (this._resolutionGroups[i].layer.updateProhibited) return true;
+            }
+            return false;
+        }
     }
 
     DataViewLayer.prototype.delayedUpdate = true;
