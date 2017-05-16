@@ -30,7 +30,7 @@ sGis.module('sp.services.StaticSourceService', [
                 utils.error('Invalid parameters');
             }
             
-            return `${this.url}/${fileName}?${this._connector.sessionSuffix}`
+            return `${this.url}download/${fileName}?${this._connector.sessionSuffix}`
         }
 
         upload(fileName, file){
