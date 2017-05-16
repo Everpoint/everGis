@@ -19,6 +19,19 @@ sGis.module('sp.services.StaticSourceService', [
         get url(){
            return this._url
         }
+    
+        /**
+         * Get url path to file by filename
+         * @param {string} fileName
+         * @return {string}
+         */
+        getSourceUrl(fileName) {
+            if(!fileName){
+                utils.error('Invalid parameters');
+            }
+            
+            return `${this.url}/${fileName}?_sb=${this._connector.sessionId}`
+        }
 
         upload(fileName, file){
 
