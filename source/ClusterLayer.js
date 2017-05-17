@@ -182,7 +182,7 @@ sGis.module('sp.ClusterSymbol', [
             let totalCount = feature.objectCount;
 
             if (!aggr) return;
-            let startAngle = 0;
+            let startAngle = -Math.PI / 2;
             let pies = aggr.filter(x => x.count > 0).map(x => {
                 let angle = x.count / totalCount * Math.PI * 2;
                 let fillColor = this._pieGroups[x.value] || this.fillColor;
