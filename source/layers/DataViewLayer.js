@@ -2,8 +2,9 @@ sGis.module('sp.layers.DataViewLayer', [
     'Layer',
     'sp.ClusterLayer',
     'DynamicLayer',
+    'sp.layers.HeatMapLayer',
     'sp.ClusterSymbol'
-], (Layer, ClusterLayer, DynamicLayer, ClusterSymbol) => {
+], (Layer, ClusterLayer, DynamicLayer, HeatMapLayer, ClusterSymbol) => {
 
     'use strict';
 
@@ -12,7 +13,8 @@ sGis.module('sp.layers.DataViewLayer', [
             super();
             this._service = service;
 
-            this._dynamicLayer = new DynamicLayer(this.getImageUrl.bind(this), { crs: service.crs });
+            // this._dynamicLayer = new DynamicLayer(this.getImageUrl.bind(this), { crs: service.crs });
+            this._dynamicLayer = new HeatMapLayer(service);
 
             service.on('dataFilterChange', this._updateDataFilter.bind(this));
             this._updateDataFilter();
@@ -36,7 +38,6 @@ sGis.module('sp.layers.DataViewLayer', [
             if (filter.symbol && filter.symbol instanceof ClusterSymbol) {
                 let layer = new ClusterLayer(this._service.url, this._service.connector.sessionId, filter.symbol);
                 layer.aggregationParameters = [{ filters: filter.condition, aggregations: filter.aggregations && filter.aggregations.join(',')}];
-                if (filter.symbol.gridSize) layer.clusterSize = filter.symbol.gridSize;
                 layer.algorithm = 'adjustedGrid';
                 layer.on('propertyChange', () => {
                     this.redraw();
