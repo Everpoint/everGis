@@ -233,7 +233,8 @@ sGis.module('sp.ClusterSymbol', [
                 pieAggregationIndex: this.pieAggregationIndex,
                 _pieGroups: this._pieGroups,
                 labelText: this.labelText,
-                singleObjectSymbol: this.singleObjectSymbol && (this.singleObjectSymbol.serialize && this.singleObjectSymbol.serialize() || symbolSerializer.serialize(this.singleObjectSymbol))
+                singleObjectSymbol: this.singleObjectSymbol && (this.singleObjectSymbol.serialize && this.singleObjectSymbol.serialize() || symbolSerializer.serialize(this.singleObjectSymbol)),
+                gridSize: this.gridSize
             };
         }
 
@@ -264,7 +265,8 @@ sGis.module('sp.ClusterSymbol', [
         _pieGroups: {},
 
         labelText: null,
-        _singleObjectSymbol: null
+        _singleObjectSymbol: null,
+        gridSize: 100
     });
 
     return ClusterSymbol;
