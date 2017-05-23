@@ -112,7 +112,7 @@ sGis.module('sp.ClusterLayer', [
             });
 
             this._features = features;
-            this.fire('propertyChange', 'features');
+            this.fire('propertyChange', { property: 'features' });
         }
 
         get symbol() { return this._symbol; }
@@ -123,7 +123,7 @@ sGis.module('sp.ClusterLayer', [
 
         redraw() {
            delete this._currentBbox;
-           this.fire('propertyChange', 'features');
+           this.fire('propertyChange');
         }
     }
 
