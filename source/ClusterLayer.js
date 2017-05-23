@@ -105,6 +105,7 @@ sGis.module('sp.ClusterLayer', [
                     objectCount: cluster.ObjectCount,
                     aggregations: cluster.Aggregations,
                     setNo: cluster.SetNo,
+                    ids: cluster.Ids,
                     boundingPolygon: new Polygon(cluster.BoundingGeometry, {crs: crs} )}
                     )
                 );

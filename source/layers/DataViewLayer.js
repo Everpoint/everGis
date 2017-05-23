@@ -96,6 +96,10 @@ sGis.module('sp.layers.DataViewLayer', [
             }
             return false;
         }
+
+        get childLayers() {
+            return this._resolutionGroups.map(group => group.layer);
+        }
     }
 
     DataViewLayer.prototype.delayedUpdate = true;
