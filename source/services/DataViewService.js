@@ -35,7 +35,7 @@ sGis.module('sp.services.DataViewService', [
         get isFilterable() { return this.serviceInfo.capabilities && this.serviceInfo.capabilities.indexOf('setTempDataFilter') !== -1; }
 
         get dataFilter() { return this._dataFilter || this._originalFilter; }
-        get tempFilterApplied() { return this._dataFilter !== this._originalFilter; }
+        get tempFilterApplied() { return this._dataFilter && this._dataFilter !== this._originalFilter; }
 
         setDataFilter(filter) {
             this._dataFilter = filter;
