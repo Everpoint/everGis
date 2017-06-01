@@ -25,6 +25,7 @@ sGis.module('sp.layers.DataViewLayer', [
             let filter = this._service.dataFilter;
 
             if (filter) this._fillResolutionGroups(filter);
+            this.redraw();
         }
 
         _fillResolutionGroups(filter) {
