@@ -26,7 +26,7 @@ sGis.module('sp.DataFilter', [
                 labeling: Labeling && new LabelingConst(Labeling) || new LabelingConst(),
                 title: Title,
                 childFilters: ChildFilters && ChildFilters.map(x => DataFilter.deserialize(x)) || [],
-                serializationData: serializationData.serializationData
+                serializationData: serializationData.serializationData || {}
             });
 
             if (serializationData.clusterSymbol) {
@@ -71,7 +71,7 @@ sGis.module('sp.DataFilter', [
             return this.childFilters.map(child => child.serialize());
         }
 
-        clone(cloneSerializationDate = true) {
+        clone() {
             return new DataFilter({
                 title: this.title,
                 condition: this.condition,
@@ -83,7 +83,7 @@ sGis.module('sp.DataFilter', [
 
                 aggregations: this.aggregations && this.aggregations.slice(),
 
-                serializationData: cloneSerializationDate ? this.serializationData : null
+                serializationData: {}
             });
         }
     }
