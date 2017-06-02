@@ -7,6 +7,7 @@ sGis.module('sp.DataOperation', [
 
     class DataOperation {
         constructor(connector, controller, operationName, properties) {
+            this._connector = connector;
             this._promise = new Promise((resolve, reject) => {
                 controller.initializationPromise.then(() => {
                     let url  = `${connector.url}${controller.name}/${operationName}`;
@@ -54,12 +55,17 @@ sGis.module('sp.DataOperation', [
             if (operation.status === 'Success') {
                 this.resolve(content);
             } else {
-                this.reject(`Operation ${this._operationName} failed`);
+                this.reject({ operation: this._operationName, status: operation.status});
             }
         }
 
         _progressHandler(data) {
             this.fire('progressUpdate', { progress: data.content });
+        }
+
+        cancel() {
+            if (!this.id) this.once('requested', () => this.cancel.bind(this));
+            utils.ajaxp({ url: `${this._connector.url}${this._controller.name}?cancel=${this.id}&_sb=${this._connector.sid}` });
         }
     }
 
