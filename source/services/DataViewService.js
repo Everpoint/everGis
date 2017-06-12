@@ -47,6 +47,8 @@ sGis.module('sp.services.DataViewService', [
                 data: 'filterDescription=' + encodeURIComponent(JSON.stringify(serialized))
             });
 
+            promise.then(() => this.updateLegend());
+
             this.fire('dataFilterChange');
 
             return promise;
@@ -69,7 +71,7 @@ sGis.module('sp.services.DataViewService', [
                 url: `${this.url}setTempDataFilter?_sb=${this.connector.sessionId}`,
                 type: 'POST',
                 data: 'filterDescription=' + encodeURIComponent(JSON.stringify(filter))
-            });
+            }).then(() => this.updateLegend());
         }
         
         get allowsClustering() { return true; }
