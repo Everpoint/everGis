@@ -251,14 +251,15 @@ sGis.module('sp.ClusterSymbol', [
 
     Object.assign(ClusterSymbol.prototype, {
         size: 50,
+
         fillColor: 'rgba(0, 183, 255, 1)',
         strokeColor: 'white',
         strokeWidth: 2,
 
         clusterSize: 10,
 
-        minSize: 0,
-        maxSize: 0,
+        minSize: 50,
+        maxSize: 50,
         sizeAggregationIndex: -1,
         sizeAggregationMaxValue: 0,
 
