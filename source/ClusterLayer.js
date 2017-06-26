@@ -180,9 +180,11 @@ sGis.module('sp.ClusterSymbol', [
         _applyChartClassifier(feature, center, radius) {
             if (!feature.aggregations || !feature.aggregations[this.pieAggregationIndex]) return;
             let aggr = feature.aggregations[this.pieAggregationIndex];
-            let totalCount = feature.objectCount;
-
             if (!aggr) return;
+
+            let totalCount = aggr.reduce((sum, item) => sum + item.count, 0);
+            if (!totalCount) return;
+
             let startAngle = -Math.PI / 2;
             let pies = aggr.filter(x => x.count > 0).map(x => {
                 let angle = x.count / totalCount * Math.PI * 2;
@@ -241,7 +243,7 @@ sGis.module('sp.ClusterSymbol', [
 
         get singleObjectSymbol() { return this._singleObjectSymbol; }
         set singleObjectSymbol(symbol) {
-            if (symbol instanceof Symbol) {
+            if (!symbol || symbol instanceof Symbol) {
                 this._singleObjectSymbol = symbol;
             } else {
                 this._singleObjectSymbol = symbolSerializer.deserialize(symbol);
