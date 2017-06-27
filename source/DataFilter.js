@@ -106,11 +106,16 @@ sGis.module('sp.DataFilter', [
 
 });
 
-sGis.module('sp.Labeling', [], () => {
+sGis.module('sp.Labeling', ['utils'], (utils) => {
 
     class Labeling {
         constructor(options = {}) {
             Object.assign(this, options);
+            if (options.fieldFormat) this.isActive = true;
+            if (options.offset && utils.isString(options.offset)) {
+                let arr = options.offset.split(' ');
+                if (arr.length === 2) this.offset = arr;
+            }
         }
 
         clone() {
