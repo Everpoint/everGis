@@ -11,6 +11,11 @@ sGis.module('sp.controllers.DataAccessService', [
             this.init(new Promise(resolve => resolve(serviceName)));
         }
 
+        exportData(properties) {
+            let { serviceName, query, exportType } = properties;
+            return this.operation('exportData', { serviceName, query, exportType }, true);
+        }
+
         queryById(properties) {
             let { serviceName, objectIds } = properties;
             return this.operation('queryById', { serviceName, objectIds }, true);
