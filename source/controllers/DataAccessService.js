@@ -11,6 +11,20 @@ sGis.module('sp.controllers.DataAccessService', [
             this.init(new Promise(resolve => resolve(serviceName)));
         }
 
+        /**
+         * Function for export data from a layer (or filtered data) into one of the following formats: excel, shape, geojson.
+         * Returns document identifier. Identifier have to used for download export document
+         * @param {Object} properties
+         * @param {String} properties.serviceName - name of the service with source geometries
+         * @param {String} properties.exportType - type of export expected types: excel, shape, geojson
+         * @param {String} [properties.query] - query for data filter. Query example: select {id}, {geometry}, attr1 where attr1 == 'value';
+         * @returns {sGis.sp.DataOperation} document identifier
+         */
+        exportData(properties) {
+            let { serviceName, exportType, query } = properties;
+            return this.operation('exportData', { serviceName, exportType, query }, true);
+        }
+
         queryById(properties) {
             let { serviceName, objectIds } = properties;
             return this.operation('queryById', { serviceName, objectIds }, true);
