@@ -22,7 +22,7 @@ sGis.module('sp.controllers.DataAccessService', [
          */
         exportData(properties) {
             let { serviceName, exportType, query } = properties;
-            return this.operation('exportData', { serviceName, exportType, query }, true);
+            return this.operation('exportData', { serviceName, exportType, query }, false);
         }
 
         queryById(properties) {
