@@ -122,12 +122,12 @@ sGis.module('sp.services.MapService', [
         get fullExtent() {
             if (this._fullExtent) return this._fullExtent;
 
-            if (!this.serviceInfo.fullExtent) return null;
+            if (!this.serviceInfo.fullExtent || this.serviceInfo.fullExtent.xmin === this.serviceInfo.fullExtent.xmax) return null;
             return new Bbox([this.serviceInfo.fullExtent.xmin, this.serviceInfo.fullExtent.ymin], [this.serviceInfo.fullExtent.xmax, this.serviceInfo.fullExtent.ymax], this.crs);
         }
 
         get initialExtent() {
-            if (!this.serviceInfo.initialExtent) return null;
+            if (!this.serviceInfo.initialExtent || this.serviceInfo.initialExtent.xmin === this.serviceInfo.initialExtent.xmax) return null;
             return new Bbox([this.serviceInfo.initialExtent.xmin, this.serviceInfo.initialExtent.ymin], [this.serviceInfo.initialExtent.xmax, this.serviceInfo.initialExtent.ymax], this.crs);
         }
 
@@ -137,7 +137,11 @@ sGis.module('sp.services.MapService', [
                     .then(response => {
                         try {
                             let ext = JSON.parse(response[0]);
-                            if (ext.XMin !== undefined) this._fullExtent = new Bbox([ext.XMin, ext.YMin], [ext.XMax, ext.YMax], this.crs);
+                            if (ext.XMin !== undefined && ext.XMin !== ext.XMax) {
+                                this._fullExtent = new Bbox([ext.XMin, ext.YMin], [ext.XMax, ext.YMax], this.crs);
+                            } else {
+                                this._fullExtent = null;
+                            }
                         } catch (e) {}
                     });
             }
