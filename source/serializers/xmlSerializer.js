@@ -853,7 +853,11 @@ sGis.module('sp.serializers.xmlSerializer', [
         var node = xml.createElement('Attribute'),
             attributes = {Name: name};
 
-        if (attribute.value !== undefined) attributes.Value = attribute.value;
+        if (attribute.value instanceof Date) {
+            attributes.Value = attribute.value.getTime();
+        } else if (attribute.value !== undefined) {
+            attributes.Value = attribute.value;
+        }
 
 
         setNodeAttributes(node, attributes);
