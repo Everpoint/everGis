@@ -157,7 +157,7 @@ sGis.module('sp.services.MapService', [
     let crsMapping = {
         '102100': CRS.webMercator,
         '102113': CRS.webMercator,
-        '667': CRS.ellipticalMercator
+        '666': CRS.ellipticalMercator
     };
 
     return MapService;
