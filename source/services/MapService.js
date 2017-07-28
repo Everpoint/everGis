@@ -108,16 +108,6 @@ sGis.module('sp.services.MapService', [
                 return new sGis.Crs(desc);
             }
         }
-        
-        static serializeCrs(crs) {
-            let keys = Object.keys(crsMapping);
-            for (let i = 0; i < keys.length; i++) {
-                let key = keys[i];
-                if (crsMapping[key].equals(crs)) return key;
-            }
-            
-            return crs.description;
-        }
 
         get fullExtent() {
             if (this._fullExtent) return this._fullExtent;
@@ -157,7 +147,10 @@ sGis.module('sp.services.MapService', [
     let crsMapping = {
         '102100': CRS.webMercator,
         '102113': CRS.webMercator,
-        '666': CRS.ellipticalMercator
+        '3857': CRS.webMercator,
+        '3395': CRS.ellipticalMercator,
+        '84': CRS.wgs84,
+        '4326': CRS.geo
     };
 
     return MapService;

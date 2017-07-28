@@ -12,7 +12,7 @@ sGis.module('sp.layers.DataViewLayer', [
             super();
             this._service = service;
 
-            this._dynamicLayer = new DynamicLayer(this.getImageUrl.bind(this), { crs: service.crs });
+            this._dynamicLayer = new DynamicLayer(this.getImageUrl.bind(this));
 
             service.on('dataFilterChange', this._updateDataFilter.bind(this));
             this._updateDataFilter();
@@ -67,7 +67,7 @@ sGis.module('sp.layers.DataViewLayer', [
         getImageUrl(bbox, resolution) {
             let imgWidth = Math.round((bbox.xMax - bbox.xMin) / resolution);
             let imgHeight = Math.round((bbox.yMax - bbox.yMin) / resolution);
-            let sr = encodeURIComponent(bbox.crs.wkid || JSON.stringify(bbox.crs.description));
+            let sr = bbox.crs.toString();
 
             return this._service.url + 'export?' +
                 'dpi=96&' +

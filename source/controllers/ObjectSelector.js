@@ -22,14 +22,14 @@ sGis.module('sp.controllers.ObjectSelector', [
             let { geometry, mode = 0, services } = properties;
             let serialized = JsonSerializer.serializeGeometry(geometry);
 
-            return this.operation('select', { geom: serialized, res: this.map && this.map.resolution, mode, services, sr: this.map && this.map.crs.description });
+            return this.operation('select', { geom: serialized, res: this.map && this.map.resolution, mode, services, sr: this.map && this.map.crs.toString() });
         }
 
         pickByGeometry(properties) {
             let { geometry, services } = properties;
             let serialized = JsonSerializer.serializeGeometry(geometry);
 
-            return this.operation('pick', { geom: serialized, res: this.map && this.map.resolution, services, sr: this.map && this.map.crs.description }, true);
+            return this.operation('pick', { geom: serialized, res: this.map && this.map.resolution, services, sr: this.map && this.map.crs.toString() }, true);
         }
 
         pickById(properties) {

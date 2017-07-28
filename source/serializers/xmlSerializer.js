@@ -2,8 +2,9 @@ sGis.module('sp.serializers.xmlSerializer', [
     'feature.Point',
     'feature.Polyline',
     'feature.Polygon',
-    'utils.Color'
-], function(Point, Polyline, Polygon, Color) {
+    'utils.Color',
+    'CRS'
+], function(Point, Polyline, Polygon, Color, CRS) {
     'use strict';
 
     let xmlSerializer = {};
@@ -31,6 +32,27 @@ sGis.module('sp.serializers.xmlSerializer', [
         }
     };
 
+    function parseCrs(desc) {
+        if (desc && crsMapping[desc]) {
+            return crsMapping[desc];
+        } else if (desc && desc.wkid && crsMapping[desc.wkid]) {
+            return crsMapping[desc.wkid];
+        } else if (desc && desc.wkid === 0) {
+            return null;
+        } else {
+            return new sGis.Crs(desc);
+        }
+    }
+
+    let crsMapping = {
+        '102100': CRS.webMercator,
+        '102113': CRS.webMercator,
+        '3857': CRS.webMercator,
+        '3395': CRS.ellipticalMercator,
+        '84': CRS.wgs84,
+        '4326': CRS.geo
+    };
+
     function createFeatures(response) {
         var features = [];
         if (response.objects) {
@@ -45,15 +67,7 @@ sGis.module('sp.serializers.xmlSerializer', [
                         fillColor = visualDefinition.fill ? visualDefinition.fill : undefined;
 
                     var serverCrs = object.geometry.data.crs;
-                    var crs;
-
-                    if (serverCrs.wkid === 102100 || serverCrs.wkid === 102113) {
-                        crs = sGis.CRS.webMercator;
-                    } else if (serverCrs.wkid === 77) {
-                        crs = new sGis.Crs({ wkid: 77 });
-                    } else {
-                        crs = new sGis.Crs(serverCrs);
-                    }
+                    var crs = parseCrs(serverCrs);
 
                     var idAttribute = response.attributesDefinitions[object.attributesDefinition]._identity;
                     var id = parseInt(object.attributes[idAttribute].value);

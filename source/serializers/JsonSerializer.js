@@ -21,13 +21,13 @@ sGis.module('sp.serializers.JsonSerializer', [
         serializeGeometry(geometry) {
             let crs = geometry.crs;
             if (geometry instanceof sGis.feature.Polygon) {
-                return {rings: geometry.coordinates, spatialReference: crs && crs.getWkidString()};
+                return {rings: geometry.coordinates, spatialReference: crs && crs.toString()};
             } else if (geometry instanceof sGis.feature.Point || geometry instanceof sGis.Point) {
-                return {x: geometry.x, y: geometry.y, spatialReference: crs && crs.getWkidString()};
+                return {x: geometry.x, y: geometry.y, spatialReference: crs && crs.toString()};
             } else if (geometry instanceof sGis.feature.Polyline) {
-                return {paths: geometry.coordinates, spatialReference: crs && crs.getWkidString()};
+                return {paths: geometry.coordinates, spatialReference: crs && crs.toString()};
             } else if (geometry instanceof sGis.Bbox) {
-                return {xmin: geometry.xMin, xmax: geometry.xMax, ymin: geometry.yMin, ymax: geometry.yMax, spatialReference: crs && crs.getWkidString()};
+                return {xmin: geometry.xMin, xmax: geometry.xMax, ymin: geometry.yMin, ymax: geometry.yMax, spatialReference: crs && crs.toString()};
             } else {
                 utils.error('Unknown geometry type');
             }

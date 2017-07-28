@@ -106,7 +106,7 @@ sGis.module('sp.controllers.DataAccessService', [
 
         geocode(properties) {
             let { query, crs, providers } = properties;
-            return this.operation('geocode', { query, crs: crs.description, providers });
+            return this.operation('geocode', { query, crs: crs.toString(), providers });
         }
 
         /**
