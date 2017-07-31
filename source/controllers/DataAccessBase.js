@@ -21,7 +21,7 @@ sGis.module('sp.controllers.DataAccessBase', [
         operation(operationName, params, expectsFeatures = false) {
             let operation = new DataOperation(this._connector, this, operationName, params);
             if (expectsFeatures) {
-                return operation.then(response => xmlSerializer.deserializeFeatures(response));
+                return operation.internalThen(response => xmlSerializer.deserializeFeatures(response));
             }
             return operation;
         }

@@ -51,6 +51,18 @@ sGis.module('sp.DataOperation', [
             return this._promise.catch(func);
         }
 
+        /**
+         * This inserts middleware resolve processing function and returns the operation object itself. It is used to
+         * preprocess the operation result before returning it to the caller function.
+         * @important It does not create a new DataOperation instance, but returns self instead;
+         * @param {Function} func - operation result processor
+         * @return {sGis.sp.DataOperation}
+         */
+        internalThen(func) {
+            this._promise = this._promise.then(func);
+            return this;
+        }
+
         _finalHandler({ operation, content }) {
             if (operation.status === 'Success') {
                 this.resolve(content);
