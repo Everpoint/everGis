@@ -56,7 +56,7 @@ sGis.module('sp.Printer', [
                     X: properties.position ? properties.position.x : this._map.centerPoint.x,
                     Y: properties.position ? properties.position.y : this._map.centerPoint.y
                 },
-                SpatialReference: this._map.crs.getWkidString(),
+                SpatialReference: this._map.crs.toString(),
                 Dpi: properties.dpi || defaults.dpi,
                 Resolution: properties.resolution || this._map.resolution,
                 PaperSize: {

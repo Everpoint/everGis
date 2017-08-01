@@ -822,7 +822,7 @@ sGis.module('sp.serializers.xmlSerializer', [
 
         var geometryJSON = {
             type: getCoordinatesType(feature),
-            sr: feature.crs.getWkidString()
+            sr: feature.crs.toString()
         };
 
         if (feature instanceof sGis.feature.Point) {
