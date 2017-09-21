@@ -14,7 +14,12 @@ sGis.module('sp.services.DataViewService', [
             super(name, connector, serviceInfo);
             if (serviceInfo.dataFilter) this._dataFilter = this._originalFilter = DataFilter.deserialize(serviceInfo.dataFilter);
             this._setLayer();
-            if (connector.sessionId) this._subscribeForNotifications()
+            if (connector.sessionId) this.subscribeForNotifications()
+        }
+
+        kill() {
+            if (this.connector.sessionId) this.unsubscribeFromNotifications();
+            if (this.tempFilterApplied) this.setDataFilter(null, false);
         }
 
         _setLayer() {
@@ -37,17 +42,17 @@ sGis.module('sp.services.DataViewService', [
         get dataFilter() { return this._dataFilter || this._originalFilter; }
         get tempFilterApplied() { return this._dataFilter && this._dataFilter !== this._originalFilter; }
 
-        setDataFilter(filter) {
+        setDataFilter(filter, updateLegend = true) {
             this._dataFilter = filter;
 
-            let serialized = filter.serialize();
+            let data = filter ? 'filterDescription=' + encodeURIComponent(JSON.stringify(filter.serialize())) : '';
             let promise = utils.ajaxp({
                 url: `${this.url}setTempDataFilter?_sb=${this.connector.sessionId}`,
                 type: 'POST',
-                data: 'filterDescription=' + encodeURIComponent(JSON.stringify(serialized))
+                data: data
             });
 
-            promise.then(() => this.updateLegend());
+            if (updateLegend) promise.then(() => this.updateLegend());
 
             this.fire('dataFilterChange');
 

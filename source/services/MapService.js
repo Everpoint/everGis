@@ -16,11 +16,19 @@ sGis.module('sp.services.MapService', [
             this.serviceInfo = serviceInfo;
         }
 
-        _subscribeForNotifications() {
+        subscribeForNotifications() {
             utils.ajaxp({url: this.url + 'subscribe?_sb=' + this._connector.sessionId})
                 .then(() => {
                     this._connector.addNotificationListner('dynamic layer', this._name, this._redraw.bind(this));
                     this._connector.addNotificationListner('symbols', this._name, this.updateLegend.bind(this));
+                });
+        }
+
+        unsubscribeFromNotifications() {
+            utils.ajaxp({ url: `${this.url}subscribe?_sb=${this._connector.sessionId}`})
+                .then(() => {
+                    this._connector.removeNotificationListner('dynamic layer', this._name, this._redraw.bind(this));
+                    this._connector.removeNotificationListner('symbols', this._name, this.updateLegend.bind(this));
                 });
         }
 

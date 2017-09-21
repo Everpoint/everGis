@@ -11,7 +11,6 @@ sGis.module('sp.services.TileService', [
         constructor(name, connector, serviceInfo) {
             super(name, connector, serviceInfo);
             this._setLayer();
-            this._subscribeForNotifications();
         }
         
         _setLayer() {
