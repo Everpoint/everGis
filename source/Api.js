@@ -400,7 +400,7 @@ sGis.module('sp.Api', [
         geocode(query, providers, crs = sGis.CRS.wgs84) {
             let requestCRS = crs === sGis.CRS.geo ? sGis.CRS.wgs84 : crs;
 
-            let sr = requestCRS.stringDescription;
+            let sr = requestCRS.toString();
             return this._operation('geocode', {sr, providers: JSON.stringify(providers), query }).then((response) => {
                 if (!Array.isArray(response)) throw new Exception('Search failed');
 

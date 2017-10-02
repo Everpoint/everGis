@@ -7,6 +7,7 @@ sGis.module('sp.DataOperation', [
 
     class DataOperation {
         constructor(connector, controller, operationName, properties) {
+            this._connector = connector;
             this._promise = new Promise((resolve, reject) => {
                 controller.initializationPromise.then(() => {
                     let url  = `${connector.url}${controller.name}/${operationName}`;
@@ -50,16 +51,33 @@ sGis.module('sp.DataOperation', [
             return this._promise.catch(func);
         }
 
+        /**
+         * This inserts middleware resolve processing function and returns the operation object itself. It is used to
+         * preprocess the operation result before returning it to the caller function.
+         * @important It does not create a new DataOperation instance, but returns self instead;
+         * @param {Function} func - operation result processor
+         * @return {sGis.sp.DataOperation}
+         */
+        internalThen(func) {
+            this._promise = this._promise.then(func);
+            return this;
+        }
+
         _finalHandler({ operation, content }) {
             if (operation.status === 'Success') {
                 this.resolve(content);
             } else {
-                this.reject(`Operation ${this._operationName} failed`);
+                this.reject({ operation: this._operationName, status: operation.status});
             }
         }
 
         _progressHandler(data) {
             this.fire('progressUpdate', { progress: data.content });
+        }
+
+        cancel() {
+            if (!this.id) this.once('requested', () => this.cancel.bind(this));
+            utils.ajaxp({ url: `${this._connector.url}${this._controller.name}?cancel=${this.id}&_sb=${this._connector.sid}` });
         }
     }
 

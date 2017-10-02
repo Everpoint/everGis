@@ -11,7 +11,6 @@ sGis.module('sp.services.TileService', [
         constructor(name, connector, serviceInfo) {
             super(name, connector, serviceInfo);
             this._setLayer();
-            this._subscribeForNotifications();
         }
         
         _setLayer() {
@@ -35,22 +34,28 @@ sGis.module('sp.services.TileService', [
     }
 
     function getTileScheme(tileInfo, crs) {
-        var scheme = {
+        let scheme = {
             tileWidth: tileInfo.rows,
             tileHeight: tileInfo.cols,
             dpi: tileInfo.dpi,
             origin: [tileInfo.origin.x, tileInfo.origin.y],
+            reversedY: tileInfo.reversedY,
             levels: []
         };
 
-        var projection = sGis.CRS.wgs84.projectionTo(crs);
+        if (tileInfo.boundingRectangle) {
+            let {MinX, MinY, MaxX, MaxY} = tileInfo.boundingRectangle;
+            if (MinX !== MaxX && MinY !== MaxY) scheme.limits = [MinX, MinY, MaxX, MaxY];
+        }
+
+        let projection = sGis.CRS.wgs84.projectionTo(crs);
         if (projection && scheme.tileWidth) {
-            var point1 = new sGis.Point([0, -180]).projectTo(crs);
-            var point2 = new sGis.Point([0, 180]).projectTo(crs);
+            let point1 = new sGis.Point([0, -180]).projectTo(crs);
+            let point2 = new sGis.Point([0, 180]).projectTo(crs);
             var fullWidth = point2.x - point1.x;
         }
-        for (var i = 0, len = tileInfo.lods.length; i < len; i++) {
-            var resolution = tileInfo.lods[i].resolution;
+        for (let i = 0, len = tileInfo.lods.length; i < len; i++) {
+            let resolution = tileInfo.lods[i].resolution;
             scheme.levels[i] = {
                 resolution: resolution,
                 scale: tileInfo.lods[i].scale,

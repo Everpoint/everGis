@@ -26,7 +26,7 @@ sGis.module('sp.DataFilter', [
                 labeling: Labeling && new LabelingConst(Labeling) || new LabelingConst(),
                 title: Title,
                 childFilters: ChildFilters && ChildFilters.map(x => DataFilter.deserialize(x)) || [],
-                serializationData: serializationData.serializationData
+                serializationData: serializationData.serializationData || {}
             });
 
             if (serializationData.clusterSymbol) {
@@ -67,19 +67,8 @@ sGis.module('sp.DataFilter', [
         }
 
         _serializeChildren() {
-            if (!this.childFilters || this.childFilters.length === 0) return null;
-            if (this.childFilters[0] instanceof DataFilter) {
-                return this.childFilters.map(child => child.serialize());
-            } else {
-                let base = new DataFilter({ condition: this.condition, symbol: this.symbol });
-                let unfolded = [base];
-                this.childFilters.forEach(child => {
-                    unfolded = child.unfold(unfolded);
-                });
-
-                if (unfolded.length === 0) return null;
-                return unfolded.map(child => child.serialize());
-            }
+            if (!this.childFilters) return null;
+            return this.childFilters.map(child => child.serialize());
         }
 
         clone() {
@@ -94,7 +83,7 @@ sGis.module('sp.DataFilter', [
 
                 aggregations: this.aggregations && this.aggregations.slice(),
 
-                serializationData: this.serializationData
+                serializationData: {}
             });
         }
     }
@@ -117,11 +106,16 @@ sGis.module('sp.DataFilter', [
 
 });
 
-sGis.module('sp.Labeling', [], () => {
+sGis.module('sp.Labeling', ['utils'], (utils) => {
 
     class Labeling {
         constructor(options = {}) {
             Object.assign(this, options);
+            if (options.fieldFormat) this.isActive = true;
+            if (options.offset && utils.isString(options.offset)) {
+                let arr = options.offset.split(' ');
+                if (arr.length === 2) this.offset = arr;
+            }
         }
 
         clone() {

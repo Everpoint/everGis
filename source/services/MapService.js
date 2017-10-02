@@ -16,11 +16,19 @@ sGis.module('sp.services.MapService', [
             this.serviceInfo = serviceInfo;
         }
 
-        _subscribeForNotifications() {
+        subscribeForNotifications() {
             utils.ajaxp({url: this.url + 'subscribe?_sb=' + this._connector.sessionId})
                 .then(() => {
                     this._connector.addNotificationListner('dynamic layer', this._name, this._redraw.bind(this));
                     this._connector.addNotificationListner('symbols', this._name, this.updateLegend.bind(this));
+                });
+        }
+
+        unsubscribeFromNotifications() {
+            utils.ajaxp({ url: `${this.url}subscribe?_sb=${this._connector.sessionId}`})
+                .then(() => {
+                    this._connector.removeNotificationListner('dynamic layer', this._name, this._redraw.bind(this));
+                    this._connector.removeNotificationListner('symbols', this._name, this.updateLegend.bind(this));
                 });
         }
 
@@ -108,26 +116,16 @@ sGis.module('sp.services.MapService', [
                 return new sGis.Crs(desc);
             }
         }
-        
-        static serializeCrs(crs) {
-            let keys = Object.keys(crsMapping);
-            for (let i = 0; i < keys.length; i++) {
-                let key = keys[i];
-                if (crsMapping[key].equals(crs)) return key;
-            }
-            
-            return crs.description;
-        }
 
         get fullExtent() {
             if (this._fullExtent) return this._fullExtent;
 
-            if (!this.serviceInfo.fullExtent) return null;
+            if (!this.serviceInfo.fullExtent || this.serviceInfo.fullExtent.xmin === this.serviceInfo.fullExtent.xmax) return null;
             return new Bbox([this.serviceInfo.fullExtent.xmin, this.serviceInfo.fullExtent.ymin], [this.serviceInfo.fullExtent.xmax, this.serviceInfo.fullExtent.ymax], this.crs);
         }
 
         get initialExtent() {
-            if (!this.serviceInfo.initialExtent) return null;
+            if (!this.serviceInfo.initialExtent || this.serviceInfo.initialExtent.xmin === this.serviceInfo.initialExtent.xmax) return null;
             return new Bbox([this.serviceInfo.initialExtent.xmin, this.serviceInfo.initialExtent.ymin], [this.serviceInfo.initialExtent.xmax, this.serviceInfo.initialExtent.ymax], this.crs);
         }
 
@@ -137,7 +135,11 @@ sGis.module('sp.services.MapService', [
                     .then(response => {
                         try {
                             let ext = JSON.parse(response[0]);
-                            if (ext.XMin !== undefined) this._fullExtent = new Bbox([ext.XMin, ext.YMin], [ext.XMax, ext.YMax], this.crs);
+                            if (ext.XMin !== undefined && ext.XMin !== ext.XMax) {
+                                this._fullExtent = new Bbox([ext.XMin, ext.YMin], [ext.XMax, ext.YMax], this.crs);
+                            } else {
+                                this._fullExtent = null;
+                            }
                         } catch (e) {}
                     });
             }
@@ -153,7 +155,10 @@ sGis.module('sp.services.MapService', [
     let crsMapping = {
         '102100': CRS.webMercator,
         '102113': CRS.webMercator,
-        '667': CRS.ellipticalMercator
+        '3857': CRS.webMercator,
+        '3395': CRS.ellipticalMercator,
+        '84': CRS.wgs84,
+        '4326': CRS.geo
     };
 
     return MapService;

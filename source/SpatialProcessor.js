@@ -124,7 +124,7 @@ sGis.module('SpatialProcessor', [
 
     Project.registerCustomDataItem('map', ({map}) => {
         if (!map) return;
-        return { position: map.position, resolution: map.resolution, crsCode: MapService.serializeCrs(map.crs) };
+        return { position: map.position, resolution: map.resolution, crsCode: map.crs.toString() };
     }, ({position, resolution, crsCode}, {map}) => {
         if (!map) return;
         if (crsCode) map.crs = MapService.parseCrs(crsCode);
@@ -132,8 +132,8 @@ sGis.module('SpatialProcessor', [
         if (resolution) map.resolution = resolution;
     });
 
-    SpatialProcessor.version = "0.2.5";
-    SpatialProcessor.releaseDate = "19.04.2017";
+    SpatialProcessor.version = "0.3.0";
+    SpatialProcessor.releaseDate = "02.10.2017";
 
     sGis.spatialProcessor = sGis.sp;
 

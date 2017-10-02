@@ -12,7 +12,7 @@ sGis.module('sp.layers.DataViewLayer', [
             super();
             this._service = service;
 
-            this._dynamicLayer = new DynamicLayer(this.getImageUrl.bind(this), { crs: service.crs });
+            this._dynamicLayer = new DynamicLayer(this.getImageUrl.bind(this));
 
             service.on('dataFilterChange', this._updateDataFilter.bind(this));
             this._updateDataFilter();
@@ -25,6 +25,7 @@ sGis.module('sp.layers.DataViewLayer', [
             let filter = this._service.dataFilter;
 
             if (filter) this._fillResolutionGroups(filter);
+            this.redraw();
         }
 
         _fillResolutionGroups(filter) {
@@ -36,6 +37,7 @@ sGis.module('sp.layers.DataViewLayer', [
             if (filter.symbol && filter.symbol instanceof ClusterSymbol) {
                 let layer = new ClusterLayer(this._service.url, this._service.connector.sessionId, filter.symbol);
                 layer.aggregationParameters = [{ filters: filter.condition, aggregations: filter.aggregations && filter.aggregations.join(',')}];
+                if (filter.symbol.gridSize) layer.clusterSize = filter.symbol.gridSize;
                 layer.algorithm = 'adjustedGrid';
                 layer.on('propertyChange', () => {
                     this.redraw();
@@ -65,7 +67,7 @@ sGis.module('sp.layers.DataViewLayer', [
         getImageUrl(bbox, resolution) {
             let imgWidth = Math.round((bbox.xMax - bbox.xMin) / resolution);
             let imgHeight = Math.round((bbox.yMax - bbox.yMin) / resolution);
-            let sr = encodeURIComponent(bbox.crs.wkid || JSON.stringify(bbox.crs.description));
+            let sr = bbox.crs.toString();
 
             return this._service.url + 'export?' +
                 'dpi=96&' +
@@ -88,6 +90,17 @@ sGis.module('sp.layers.DataViewLayer', [
         }
 
         forceUpdate() { this._dynamicLayer.forceUpdate(); }
+
+        get updateProhibited() {
+            for (let i = 0; i < this._resolutionGroups.length; i++) {
+                if (this._resolutionGroups[i].layer.updateProhibited) return true;
+            }
+            return false;
+        }
+
+        get childLayers() {
+            return this._resolutionGroups.map(group => group.layer);
+        }
     }
 
     DataViewLayer.prototype.delayedUpdate = true;
