@@ -3,16 +3,16 @@ import {ajaxp, parseJSON} from "../utils";
 import {Crs, ellipticalMercator, geo, webMercator, wgs84} from "../../../sGis/source/Crs";
 import {Bbox} from "../../../sGis/source/Bbox";
 
-class MapService extends EventHandler {
+export class MapService extends EventHandler {
     _fullExtent: any;
     legend: any;
     _isDisplayed: any;
     _crs: any;
-    private _layer: any;
+    _layer: any;
     private _meta: {};
     private _connector: any;
     private _name: any;
-    private _serviceInfo: any;
+    protected _serviceInfo: any;
 
     constructor(name, connector, serviceInfo) {
         super();
