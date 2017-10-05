@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "target": "es2015",
+    "module": "commonjs",
+    "sourceMap": true,
+    "allowJs": true,
+    "outDir": "./build"
+  },
+  "include": [
+    "./source/**/*.ts",
+    "./test/**/*.ts"
+  ]
+}
