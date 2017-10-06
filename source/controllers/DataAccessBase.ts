@@ -3,8 +3,9 @@ import {DataOperation} from "../DataOperation";
 import {xmlSerializer} from "../serializers/xmlSerializer";
 
 export class DataAccessBase extends EventHandler {
-    private _connector: any;
-    private initializationPromise: any;
+    _name: any;
+    protected _connector: any;
+    initializationPromise: any;
 
     constructor(connector) {
         super();

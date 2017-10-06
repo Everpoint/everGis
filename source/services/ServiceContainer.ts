@@ -11,7 +11,7 @@ export class ServiceContainer extends EventHandler {
     private _emptyLayer: FeatureLayer;
     private _service: any;
 
-    constructor(connector, serviceName, {serviceInfo, service=null, isDisplayed=true}) {
+    constructor(connector, serviceName, {serviceInfo = null, service = null, isDisplayed = true}) {
         super();
 
         this._connector = connector;
