@@ -1,7 +1,9 @@
-import {EventHandler} from "../../sGis/source/EventHandler";
-import {sGis} from "../../sGis/source/sGis";
+import {EventHandler} from "sGis/source/EventHandler";
+import {sGis} from "sGis/source/sGis";
+import {Api} from "./Api";
 
 export class Connector extends EventHandler {
+    api: Api;
     _notificationRequestObject: any;
     _failedNotificationRequests: number;
     _url: any;
@@ -13,7 +15,7 @@ export class Connector extends EventHandler {
     apiLoginUrl: string;
     _aborted: any;
 
-    constructor(url, authServiceUrl, {login, password, sessionId}) {
+    constructor(url, authServiceUrl, {login, password, sessionId}: any) {
         super();
 
         this._url = url;

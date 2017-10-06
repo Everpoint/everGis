@@ -1,9 +1,9 @@
 import {ajaxp, parseJSON} from "./utils";
-import {geo, wgs84} from "../../sGis/source/Crs";
+import {geo, wgs84} from "sGis/source/Crs";
 import {serializeGeometry} from "./serializers/xmlSerializer";
 import {deserializeFeature} from "./serializers/JsonSerializer";
-import {Point} from "../../sGis/source/Point";
-import {error} from "../../sGis/source/utils/utils";
+import {Point} from "sGis/source/Point";
+import {error} from "sGis/source/utils/utils";
 
 export class Api {
     _frame: HTMLIFrameElement;
@@ -11,7 +11,7 @@ export class Api {
     private _url: string;
     private adminUrl: any;
 
-    constructor(connector, adminUrl) {
+    constructor(connector, adminUrl = null) {
         this._connector = connector;
         this._url = connector.url + 'api/';
         this.adminUrl = adminUrl || connector.url + 'Admin/';

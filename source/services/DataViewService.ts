@@ -5,7 +5,7 @@ import {DataFilter} from "../DataFilter";
 import {DataViewLayer} from "../layers/DataViewLayer";
 import {ajaxp} from "../utils";
 
-class DataViewService extends MapService {
+export class DataViewService extends MapService {
     _clusterLayer: any;
     _showAsClusters = false;
     _customFilter: any;

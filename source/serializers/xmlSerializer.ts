@@ -1,18 +1,18 @@
-import {Crs, ellipticalMercator, webMercator, wgs84, geo} from "../../../sGis/source/Crs";
-import {Polygon} from "../../../sGis/source/features/Polygon";
-import {BrushFill} from "../../../sGis/source/symbols/polygon/BrushFill";
-import {PolygonSymbol} from "../../../sGis/source/symbols/polygon/Simple";
-import {PolylineSymbol} from "../../../sGis/source/symbols/Polyline";
-import {Polyline} from "../../../sGis/source/features/Polyline";
-import {MaskedImage} from "../../../sGis/source/symbols/point/MaskedImage";
-import {PointImageSymbol} from "../../../sGis/source/symbols/point/PointImageSymbol";
-import {PointSymbol} from "../../../sGis/source/symbols/point/Point";
-import {SquareSymbol} from "../../../sGis/source/symbols/point/Square";
-import {PointFeature} from "../../../sGis/source/features/Point";
-import {MultiPoint} from "../../../sGis/source/features/MultiPoint";
-import {Color} from "../../../sGis/source/utils/Color";
+import {Crs, ellipticalMercator, webMercator, wgs84, geo} from "sGis/source/Crs";
+import {Polygon} from "sGis/source/features/Polygon";
+import {BrushFill} from "sGis/source/symbols/polygon/BrushFill";
+import {PolygonSymbol} from "sGis/source/symbols/polygon/Simple";
+import {PolylineSymbol} from "sGis/source/symbols/Polyline";
+import {Polyline} from "sGis/source/features/Polyline";
+import {MaskedImage} from "sGis/source/symbols/point/MaskedImage";
+import {PointImageSymbol} from "sGis/source/symbols/point/PointImageSymbol";
+import {PointSymbol} from "sGis/source/symbols/point/Point";
+import {SquareSymbol} from "sGis/source/symbols/point/Square";
+import {PointFeature} from "sGis/source/features/Point";
+import {MultiPoint} from "sGis/source/features/MultiPoint";
+import {Color} from "sGis/source/utils/Color";
 import {parseXmlJsonNode} from "../utils";
-import {isArray, getGuid} from "../../../sGis/source/utils/utils";
+import {isArray, getGuid} from "sGis/source/utils/utils";
 
 export let xmlSerializer = <any>{};
 

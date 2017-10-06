@@ -1,11 +1,11 @@
-import {Layer} from "../../../sGis/source/Layer";
-import {PointSymbol} from "../../../sGis/source/symbols/point/Point";
-import {VectorLabel} from "../../../sGis/source/renders/VectorLabel";
+import {Layer} from "sGis/source/Layer";
+import {PointSymbol} from "sGis/source/symbols/point/Point";
+import {VectorLabel} from "sGis/source/renders/VectorLabel";
 import {ajax} from "../utils";
-import {PointFeature} from "../../../sGis/source/features/Point";
-import {Polygon} from "../../../sGis/source/features/Polygon";
-import * as symbolSerializer from "../../../sGis/source/serializers/symbolSerializer";
-import {Arc} from "../../../sGis/source/renders/Arc";
+import {PointFeature} from "sGis/source/features/Point";
+import {Polygon} from "sGis/source/features/Polygon";
+import * as symbolSerializer from "sGis/source/serializers/symbolSerializer";
+import {Arc} from "sGis/source/renders/Arc";
 
 export class ClusterLayer extends Layer {
     _updateRequest: any[];

@@ -1,6 +1,6 @@
-import {EventHandler} from "../../sGis/source/EventHandler";
-import {LayerGroup} from "../../sGis/source/LayerGroup";
-import {error} from "../../sGis/source/utils/utils";
+import {EventHandler} from "sGis/source/EventHandler";
+import {LayerGroup} from "sGis/source/LayerGroup";
+import {error} from "sGis/source/utils/utils";
 
 export class ServiceGroup extends EventHandler {
     private _name: any;

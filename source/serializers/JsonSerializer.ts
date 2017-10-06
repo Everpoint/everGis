@@ -1,12 +1,12 @@
-import {PointFeature} from "../../../sGis/source/features/Point";
-import {Polyline} from "../../../sGis/source/features/Polyline";
-import {Polygon} from "../../../sGis/source/features/Polygon";
-import {PointSymbol} from "../../../sGis/source/symbols/point/Point";
-import {PolylineSymbol} from "../../../sGis/source/symbols/Polyline";
-import {PolygonSymbol} from "../../../sGis/source/symbols/polygon/Simple";
-import {Point} from "../../../sGis/source/Point";
-import {Bbox} from "../../../sGis/source/Bbox";
-import {error} from "../../../sGis/source/utils/utils";
+import {PointFeature} from "sGis/source/features/Point";
+import {Polyline} from "sGis/source/features/Polyline";
+import {Polygon} from "sGis/source/features/Polygon";
+import {PointSymbol} from "sGis/source/symbols/point/Point";
+import {PolylineSymbol} from "sGis/source/symbols/Polyline";
+import {PolygonSymbol} from "sGis/source/symbols/polygon/Simple";
+import {Point} from "sGis/source/Point";
+import {Bbox} from "sGis/source/Bbox";
+import {error} from "sGis/source/utils/utils";
 
 let geometryTypeMap = { 'point': PointFeature, 'polyline': Polyline, 'polygon': Polygon };
 

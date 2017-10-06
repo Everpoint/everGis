@@ -1,11 +1,11 @@
 import {ServiceContainer} from "./ServiceContainer";
 import {MapService} from "./MapService";
-import {TileLayer} from "../../../sGis/source/TileLayer";
-import {TileScheme} from "../../../sGis/source/TileScheme";
-import {wgs84} from "../../../sGis/source/Crs";
-import {Point} from "../../../sGis/source/Point";
+import {TileLayer} from "sGis/source/TileLayer";
+import {TileScheme} from "sGis/source/TileScheme";
+import {wgs84} from "sGis/source/Crs";
+import {Point} from "sGis/source/Point";
 
-class TileService extends MapService {
+export class TileService extends MapService {
     private _tileScheme: TileScheme;
     constructor(name, connector, serviceInfo) {
         super(name, connector, serviceInfo);

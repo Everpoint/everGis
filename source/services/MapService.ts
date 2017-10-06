@@ -1,7 +1,7 @@
-import {EventHandler} from "../../../sGis/source/EventHandler";
+import {EventHandler} from "sGis/source/EventHandler";
 import {ajaxp, parseJSON} from "../utils";
-import {Crs, ellipticalMercator, geo, webMercator, wgs84} from "../../../sGis/source/Crs";
-import {Bbox} from "../../../sGis/source/Bbox";
+import {Crs, ellipticalMercator, geo, webMercator, wgs84} from "sGis/source/Crs";
+import {Bbox} from "sGis/source/Bbox";
 
 export class MapService extends EventHandler {
     _fullExtent: any;

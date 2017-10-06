@@ -1,5 +1,5 @@
-import {Layer} from "../../../sGis/source/Layer";
-import {DynamicLayer} from "../../../sGis/source/DynamicLayer";
+import {Layer} from "sGis/source/Layer";
+import {DynamicLayer} from "sGis/source/DynamicLayer";
 import {ClusterLayer, ClusterSymbol} from "./ClusterLayer";
 
 export class DataViewLayer extends Layer {

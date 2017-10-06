@@ -1,6 +1,6 @@
 import {ViewableController} from "./controllers/ViewableController";
-import {LayerGroup} from "../../sGis/source/LayerGroup";
-import {error} from "../../sGis/source/utils/utils";
+import {LayerGroup} from "sGis/source/LayerGroup";
+import {error} from "sGis/source/utils/utils";
 
 let registry = {};
 
