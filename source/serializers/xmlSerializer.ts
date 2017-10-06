@@ -14,7 +14,7 @@ import {Color} from "../../../sGis/source/utils/Color";
 import {parseXmlJsonNode} from "../utils";
 import {isArray, getGuid} from "../../../sGis/source/utils/utils";
 
-let xmlSerializer = <any>{};
+export let xmlSerializer = <any>{};
 
 xmlSerializer.deserializeFeatures = function(response) {
     return createFeatures(response);

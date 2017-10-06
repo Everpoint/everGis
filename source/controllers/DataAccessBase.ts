@@ -1,0 +1,28 @@
+import {EventHandler} from "../../../sGis/source/EventHandler";
+import {DataOperation} from "../DataOperation";
+import {xmlSerializer} from "../serializers/xmlSerializer";
+
+export class DataAccessBase extends EventHandler {
+    private _connector: any;
+    private initializationPromise: any;
+
+    constructor(connector) {
+        super();
+        this._connector = connector;
+    }
+
+    get name() { return this._name; }
+    get connector() { return this._connector; }
+
+    init(initializationPromise) {
+        this.initializationPromise = initializationPromise.then(name => this._name = name);
+    }
+
+    operation(operationName, params, expectsFeatures = false) {
+        let operation = new DataOperation(this._connector, this, operationName, params);
+        if (expectsFeatures) {
+            return operation.internalThen(response => xmlSerializer.deserializeFeatures(response));
+        }
+        return operation;
+    }
+}
