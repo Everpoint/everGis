@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "gulp",
+    "build-ts": "tsc",
     "version": "gulp version && git add source/SpatialProcessor.js"
   },
   "repository": {

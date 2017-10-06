@@ -87,7 +87,7 @@ export class StaticSourceService extends EventHandler {
 
     describe({ fileName = null, startFrom = null, take = null, orderBy = null}){
 
-        let params = Object.assign(arguments[0], {_sb: this._connector.sessionId});
+        let params = { fileName, startFrom, take, orderBy, _sb: this._connector.sessionId};
         let paramsString = Object.keys(params).filter(key => params[key] !== null && params[key] !== undefined).map(key => `${key}=${encodeURIComponent(params[key])}`).join('&');
 
         return ajaxp({
