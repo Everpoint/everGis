@@ -1,6 +1,6 @@
-import {EventHandler} from "sGis/source/EventHandler";
+import {EventHandler} from "sgis/dist/EventHandler";
 import {ServiceContainer} from "./ServiceContainer";
-import {error} from "sGis/source/utils/utils";
+import {error} from "sgis/dist/utils/utils";
 import {ajaxp} from "../utils";
 
 export class StaticSourceService extends EventHandler {

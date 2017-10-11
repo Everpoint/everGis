@@ -1,7 +1,7 @@
 import {ClusterSymbol} from "./layers/ClusterLayer";
 import {parseJSON} from "./utils";
-import * as serializer from "sGis/source/serializers/symbolSerializer";
-import {isString} from "sGis/source/utils/utils";
+import * as serializer from "sgis/dist/serializers/symbolSerializer";
+import {isString} from "sgis/dist/utils/utils";
 
 export class DataFilter {
     condition = null;

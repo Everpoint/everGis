@@ -1,6 +1,8 @@
-import {EventHandler} from "sGis/source/EventHandler";
-import {sGis} from "sGis/source/sGis";
+import {EventHandler} from "sgis/dist/EventHandler";
 import {Api} from "./Api";
+import {ajax, message} from "./utils";
+import {error} from "sgis/dist/utils/utils";
+import {xmlSerializer} from "./serializers/xmlSerializer";
 
 export class Connector extends EventHandler {
     api: Api;
@@ -14,6 +16,10 @@ export class Connector extends EventHandler {
 
     apiLoginUrl: string;
     _aborted: any;
+    private initializationPromise: Promise<any>;
+    _sessionId: string;
+    private _latestOperationNotification: any;
+    private _login: any;
 
     constructor(url, authServiceUrl, {login, password, sessionId}: any) {
         super();
@@ -46,7 +52,7 @@ export class Connector extends EventHandler {
     }
 
     removeObjectSelectorListener(f) {
-        var index = ths._objectSelectorListeners.indexOf(f);
+        var index = this._objectSelectorListeners.indexOf(f);
         if (index !== -1) this._objectSelectorListeners.splice(index, 1);
     }
 
@@ -56,11 +62,11 @@ export class Connector extends EventHandler {
             if (login && password) {
                 var spUrl = this._url.substr(-4, 4) === 'IIS/' ? this._url.substr(0, this._url.length - 4) : this._url,
                     url = this.apiLoginUrl.replace(/%sp%/, spUrl) + '?userName=' + login + '&password=' + encodeURIComponent(password) + '&ts=' + new Date().getTime();
-                sGis.utils.ajax({
+                ajax({
                     url: url,
                     success: function (data, textStatus) {
                         if (data === '') {
-                            sGis.utils.message('Could not get session ID');
+                            message('Could not get session ID');
                         } else {
                             var response = JSON.parse(data);
 
@@ -70,13 +76,13 @@ export class Connector extends EventHandler {
                                 self.fire('sessionInitialized');
                             } else {
                                 reject('Could not get session. Server responded with: ' + data);
-                                sGis.utils.error('Could not get session. Server responded with: ' + data);
+                                error('Could not get session. Server responded with: ' + data);
                             }
                         }
                     },
 
                     error: function () {
-                        sGis.utils.message('Could not get session ID');
+                        message('Could not get session ID');
                         reject('Could not get session ID');
                     }
                 });
@@ -98,7 +104,7 @@ export class Connector extends EventHandler {
     requestNotifications() {
         this._aborted = false;
         var self = this,
-            xhr = sGis.utils.ajax({
+            xhr = ajax({
                 url: self._url + 'ClientNotification/?f=json&_sb=' + self._sessionId + '&ts=' + new Date().getTime(),
                 success: function (stringData, textStatus) {
                     try {
@@ -112,7 +118,7 @@ export class Connector extends EventHandler {
                             if (notificationProcessors[data.Notifications[i].tag]) {
                                 notificationProcessors[data.Notifications[i].tag](self, data.Notifications[i].data, data.Notifications[i].type);
                             } else {
-                                sGis.utils.message(data.Notifications[i].tag);
+                                message(data.Notifications[i].tag);
                             }
                         }
                         // if (self._synchronized !== false) {
@@ -141,7 +147,7 @@ export class Connector extends EventHandler {
 
     connectionLostError() {
         this.fire('connectionLost');
-        sGis.utils.error('The connection to the server is lost');
+        error('The connection to the server is lost');
     }
 
     cancelNotificationRequest() {

@@ -1,4 +1,5 @@
 import {ViewableController} from "./ViewableController";
+import {ControllerManager} from "../ControllerManager";
 
 export class TempView extends ViewableController {
     private _localName: any;

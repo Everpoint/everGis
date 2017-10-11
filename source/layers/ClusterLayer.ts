@@ -1,11 +1,11 @@
-import {Layer} from "sGis/source/Layer";
-import {PointSymbol} from "sGis/source/symbols/point/Point";
-import {VectorLabel} from "sGis/source/renders/VectorLabel";
+import {Layer} from "sgis/dist/Layer";
+import {PointSymbol} from "sgis/dist/symbols/point/Point";
+import {VectorLabel} from "sGis/dist/renders/VectorLabel";
 import {ajax} from "../utils";
-import {PointFeature} from "sGis/source/features/Point";
-import {Polygon} from "sGis/source/features/Polygon";
-import * as symbolSerializer from "sGis/source/serializers/symbolSerializer";
-import {Arc} from "sGis/source/renders/Arc";
+import {PointFeature} from "sgis/dist/features/Point";
+import {Polygon} from "sgis/dist/features/Polygon";
+import * as symbolSerializer from "sgis/dist/serializers/symbolSerializer";
+import {Arc} from "sgis/dist/renders/Arc";
 
 export class ClusterLayer extends Layer {
     _updateRequest: any[];
@@ -100,14 +100,12 @@ export class ClusterLayer extends Layer {
     _setFeatures(clusters, crs) {
         var features = [];
         clusters.forEach((cluster) => {
-            features.push(new PointFeature(cluster.Center, {
-                crs: crs,
-                symbol: this._symbol,
-                objectCount: cluster.ObjectCount,
-                aggregations: cluster.Aggregations,
-                setNo: cluster.SetNo,
-                ids: cluster.Ids,
-                boundingPolygon: new Polygon(cluster.BoundingGeometry, {crs: crs} )}
+            features.push(new PointFeature(cluster.Center, {crs, symbol: this._symbol}, {
+                    objectCount: cluster.ObjectCount,
+                    aggregations: cluster.Aggregations,
+                    setNo: cluster.SetNo,
+                    ids: cluster.Ids,
+                    boundingPolygon: new Polygon(cluster.BoundingGeometry, {crs: crs} )}
                 )
             );
         });

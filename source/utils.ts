@@ -1,4 +1,4 @@
-import {browser} from "sGis/source/utils/utils";
+import {browser} from "sgis/dist/utils/utils";
 
 export const parseXmlJsonNode = function(node) {
     var string = '';

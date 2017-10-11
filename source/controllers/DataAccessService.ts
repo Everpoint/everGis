@@ -1,6 +1,7 @@
 import {DataAccessBase} from "./DataAccessBase";
 import {xmlSerializer} from "../serializers/xmlSerializer";
 import {serializeGeometry} from "../serializers/JsonSerializer";
+import {DataOperation} from "../DataOperation";
 
 export class DataAccessService extends DataAccessBase {
     constructor(connector, { serviceName = 'DataAccess' }) {

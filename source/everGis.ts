@@ -1,4 +1,4 @@
-import {sGis} from "sGis/source/sGis";
+import * as sGis from "sgis/dist/sGis";
 import {SpatialProcessor} from "./SpatialProcessor";
 import {Connector} from "./Connector";
 import {ControllerManager} from "./ControllerManager";
@@ -26,7 +26,7 @@ import {ObjectSelector} from "./controllers/ObjectSelector";
 import {TempView} from "./controllers/TempView";
 import {ViewableController} from "./controllers/ViewableController";
 
-const sp = {
+export const sp = {
     SpatialProcessor: SpatialProcessor,
     Connector: Connector,
     ControllerManager: ControllerManager,
@@ -60,7 +60,9 @@ const sp = {
         ObjectSelector: ObjectSelector,
         TempView: TempView,
         ViewableController: ViewableController
-    }
+    },
+    version: "0.3.0",
+    releaseDate: "02.10.2017"
 };
 
-sGis.sp = sp;
+Object.assign(sGis.sp, sp);

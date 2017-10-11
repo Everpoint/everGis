@@ -1,5 +1,5 @@
-import {EventHandler} from "sGis/source/EventHandler";
-import {FeatureLayer} from "sGis/source/FeatureLayer";
+import {EventHandler} from "sgis/dist/EventHandler";
+import {FeatureLayer} from "sgis/dist/FeatureLayer";
 import {ajaxp, parseJSON} from "../utils";
 
 let serviceTypeRegistry = [];

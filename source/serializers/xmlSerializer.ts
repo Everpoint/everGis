@@ -1,18 +1,18 @@
-import {Crs, ellipticalMercator, webMercator, wgs84, geo} from "sGis/source/Crs";
-import {Polygon} from "sGis/source/features/Polygon";
-import {BrushFill} from "sGis/source/symbols/polygon/BrushFill";
-import {PolygonSymbol} from "sGis/source/symbols/polygon/Simple";
-import {PolylineSymbol} from "sGis/source/symbols/Polyline";
-import {Polyline} from "sGis/source/features/Polyline";
-import {MaskedImage} from "sGis/source/symbols/point/MaskedImage";
-import {PointImageSymbol} from "sGis/source/symbols/point/PointImageSymbol";
-import {PointSymbol} from "sGis/source/symbols/point/Point";
-import {SquareSymbol} from "sGis/source/symbols/point/Square";
-import {PointFeature} from "sGis/source/features/Point";
-import {MultiPoint} from "sGis/source/features/MultiPoint";
-import {Color} from "sGis/source/utils/Color";
+import {Crs, ellipticalMercator, webMercator, wgs84, geo} from "sgis/dist/Crs";
+import {Polygon} from "sgis/dist/features/Polygon";
+import {BrushFill} from "sgis/dist/symbols/polygon/BrushFill";
+import {PolygonSymbol} from "sgis/dist/symbols/polygon/Simple";
+import {PolylineSymbol} from "sgis/dist/symbols/Polyline";
+import {Polyline} from "sgis/dist/features/Polyline";
+import {MaskedImage} from "sgis/dist/symbols/point/MaskedImage";
+import {PointImageSymbol} from "sgis/dist/symbols/point/PointImageSymbol";
+import {PointSymbol} from "sgis/dist/symbols/point/Point";
+import {SquareSymbol} from "sgis/dist/symbols/point/Square";
+import {PointFeature} from "sgis/dist/features/Point";
+import {MultiPoint} from "sgis/dist/features/MultiPoint";
+import {Color} from "sgis/dist/utils/Color";
 import {parseXmlJsonNode} from "../utils";
-import {isArray, getGuid} from "sGis/source/utils/utils";
+import {isArray, getGuid} from "sgis/dist/utils/utils";
 
 export let xmlSerializer = <any>{};
 
@@ -80,7 +80,7 @@ function createFeatures(response) {
                 var id = parseInt(object.attributes[idAttribute].value);
 
                 if (geometry.type === 'polygon') {
-                    var feature = <any>new Polygon(points, {id: id, attributes: attributes, crs: crs, color: color, width: visualDefinition.strokeThickness});
+                    var feature = <any>new Polygon(points, {crs: crs}, {id: id, attributes: attributes});
                     if (fillColor && fillColor.brush) {
                         feature.symbol = new BrushFill({
                             strokeWidth: parseFloat(visualDefinition.strokeThickness),
@@ -98,7 +98,7 @@ function createFeatures(response) {
                     }
                 } else if (geometry.type === 'polyline') {
                     let symbol = new PolylineSymbol({ strokeColor: color, strokeWidth: parseFloat(visualDefinition.strokeThickness)});
-                    feature = new Polyline(points, {id: id, attributes: attributes, crs: crs, symbol: symbol });
+                    feature = new Polyline(points, {crs, symbol}, {id, attributes});
                 } else if (geometry.type === 'point' || geometry.type === 'multipoint') {
                     var symbol;
 

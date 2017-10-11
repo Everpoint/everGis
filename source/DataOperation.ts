@@ -1,5 +1,5 @@
 import {ajaxp} from "./utils";
-import {EventHandler} from "Gis/source/EventHandler";
+import {EventHandler} from "sgis/dist/EventHandler";
 
 export class DataOperation extends EventHandler {
     private _connector: any;

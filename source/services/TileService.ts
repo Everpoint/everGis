@@ -1,9 +1,9 @@
 import {ServiceContainer} from "./ServiceContainer";
 import {MapService} from "./MapService";
-import {TileLayer} from "sGis/source/TileLayer";
-import {TileScheme} from "sGis/source/TileScheme";
-import {wgs84} from "sGis/source/Crs";
-import {Point} from "sGis/source/Point";
+import {TileLayer} from "sgis/dist/TileLayer";
+import {TileScheme} from "sgis/dist/TileScheme";
+import {wgs84} from "sgis/dist/Crs";
+import {Point} from "sgis/dist/Point";
 
 export class TileService extends MapService {
     private _tileScheme: TileScheme;

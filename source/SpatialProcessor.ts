@@ -6,8 +6,8 @@ import {DataAccessService} from "./controllers/DataAccessService";
 import {ServiceContainer} from "./services/ServiceContainer";
 import {MapService} from "./services/MapService";
 import {TileService} from "./services/TileService";
-import {Map} from "sGis/source/Map"
-import {DomPainter} from "sGis/source/painters/DomPainter/DomPainter";
+import {Map} from "sgis/dist/Map"
+import {DomPainter} from "sgis/dist/painters/DomPainter/DomPainter";
 
 export class SpatialProcessor {
     _baseServiceContainer: ServiceContainer;
@@ -130,8 +130,3 @@ Project.registerCustomDataItem('map', ({map}) => {
     if (position) map.position = position;
     if (resolution) map.resolution = resolution;
 });
-
-SpatialProcessor.version = "0.3.0";
-SpatialProcessor.releaseDate = "02.10.2017";
-
-sGis.spatialProcessor = sGis.sp;

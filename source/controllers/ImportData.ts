@@ -1,5 +1,6 @@
 import {ControllerManager} from "../ControllerManager";
 import {Controller} from "./Controller";
+import {DataOperation} from "../DataOperation";
 
 export class ImportData extends Controller {
     constructor(connector, properties) {
