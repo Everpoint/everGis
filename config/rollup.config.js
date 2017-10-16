@@ -1,13 +1,12 @@
+import resolve from 'rollup-plugin-node-resolve';
+
 export default {
     input: './temp/everGis.js',
     output: {
-        file: './dist/everGis.js',
+        file: './dist/everGis_bundle.js',
         format: 'umd',
         name: 'sGis',
         sourcemap: true
     },
-    external: name => {
-        if (name.search('sgis') >= 0) console.error(new Error(name));
-        return name.search('sgis') >= 0;
-    }
+    plugins: [resolve()]
 }
