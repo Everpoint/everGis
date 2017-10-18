@@ -8,13 +8,16 @@
     "test": "test"
   },
   "scripts": {
-    "build": "npm run build-ts && npm run rollup",
+    "build": "npm run update-sgis && npm run build-ts && npm run rollup",
     "doc": "jsdoc source -r -d docs -c jsdoc.conf.json",
     "version": "node ./config/set_version.js && git add source/everGis.js",
     "lint": "eslint -c ./config/.eslintrc.json source/** -o lint.output",
     "test": "jest --no-cache",
     "build-ts": "tsc",
-    "rollup": "tsc -p ./config/tsconfig-rollup.json && rollup --config ./config/rollup.config.js"
+    "rollup": "tsc -p ./config/tsconfig-rollup.json && rollup --config ./config/rollup.config.js",
+    "postinstall": "npm run build-sgis",
+    "update-sgis": "npm update sgis && npm run build-sgis",
+    "build-sgis": "cd ./node_modules/sgis && npm run build-ts && cd ../../"
   },
   "repository": {
     "type": "git",
@@ -26,6 +29,7 @@
   "devDependencies": {
     "rollup": "^0.50.0",
     "rollup-plugin-node-resolve": "^3.0.0",
+    "sgis": "github:Everpoint/sGis#2ts",
     "typescript": "^2.5.3"
   }
 }
