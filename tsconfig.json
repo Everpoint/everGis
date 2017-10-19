@@ -5,7 +5,11 @@
     "module": "amd",
     "sourceMap": true,
     "outDir": "./dist",
-    "declaration": true
+    "declaration": true,
+    "baseUrl": "./",
+    "paths": {
+      "sgis/*": ["node_modules/sgis/*"]
+    }
   },
   "include": [
     "./source/**/*.ts"

@@ -3,7 +3,11 @@
     "skipLibCheck": true,
     "target": "es2015",
     "module": "es2015",
-    "outDir": "../temp"
+    "outDir": "../temp",
+    "baseUrl": "./",
+    "paths": {
+      "sgis/*": ["node_modules/sgis/*"]
+    }
   },
   "include": [
     "../source/**/*.ts"
