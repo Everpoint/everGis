@@ -4,7 +4,7 @@
     "target": "es2015",
     "module": "es2015",
     "outDir": "../temp",
-    "baseUrl": "./",
+    "baseUrl": "../",
     "paths": {
       "sgis/*": ["node_modules/sgis/*"]
     }
