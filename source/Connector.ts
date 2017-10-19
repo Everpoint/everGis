@@ -60,8 +60,8 @@ export class Connector extends EventHandler {
         this.initializationPromise = new Promise((resolve, reject) => {
             var self = this;
             if (login && password) {
-                var spUrl = this._url.substr(-4, 4) === 'IIS/' ? this._url.substr(0, this._url.length - 4) : this._url,
-                    url = this.apiLoginUrl.replace(/%sp%/, spUrl) + '?userName=' + login + '&password=' + encodeURIComponent(password) + '&ts=' + new Date().getTime();
+                let url = this.apiLoginUrl.replace('{login}', login).replace('{password}', password) + '&ts=' + Date.now();
+
                 ajax({
                     url: url,
                     success: function (data, textStatus) {
