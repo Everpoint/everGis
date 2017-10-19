@@ -1,6 +1,6 @@
 import {Layer} from "sgis/dist/Layer";
 import {PointSymbol} from "sgis/dist/symbols/point/Point";
-import {VectorLabel} from "sGis/dist/renders/VectorLabel";
+import {VectorLabel} from "sgis/dist/renders/VectorLabel";
 import {ajax} from "../utils";
 import {PointFeature} from "sgis/dist/features/Point";
 import {Polygon} from "sgis/dist/features/Polygon";
