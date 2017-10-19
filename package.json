@@ -8,7 +8,7 @@
     "test": "test"
   },
   "scripts": {
-    "build": "npm run update-sgis && npm run build-ts && npm run rollup",
+    "build": "npm run build-sgis && npm run build-ts && npm run rollup",
     "doc": "jsdoc source -r -d docs -c jsdoc.conf.json",
     "version": "node ./config/set_version.js && git add source/everGis.js",
     "lint": "eslint -c ./config/.eslintrc.json source/** -o lint.output",

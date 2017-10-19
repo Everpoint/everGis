@@ -135,7 +135,7 @@ function createFeatures(response) {
 
                     var featureClass = geometry.type === 'point' ? PointFeature : MultiPoint;
                     if (geometry.type === 'multipoint') points = points[0];
-                    feature = new (<any>featureClass)(points, {id: id, attributes: attributes, crs: crs, symbol: symbol});
+                    feature = new (<any>featureClass)(points, {crs: crs, symbol: symbol}, {id: id, attributes: attributes});
                 }
             }
 
