@@ -158,7 +158,7 @@ export class Api {
         return this._operation('admin/Services/Create', {serviceType: type}, JSON.stringify(params));
     }
 
-    publishDataView({name, alias = null, description = null, filter, isShared = false, preview = null, dataSourceName, attributeDefinition}) {
+    publishDataView({name, alias = null, description = null, filter, isShared = false, preview = null, dataSourceName, attributeDefinition, customMapTipHtml = null}) {
         return this._publishService('DataView', {
             Name: name,
             Alias: alias,
@@ -167,11 +167,12 @@ export class Api {
             Preview: preview,
             Filter: filter,
             DataSourceName: dataSourceName,
-            AttributesDefinition: attributeDefinition
+            AttributesDefinition: attributeDefinition,
+            CustomMapTipHtml: customMapTipHtml
         });
     }
 
-    publishDataSource({name, alias = null, description = null, preview = null, isShared = false, srid, geometryType, attributeDefinition}) {
+    publishDataSource({name, alias = null, description = null, preview = null, isShared = false, srid, geometryType, attributeDefinition, customMapTipHtml = null}) {
         return this._publishService('DataSourceService', {
             Name: name,
             Alias: alias,
@@ -180,7 +181,8 @@ export class Api {
             Preview: preview,
             AttributesDefinition: attributeDefinition,
             Srid: srid,
-            GeometryType: geometryType
+            GeometryType: geometryType,
+            CustomMapTipHtml: customMapTipHtml
         });
     }
 
@@ -217,7 +219,8 @@ export class Api {
             Description: options.description,
             Alias: options.alias,
             IsShared: options.isShared,
-            AttributesDefinition: options.attributesDefinition
+            AttributesDefinition: options.attributesDefinition,
+            CustomMapTipHtml: options.customMapTipHtml
         };
 
         return this._operation('admin/Services/Update', { name: options.serviceName }, JSON.stringify(props));
@@ -243,7 +246,8 @@ export class Api {
             Filter: options.filter,
             Preview: options.preview,
             DataSourceServiceName: options.dataSourceServiceName,
-            AttributesDefinition: options.attributesDefinition
+            AttributesDefinition: options.attributesDefinition,
+            CustomMapTipHtml: options.customMapTipHtml
         };
 
         return this._operation('admin/Services/Update', { name: options.serviceName }, JSON.stringify(props));
