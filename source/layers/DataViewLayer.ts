@@ -1,6 +1,7 @@
 import {Layer} from "sgis/dist/Layer";
 import {DynamicLayer} from "sgis/dist/DynamicLayer";
 import {ClusterLayer, ClusterSymbol} from "./ClusterLayer";
+import {SpDynamicLayer} from "./SpDynamicLayer";
 
 export class DataViewLayer extends Layer {
     delayedUpdate = true;
@@ -12,7 +13,7 @@ export class DataViewLayer extends Layer {
         super();
         this._service = service;
 
-        this._dynamicLayer = new DynamicLayer(this.getImageUrl.bind(this));
+        this._dynamicLayer = new SpDynamicLayer(this._service);
 
         service.on('dataFilterChange', this._updateDataFilter.bind(this));
         this._updateDataFilter();
@@ -62,25 +63,6 @@ export class DataViewLayer extends Layer {
         });
 
         return features;
-    }
-
-    getImageUrl(bbox, resolution) {
-        let imgWidth = Math.round((bbox.xMax - bbox.xMin) / resolution);
-        let imgHeight = Math.round((bbox.yMax - bbox.yMin) / resolution);
-        let sr = bbox.crs.toString();
-
-        return this._service.url + 'export?' +
-            'dpi=96&' +
-            'transparent=true&' +
-            'bbox=' +
-            bbox.xMin + '%2C' +
-            bbox.yMin + '%2C' +
-            bbox.xMax + '%2C' +
-            bbox.yMax + '&' +
-            'bboxSR=' + sr + '&' +
-            'imageSR=' + sr + '&' +
-            'size=' + imgWidth + '%2C' + imgHeight + '&' +
-            'f=image' + this._service.connector.sessionSuffix;
     }
 
     get opacity() { return this._dynamicLayer.opacity; }
