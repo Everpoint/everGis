@@ -25,6 +25,7 @@ import {ImportData} from "./controllers/ImportData";
 import {ObjectSelector} from "./controllers/ObjectSelector";
 import {TempView} from "./controllers/TempView";
 import {ViewableController} from "./controllers/ViewableController";
+import {SpDynamicLayer} from "./layers/SpDynamicLayer";
 
 const sGis = <any>{};
 Object.assign(sGis, sGis_bundle);
@@ -53,7 +54,8 @@ const sp = {
     ClusterLayer: ClusterLayer,
     ClusterSymbol: ClusterSymbol,
     layers: {
-        DataViewLayer: DataViewLayer
+        DataViewLayer: DataViewLayer,
+        SpDynamicLayer: SpDynamicLayer
     },
     controllers: {
         Controller: Controller,
