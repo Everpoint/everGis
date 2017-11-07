@@ -6,6 +6,7 @@ import {PointFeature} from "sgis/dist/features/Point";
 import {Polygon} from "sgis/dist/features/Polygon";
 import * as symbolSerializer from "sgis/dist/serializers/symbolSerializer";
 import {Arc} from "sgis/dist/renders/Arc";
+import {Symbol} from "sgis/dist/symbols/Symbol";
 
 export class ClusterLayer extends Layer {
     _updateRequest: any[];
