@@ -158,5 +158,26 @@ export class Labeling {
 }
 
 let defaultLabeling = {
-
+    fieldFormat: 'Текст подписи',
+    attributes: [],
+    fontName: 'Arial',
+    fontSize: 10,
+    fontStyle: null,
+    fontWeight: 300,
+    fontColor: '#ff000000',
+    background: '#ffffffff',
+    border: {
+        Brush: '#ffffffff',
+        Thickness: 1
+    },
+    borderRadius: 0,
+    showBox: true,
+    boxMaxWidth: 128,
+    boxMargin: 3,
+    horizontalAlignment: 'Center',
+    verticalAlignment: 'Bottom',
+    offset: [3,3],
+    offsetFromSymbol: true,
+    isActive: false,
+    isBoxDisplayed: true
 };
