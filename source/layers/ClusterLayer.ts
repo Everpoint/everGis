@@ -148,6 +148,12 @@ export class ClusterSymbol extends PointSymbol {
     _singleObjectSymbol = null;
     gridSize = 100;
 
+    constructor(properties?: Object) {
+        super();
+
+        if (properties) Object.assign(this, properties);
+    }
+
     renderFunction(feature, resolution, crs) {
         if (this.singleObjectSymbol && feature.objectCount === 1) return this.singleObjectSymbol.renderFunction(feature, resolution, crs);
 
