@@ -83,6 +83,11 @@ export class SpatialProcessor {
         }
     }
 
+    kill() {
+        if (this._connector) this._connector.cancelNotificationRequest();
+        this._painter.wrapper = null;
+    }
+
     get map() { return this._map; }
     get painter() { return this._painter; }
     get login() { return this._login; }
