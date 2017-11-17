@@ -66,8 +66,8 @@ const sp = {
         TempView: TempView,
         ViewableController: ViewableController
     },
-    version: "0.3.0",
-    releaseDate: "02.10.2017"
+    version: "0.3.2",
+    releaseDate: "17.11.2017"
 };
 
 sGis.sp = sp;
