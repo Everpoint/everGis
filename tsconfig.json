@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "target": "es2015",
+    "module": "amd",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "declaration": true,
+    "baseUrl": "./",
+    "paths": {
+      "sgis/*": ["node_modules/sgis/*"]
+    }
+  },
+  "include": [
+    "./source/**/*.ts"
+  ]
+}
