@@ -1,6 +1,6 @@
 {
   "name": "evergis",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "",
   "main": "dist/compilation/everGis.js",
   "types": "dist/compilation/everGis.d.ts",
@@ -10,7 +10,7 @@
   "scripts": {
     "build": "npm run build-sgis && npm run build-ts && npm run rollup",
     "doc": "jsdoc source -r -d docs -c jsdoc.conf.json",
-    "version": "node ./config/set_version.js && git add source/everGis.js",
+    "version": "node ./config/set_version.js && git add source/everGis.ts",
     "lint": "eslint -c ./config/.eslintrc.json source/** -o lint.output",
     "test": "jest --no-cache",
     "build-ts": "tsc",

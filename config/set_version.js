@@ -9,7 +9,7 @@ fs.readFile('./source/everGis.ts', 'utf8', function(err, data) {
     let version = process.env.npm_package_version;
     let result = data.replace(/version\s*:\s*".+"/, 'version: "' + version + '"').replace(/releaseDate\s*:\s*".+"/, 'releaseDate: "' + today() + '"');
 
-    fs.writeFile('./source/sGis.ts', result, 'utf8', function (err) {
+    fs.writeFile('./source/everGis.ts', result, 'utf8', function (err) {
         if (err) return console.log(err);
     });
 });
