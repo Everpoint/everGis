@@ -4,6 +4,7 @@ import {TileLayer} from "sgis/dist/TileLayer";
 import {TileScheme} from "sgis/dist/TileScheme";
 import {wgs84} from "sgis/dist/Crs";
 import {Point} from "sgis/dist/Point";
+import {Coordinates} from "sgis/dist/baseTypes";
 
 export class TileService extends MapService {
     private _tileScheme: TileScheme;
@@ -33,7 +34,7 @@ export class TileService extends MapService {
 }
 
 function getTileScheme(tileInfo, crs) {
-    let scheme = {
+    let scheme: any = {
         tileWidth: tileInfo.rows,
         tileHeight: tileInfo.cols,
         dpi: tileInfo.dpi,
