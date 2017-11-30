@@ -2,7 +2,7 @@ import {Crs, ellipticalMercator, webMercator, wgs84, geo} from "sgis/dist/Crs";
 import {Polygon} from "sgis/dist/features/Polygon";
 import {BrushFill} from "sgis/dist/symbols/polygon/BrushFill";
 import {PolygonSymbol} from "sgis/dist/symbols/polygon/Simple";
-import {PolylineSymbol} from "sgis/dist/symbols/Polyline";
+import {PolylineSymbol} from "sgis/dist/symbols/PolylineSymbol";
 import {Polyline} from "sgis/dist/features/Polyline";
 import {MaskedImage} from "sgis/dist/symbols/point/MaskedImage";
 import {PointImageSymbol} from "sgis/dist/symbols/point/PointImageSymbol";
