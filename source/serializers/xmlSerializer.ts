@@ -108,14 +108,14 @@ function createFeatures(response) {
                             maskSource: visualDefinition.maskSrc,
                             width: parseFloat(visualDefinition.size),
                             height: null,
-                            anchorPoint: visualDefinition.anchorPoint
+                            anchorPoint: [visualDefinition.anchorPoint.x, visualDefinition.anchorPoint.y]
                         });
                     } else if (visualDefinition.imageSrc) {
                         symbol = new PointImageSymbol({
                             source: visualDefinition.imageSrc,
                             width: parseFloat(visualDefinition.size),
                             height: null,
-                            anchorPoint: visualDefinition.anchorPoint
+                            anchorPoint: [visualDefinition.anchorPoint.x, visualDefinition.anchorPoint.y]
                         });
                     } else if (visualDefinition.shape === 'Circle') {
                         symbol = new PointSymbol({
@@ -352,7 +352,7 @@ var serializer = {
             symbol: 'ImagePointSymbol',
             size: attributes.Size === '0' ? 10 : attributes.Size,
             color: attributes.Color,
-            anchorPoint: {x: attributes.AnchorPointX, y: attributes.AnchorPointY},
+            anchorPoint: [attributes.AnchorPointX, attributes.AnchorPointY],
             imageSrc: parsed.image[attributes.Pixels].dataUrl,
             maskSrc: maskSrc && maskSrc.dataUrl
         };
@@ -928,8 +928,8 @@ function getSymbolIndex(feature, resources) {
         if ((symbol instanceof PointImageSymbol)) {
             newSymbol = {
                 Pixels: getImageIndex(symbol.source, resources),
-                AnchorPointX: symbol.anchorPoint.x,
-                AnchorPointY: symbol.anchorPoint.y,
+                AnchorPointX: symbol.anchorPoint[0],
+                AnchorPointY: symbol.anchorPoint[1],
                 Size: symbol.width,
                 Color: '#7f64c800',
                 MaskPixels: '-1',

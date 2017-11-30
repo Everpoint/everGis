@@ -26,6 +26,7 @@ import {ObjectSelector} from "./controllers/ObjectSelector";
 import {TempView} from "./controllers/TempView";
 import {ViewableController} from "./controllers/ViewableController";
 import {SpDynamicLayer} from "./layers/SpDynamicLayer";
+import {ServiceSnappingProvider} from "./ServiceSnappingProvider";
 
 const sGis = <any>{};
 Object.assign(sGis, sGis_bundle);
@@ -66,6 +67,7 @@ const sp = {
         TempView: TempView,
         ViewableController: ViewableController
     },
+    ServiceSnappingProvider: ServiceSnappingProvider,
     version: "0.3.2",
     releaseDate: "17.11.2017"
 };
