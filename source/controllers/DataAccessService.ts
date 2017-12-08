@@ -18,8 +18,8 @@ export class DataAccessService extends DataAccessBase {
      * @param {String} [properties.query] - query for data filter. Query example: select {id}, {geometry}, attr1 where attr1 == 'value';
      */
     exportData(properties) {
-        let { serviceName, exportType, query } = properties;
-        return this.operation('exportData', { serviceName, exportType, query }, false);
+        let { serviceName, exportType, query, srid } = properties;
+        return this.operation('exportData', { serviceName, exportType, query, srid }, false);
     }
 
     queryById(properties) {
