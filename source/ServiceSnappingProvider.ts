@@ -4,6 +4,7 @@ import {Map} from "sgis/dist/Map";
 import {ajaxp, message} from "./utils";
 import {SnappingProviderBase} from "sgis/dist/controls/snapping/SnappingProviderBase";
 import {SnappingData} from "sgis/dist/controls/snapping/SnappingMethods";
+import {ISnappingProvider} from "sgis/dist/controls/snapping/ISnappingProvider";
 
 const TILE_SIZE = 512;
 const CACHE_SIZE = 64;
@@ -92,6 +93,10 @@ export class ServiceSnappingProvider extends SnappingProviderBase {
     private _canSnap() { return this._service.serviceInfo && this._service.serviceInfo.capabilities && this._service.serviceInfo.capabilities.indexOf('snapping') !== -1; }
 
     get service() { return this._service; }
+
+    clone(): ISnappingProvider {
+        return new ServiceSnappingProvider(this.service, this._map);
+    }
 }
 
 class SnappingTileCache {
