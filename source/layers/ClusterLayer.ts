@@ -1,4 +1,4 @@
-import {Layer} from "sgis/dist/Layer";
+import {Layer} from "sgis/dist/layers/Layer";
 import {PointSymbol} from "sgis/dist/symbols/point/Point";
 import {VectorLabel} from "sgis/dist/renders/VectorLabel";
 import {ajax} from "../utils";
@@ -7,6 +7,10 @@ import {Polygon} from "sgis/dist/features/Polygon";
 import * as symbolSerializer from "sgis/dist/serializers/symbolSerializer";
 import {Arc} from "sgis/dist/renders/Arc";
 import {Symbol} from "sgis/dist/symbols/Symbol";
+import {Bbox} from "sgis/dist/Bbox";
+import {Render} from "sgis/dist/renders/Render";
+import {Feature} from "sgis/dist/features/Feature";
+import {HorizontalAlignment, VerticalAlignment} from "sgis/dist/renders/VectorLabel";
 
 export class ClusterLayer extends Layer {
     _updateRequest: any[];
@@ -31,7 +35,16 @@ export class ClusterLayer extends Layer {
         this._symbol = symbol;
     }
 
-    getFeatures(bbox, resolution) {
+    getRenders(bbox: Bbox, resolution: number): Render[] {
+        let features = this._getFeatures(bbox, resolution);
+        let renders: Render[] = [];
+        features.forEach(feature => {
+            renders = renders.concat(feature.render(resolution, bbox.crs));
+        });
+        return renders;
+    }
+
+    private _getFeatures(bbox, resolution): Feature[] {
         if (!this.checkVisibility(resolution)) return [];
 
         this._update(bbox, resolution);
@@ -128,6 +141,8 @@ export class ClusterLayer extends Layer {
 }
 
 export class ClusterSymbol extends PointSymbol {
+    private _sortedPieValues: (string | number)[];
+
     size = 50;
 
     fillColor = 'rgba(0, 183, 255, 1)';
@@ -175,7 +190,7 @@ export class ClusterSymbol extends PointSymbol {
 
     _renderLabel(position, feature) {
         let text = this.labelText.replace('{__qty}', feature.objectCount || '');
-        return new VectorLabel(position, text, {});
+        return new VectorLabel({position, text, fontSize: 10, horizontalAlignment: HorizontalAlignment.Center, verticalAlignment: VerticalAlignment.Middle});
     }
 
     _applySizeClassifier(circleRender, feature) {
@@ -198,9 +213,36 @@ export class ClusterSymbol extends PointSymbol {
         if (!totalCount) return;
 
         let startAngle = -Math.PI / 2;
-        let pies = aggr.filter(x => x.count > 0).map(x => {
-            let angle = x.count / totalCount * Math.PI * 2;
-            let fillColor = this._pieGroups[x.value] || this.fillColor;
+
+        let pies = {};
+        Object.keys(this._pieGroups).forEach(key => pies[key] = 0);
+
+        if (!this._sortedPieValues) this._sortPieGroups();
+
+        aggr.forEach(distinct => {
+            let pieValue;
+            if (this._pieGroups[distinct.value]) {
+                pieValue = distinct.value;
+            } else {
+                for (let i = 0; i < this._sortedPieValues.length; i++) {
+                    if (distinct.value > this._sortedPieValues[i]) continue;
+
+                    pieValue = this._sortedPieValues[i];
+                    break;
+                }
+            }
+            if (pieValue === undefined) {
+                pieValue = this._sortedPieValues[this._sortedPieValues.length - 1];
+            }
+            if (this._pieGroups[pieValue]) {
+                pies[pieValue] += distinct.count;
+            }
+        });
+
+        let renders = Object.keys(pies).filter(key => pies[key] > 0).map(key => {
+            let count = pies[key];
+            let angle = count / totalCount * Math.PI * 2;
+            let fillColor = this._pieGroups[key] || this.fillColor;
 
             let arc = new Arc(center, {
                 fillColor: fillColor,
@@ -216,7 +258,7 @@ export class ClusterSymbol extends PointSymbol {
             return arc;
         });
 
-        return pies;
+        return renders;
     }
 
     resetClassification() {
@@ -226,8 +268,22 @@ export class ClusterSymbol extends PointSymbol {
         this._pieGroups = {};
     }
 
+    clearPieGroups() {
+        this._pieGroups = {};
+    }
+
     addPieGroup(attributeValue, color) {
         this._pieGroups[attributeValue] = color;
+        this._sortPieGroups();
+    }
+
+    _sortPieGroups() {
+        let keys = Object.keys(this._pieGroups);
+        this._sortedPieValues = keys.map(key => isNaN(<any>key) ? key : parseFloat(key)).sort((a, b) => {
+            if (a < b) return -1;
+            if (a > b) return 1;
+            return 0;
+        });
     }
 
     clone() {
@@ -262,7 +318,3 @@ export class ClusterSymbol extends PointSymbol {
         }
     }
 }
-
-Object.assign(ClusterSymbol.prototype, {
-
-});

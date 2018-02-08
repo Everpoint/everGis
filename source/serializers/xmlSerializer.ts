@@ -5,7 +5,6 @@ import {PolygonSymbol} from "sgis/dist/symbols/polygon/Simple";
 import {PolylineSymbol} from "sgis/dist/symbols/PolylineSymbol";
 import {Polyline} from "sgis/dist/features/Polyline";
 import {MaskedImage} from "sgis/dist/symbols/point/MaskedImage";
-import {PointImageSymbol} from "sgis/dist/symbols/point/PointImageSymbol";
 import {PointSymbol} from "sgis/dist/symbols/point/Point";
 import {SquareSymbol} from "sgis/dist/symbols/point/Square";
 import {PointFeature} from "sgis/dist/features/Point";
@@ -13,6 +12,7 @@ import {MultiPoint} from "sgis/dist/features/MultiPoint";
 import {Color} from "sgis/dist/utils/Color";
 import {parseXmlJsonNode} from "../utils";
 import {isArray, getGuid} from "sgis/dist/utils/utils";
+import {StaticImageSymbol} from "sgis/dist/symbols/point/StaticImageSymbol";
 
 export let xmlSerializer = <any>{};
 
@@ -111,7 +111,7 @@ function createFeatures(response) {
                             anchorPoint: [visualDefinition.anchorPoint.x, visualDefinition.anchorPoint.y]
                         });
                     } else if (visualDefinition.imageSrc) {
-                        symbol = new PointImageSymbol({
+                        symbol = new StaticImageSymbol({
                             source: visualDefinition.imageSrc,
                             width: parseFloat(visualDefinition.size),
                             height: null,
@@ -925,7 +925,7 @@ function getSymbolIndex(feature, resources) {
     var symbol = feature.originalSymbol;
 
     if (feature.type === 'point') {
-        if ((symbol instanceof PointImageSymbol)) {
+        if ((symbol instanceof StaticImageSymbol)) {
             newSymbol = {
                 Pixels: getImageIndex(symbol.source, resources),
                 AnchorPointX: symbol.anchorPoint[0],

@@ -1,7 +1,9 @@
-import {Layer} from "sgis/dist/Layer";
-import {DynamicLayer} from "sgis/dist/DynamicLayer";
+import {Layer} from "sgis/dist/layers/Layer";
+import {DynamicLayer} from "sgis/dist/layers/DynamicLayer";
 import {ClusterLayer, ClusterSymbol} from "./ClusterLayer";
 import {SpDynamicLayer} from "./SpDynamicLayer";
+import {Bbox} from "sgis/dist/Bbox";
+import {Render} from "sgis/dist/renders/Render";
 
 export class DataViewLayer extends Layer {
     delayedUpdate = true;
@@ -14,6 +16,7 @@ export class DataViewLayer extends Layer {
         this._service = service;
 
         this._dynamicLayer = new SpDynamicLayer(this._service);
+        this._dynamicLayer.on('propertyChange', () => this.redraw());
 
         service.on('dataFilterChange', this._updateDataFilter.bind(this));
         this._updateDataFilter();
@@ -49,20 +52,19 @@ export class DataViewLayer extends Layer {
         }
     }
 
-    getFeatures(bbox, resolution) {
+    getRenders(bbox: Bbox, resolution: number): Render[] {
         if (!this.checkVisibility(resolution)) return [];
 
-        if (this._resolutionGroups.length === 0) return this._dynamicLayer.getFeatures(bbox, resolution);
+        if (this._resolutionGroups.length === 0) return this._dynamicLayer.getRenders(bbox, resolution);
 
-        let dynamicLayerUsed = false;
-        let features = [];
+        let renders: Render[] = [];
         this._resolutionGroups.forEach(group => {
             if (group.minResolution > 0 && group.minResolution > resolution || group.maxResolution > 0 && group.maxResolution < resolution) return;
 
-            features = features.concat(group.layer.getFeatures(bbox, resolution));
+            renders = renders.concat(group.layer.getRenders(bbox, resolution));
         });
 
-        return features;
+        return renders;
     }
 
     get opacity() { return this._dynamicLayer.opacity; }
