@@ -257,8 +257,6 @@ var serializer = {
             }
         }
 
-        if (!key) debugger;
-
         if (!parsed.attributesDefinitions) parsed.attributesDefinitions = {};
 
         parsed.attributesDefinitions[key] = attributesDefinition;
@@ -387,8 +385,6 @@ var serializer = {
     Attribute: function(node, parsed, parentObject) {
         var nodeAttributes = getNodeAttributes(node);
         if (!parentObject.attributes) parentObject.attributes = {};
-
-        if (!parsed.attributesDefinitions[parentObject.attributesDefinition]) debugger;
 
         var attributeDefinition = parsed.attributesDefinitions[parentObject.attributesDefinition][nodeAttributes.Name];
         if (!attributeDefinition) return;
@@ -1052,7 +1048,6 @@ function getBrushIndex(color, resources) {
 
     resources.lastKey++;
     resources.brushes[resources.lastKey] = color;
-    if (color === undefined) debugger;
     return resources.lastKey;
 }
 
