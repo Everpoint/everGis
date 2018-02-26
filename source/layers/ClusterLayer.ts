@@ -2,15 +2,41 @@ import {Layer} from "sgis/dist/layers/Layer";
 import {PointSymbol} from "sgis/dist/symbols/point/Point";
 import {VectorLabel} from "sgis/dist/renders/VectorLabel";
 import {ajax} from "../utils";
-import {PointFeature} from "sgis/dist/features/Point";
+import {PointFeature} from "sgis/dist/features/PointFeature";
 import {Polygon} from "sgis/dist/features/Polygon";
 import * as symbolSerializer from "sgis/dist/serializers/symbolSerializer";
 import {Arc} from "sgis/dist/renders/Arc";
 import {Symbol} from "sgis/dist/symbols/Symbol";
 import {Bbox} from "sgis/dist/Bbox";
 import {Render} from "sgis/dist/renders/Render";
-import {Feature} from "sgis/dist/features/Feature";
+import {Feature, FeatureParams} from "sgis/dist/features/Feature";
 import {HorizontalAlignment, VerticalAlignment} from "sgis/dist/renders/VectorLabel";
+import {Coordinates} from "sgis/dist/baseTypes";
+
+interface ClusterFeatureParams extends FeatureParams {
+    objectCount: number;
+    aggregations: any;
+    setNo: number;
+    ids: number[];
+    boundingPolygon: any;
+}
+
+class ClusterFeature extends PointFeature {
+    objectCount: number;
+    aggregations: any;
+    setNo: number;
+    ids: number[];
+    boundingPolygon: any;
+
+    constructor(position: Coordinates, {objectCount, aggregations, setNo, ids, boundingPolygon, ...params}: ClusterFeatureParams) {
+        super(position, params);
+        this.objectCount = objectCount;
+        this.aggregations = aggregations;
+        this.setNo = setNo;
+        this.ids = ids;
+        this.boundingPolygon = boundingPolygon;
+    }
+}
 
 export class ClusterLayer extends Layer {
     _updateRequest: any[];
@@ -112,16 +138,17 @@ export class ClusterLayer extends Layer {
     }
 
     _setFeatures(clusters, crs) {
-        var features = [];
+        let features = [];
         clusters.forEach((cluster) => {
-            features.push(new PointFeature(cluster.Center, {crs, symbol: this._symbol}, {
-                    objectCount: cluster.ObjectCount,
-                    aggregations: cluster.Aggregations,
-                    setNo: cluster.SetNo,
-                    ids: cluster.Ids,
-                    boundingPolygon: new Polygon(cluster.BoundingGeometry, {crs: crs} )}
-                )
-            );
+            features.push(new ClusterFeature(cluster.Center, {
+                crs,
+                symbol: this._symbol,
+                objectCount: cluster.ObjectCount,
+                aggregations: cluster.Aggregations,
+                setNo: cluster.SetNo,
+                ids: cluster.Ids,
+                boundingPolygon: new Polygon(cluster.BoundingGeometry, {crs: crs} )
+            }));
         });
 
         this._features = features;

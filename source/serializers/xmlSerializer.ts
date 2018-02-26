@@ -7,7 +7,7 @@ import {Polyline} from "sgis/dist/features/Polyline";
 import {MaskedImage} from "sgis/dist/symbols/point/MaskedImage";
 import {PointSymbol} from "sgis/dist/symbols/point/Point";
 import {SquareSymbol} from "sgis/dist/symbols/point/Square";
-import {PointFeature} from "sgis/dist/features/Point";
+import {PointFeature} from "sgis/dist/features/PointFeature";
 import {MultiPoint} from "sgis/dist/features/MultiPoint";
 import {Color} from "sgis/dist/utils/Color";
 import {parseXmlJsonNode} from "../utils";
@@ -80,7 +80,7 @@ function createFeatures(response) {
                 var id = parseInt(object.attributes[idAttribute].value);
 
                 if (geometry.type === 'polygon') {
-                    var feature = <any>new Polygon(points, {crs: crs}, {id: id, attributes: attributes});
+                    var feature = <any>new Polygon(points, {crs: crs});
                     if (fillColor && fillColor.brush) {
                         feature.symbol = new BrushFill({
                             strokeWidth: parseFloat(visualDefinition.strokeThickness),
@@ -98,7 +98,7 @@ function createFeatures(response) {
                     }
                 } else if (geometry.type === 'polyline') {
                     let symbol = new PolylineSymbol({ strokeColor: color, strokeWidth: parseFloat(visualDefinition.strokeThickness)});
-                    feature = new Polyline(points, {crs, symbol}, {id, attributes});
+                    feature = new Polyline(points, {crs, symbol});
                 } else if (geometry.type === 'point' || geometry.type === 'multipoint') {
                     var symbol;
 
@@ -143,6 +143,8 @@ function createFeatures(response) {
                 feature.displayField = response.attributesDefinitions[object.attributesDefinition]._display;
                 feature.visualDefinitionId = object.visualDefinitionId;
                 feature.generatorId = object.generatorId;
+                feature.id = id;
+                feature.attributes = attributes;
                 features.push(feature);
             }
         }

@@ -1,4 +1,4 @@
-import {PointFeature} from "sgis/dist/features/Point";
+import {PointFeature} from "sgis/dist/features/PointFeature";
 import {Polyline} from "sgis/dist/features/Polyline";
 import {Polygon} from "sgis/dist/features/Polygon";
 import {PointSymbol} from "sgis/dist/symbols/point/Point";
