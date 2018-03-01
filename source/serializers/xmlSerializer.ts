@@ -11,7 +11,7 @@ import {PointFeature} from "sgis/dist/features/PointFeature";
 import {MultiPoint} from "sgis/dist/features/MultiPoint";
 import {Color} from "sgis/dist/utils/Color";
 import {parseXmlJsonNode} from "../utils";
-import {isArray, getGuid} from "sgis/dist/utils/utils";
+import {getGuid} from "sgis/dist/utils/utils";
 import {StaticImageSymbol} from "sgis/dist/symbols/point/StaticImageSymbol";
 
 export let xmlSerializer = <any>{};
@@ -474,7 +474,7 @@ xmlSerializer.serializeGeometryEdit = function(editDescription, attributesOnly, 
     tempId = -1;
     var featureList = [];
     for (var i in editDescription) {
-        if (isArray(editDescription[i]) && i !== 'deleted') featureList = featureList.concat(editDescription[i]);
+        if (Array.isArray(editDescription[i]) && i !== 'deleted') featureList = featureList.concat(editDescription[i]);
     }
 
     var formatedData = getFormatedData(featureList, attributesOnly);
@@ -550,17 +550,17 @@ function getNewXMLDocument() {
 
 function getEditCommandsNode(editDescription, xml, attributesOnly) {
     var node = xml.createElement('EditCommands');
-    if (isArray(editDescription.added)) {
+    if (Array.isArray(editDescription.added)) {
         for (var i in editDescription.added) {
             node.appendChild(getAddObjectNode(editDescription.added[i], xml));
         }
     }
-    if (isArray(editDescription.updated)) {
+    if (Array.isArray(editDescription.updated)) {
         for (var i in editDescription.updated) {
             node.appendChild(getUpdateObjectNode(editDescription.updated[i], xml, attributesOnly));
         }
     }
-    if (isArray(editDescription.deleted)) {
+    if (Array.isArray(editDescription.deleted)) {
         for (var i in editDescription.deleted) {
             node.appendChild(getDeleteObjectNode(editDescription.deleted[i], xml));
         }
