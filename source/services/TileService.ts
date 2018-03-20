@@ -4,6 +4,7 @@ import {TileLayer} from "sgis/dist/layers/TileLayer";
 import {TileScheme} from "sgis/dist/TileScheme";
 import {wgs84} from "sgis/dist/Crs";
 import {Point} from "sgis/dist/Point";
+import {ConditionalTileLayer} from "../layers/ConditionalTileLayer";
 
 export class TileService extends MapService {
     private _tileScheme: TileScheme;
@@ -14,11 +15,15 @@ export class TileService extends MapService {
 
     _setLayer() {
         if (this.serviceInfo.tileInfo) {
-            var tileScheme = getTileScheme(this.serviceInfo.tileInfo, this.crs);
+            this._tileScheme = getTileScheme(this.serviceInfo.tileInfo, this.crs);
         }
 
-        this._tileScheme = tileScheme;
-        this._layer = new TileLayer(this._getUrl(), { tileScheme: tileScheme, crs: this.crs, isDisplayed: this.isDisplayed });
+        let layerParams = {tileScheme: this._tileScheme, crs: this.crs, isDisplayed: this.isDisplayed};
+        if (this.serviceInfo.attributesDefinition) {
+            this._layer = new ConditionalTileLayer(this.url, this.connector.sessionId, layerParams);
+        } else {
+            this._layer = new TileLayer(this._getUrl(), layerParams);
+        }
     }
 
     get tileScheme() { return this._tileScheme; }
