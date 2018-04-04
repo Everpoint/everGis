@@ -1,17 +1,17 @@
-import {Layer} from "sgis/dist/layers/Layer";
-import {PointSymbol} from "sgis/dist/symbols/point/Point";
-import {VectorLabel} from "sgis/dist/renders/VectorLabel";
+import {Layer} from "sgis/layers/Layer";
+import {PointSymbol} from "sgis/symbols/point/Point";
+import {VectorLabel} from "sgis/renders/VectorLabel";
 import {ajax} from "../utils";
-import {PointFeature} from "sgis/dist/features/PointFeature";
-import {Polygon} from "sgis/dist/features/Polygon";
-import * as symbolSerializer from "sgis/dist/serializers/symbolSerializer";
-import {Arc} from "sgis/dist/renders/Arc";
-import {Symbol} from "sgis/dist/symbols/Symbol";
-import {Bbox} from "sgis/dist/Bbox";
-import {Render} from "sgis/dist/renders/Render";
-import {Feature, FeatureParams} from "sgis/dist/features/Feature";
-import {HorizontalAlignment, VerticalAlignment} from "sgis/dist/renders/VectorLabel";
-import {Coordinates} from "sgis/dist/baseTypes";
+import {PointFeature} from "sgis/features/PointFeature";
+import {Polygon} from "sgis/features/Polygon";
+import * as symbolSerializer from "sgis/serializers/symbolSerializer";
+import {Arc} from "sgis/renders/Arc";
+import {Symbol} from "sgis/symbols/Symbol";
+import {Bbox} from "sgis/Bbox";
+import {Render} from "sgis/renders/Render";
+import {Feature, FeatureParams} from "sgis/features/Feature";
+import {HorizontalAlignment, VerticalAlignment} from "sgis/renders/VectorLabel";
+import {Coordinates} from "sgis/baseTypes";
 
 interface ClusterFeatureParams extends FeatureParams {
     objectCount: number;

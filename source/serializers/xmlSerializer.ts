@@ -1,18 +1,18 @@
-import {Crs, ellipticalMercator, webMercator, wgs84, geo} from "sgis/dist/Crs";
-import {Polygon} from "sgis/dist/features/Polygon";
-import {BrushFill} from "sgis/dist/symbols/polygon/BrushFill";
-import {PolygonSymbol} from "sgis/dist/symbols/polygon/Simple";
-import {PolylineSymbol} from "sgis/dist/symbols/PolylineSymbol";
-import {Polyline} from "sgis/dist/features/Polyline";
-import {MaskedImage} from "sgis/dist/symbols/point/MaskedImage";
-import {PointSymbol} from "sgis/dist/symbols/point/Point";
-import {SquareSymbol} from "sgis/dist/symbols/point/Square";
-import {PointFeature} from "sgis/dist/features/PointFeature";
-import {MultiPoint} from "sgis/dist/features/MultiPoint";
-import {Color} from "sgis/dist/utils/Color";
+import {Crs, ellipticalMercator, webMercator, wgs84, geo} from "sgis/Crs";
+import {Polygon} from "sgis/features/Polygon";
+import {BrushFill} from "sgis/symbols/polygon/BrushFill";
+import {PolygonSymbol} from "sgis/symbols/polygon/Simple";
+import {PolylineSymbol} from "sgis/symbols/PolylineSymbol";
+import {Polyline} from "sgis/features/Polyline";
+import {MaskedImage} from "sgis/symbols/point/MaskedImage";
+import {PointSymbol} from "sgis/symbols/point/Point";
+import {SquareSymbol} from "sgis/symbols/point/Square";
+import {PointFeature} from "sgis/features/PointFeature";
+import {MultiPoint} from "sgis/features/MultiPoint";
+import {Color} from "sgis/utils/Color";
 import {parseXmlJsonNode} from "../utils";
-import {getGuid} from "sgis/dist/utils/utils";
-import {StaticImageSymbol} from "sgis/dist/symbols/point/StaticImageSymbol";
+import {getGuid} from "sgis/utils/utils";
+import {StaticImageSymbol} from "sgis/symbols/point/StaticImageSymbol";
 
 export let xmlSerializer = <any>{};
 

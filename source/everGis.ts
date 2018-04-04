@@ -1,4 +1,4 @@
-import * as sGis_bundle from "sgis/dist/sGis";
+import * as sGis from "sgis/sGis_bundle"
 import {SpatialProcessor} from "./SpatialProcessor";
 import {Connector} from "./Connector";
 import {ControllerManager} from "./ControllerManager";
@@ -27,9 +27,6 @@ import {TempView} from "./controllers/TempView";
 import {ViewableController} from "./controllers/ViewableController";
 import {SpDynamicLayer} from "./layers/SpDynamicLayer";
 import {ServiceSnappingProvider} from "./ServiceSnappingProvider";
-
-const sGis = <any>{};
-Object.assign(sGis, sGis_bundle);
 
 const sp = {
     SpatialProcessor: SpatialProcessor,
@@ -72,7 +69,4 @@ const sp = {
     releaseDate: "17.11.2017"
 };
 
-sGis.sp = sp;
-sGis.SpatialProcessor = sp.SpatialProcessor;
-
-export default sGis;
+export default Object.assign({}, sGis, {sp});

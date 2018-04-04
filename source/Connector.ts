@@ -1,7 +1,7 @@
-import {EventHandler} from "sgis/dist/EventHandler";
+import {EventHandler} from "sgis/EventHandler";
 import {Api} from "./Api";
 import {ajax, message} from "./utils";
-import {error} from "sgis/dist/utils/utils";
+import {error} from "sgis/utils/utils";
 import {xmlSerializer} from "./serializers/xmlSerializer";
 
 export class Connector extends EventHandler {

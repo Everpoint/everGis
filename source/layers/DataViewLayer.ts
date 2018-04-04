@@ -1,9 +1,9 @@
-import {Layer} from "sgis/dist/layers/Layer";
-import {DynamicLayer} from "sgis/dist/layers/DynamicLayer";
+import {Layer} from "sgis/layers/Layer";
+import {DynamicLayer} from "sgis/layers/DynamicLayer";
 import {ClusterLayer, ClusterSymbol} from "./ClusterLayer";
 import {SpDynamicLayer} from "./SpDynamicLayer";
-import {Bbox} from "sgis/dist/Bbox";
-import {Render} from "sgis/dist/renders/Render";
+import {Bbox} from "sgis/Bbox";
+import {Render} from "sgis/renders/Render";
 
 export class DataViewLayer extends Layer {
     delayedUpdate = true;
