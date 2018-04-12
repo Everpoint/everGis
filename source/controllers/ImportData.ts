@@ -1,4 +1,3 @@
-import {ControllerManager} from "../ControllerManager";
 import {Controller} from "./Controller";
 import {DataOperation} from "../DataOperation";
 
@@ -17,5 +16,3 @@ export class ImportData extends Controller {
         return this.operation('import', {serviceName, attributeMapping, configuration});
     }
 }
-
-ControllerManager.registerController('importData', ImportData);

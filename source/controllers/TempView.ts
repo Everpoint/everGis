@@ -1,5 +1,4 @@
 import {ViewableController} from "./ViewableController";
-import {ControllerManager} from "../ControllerManager";
 
 export class TempView extends ViewableController {
     private _localName: any;
@@ -14,5 +13,3 @@ export class TempView extends ViewableController {
         return this.operation('resetView', { sourceServiceName }).then(this.updateView.bind(this));
     }
 }
-
-ControllerManager.registerController('tempView', TempView);
