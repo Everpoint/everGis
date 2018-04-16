@@ -1,4 +1,3 @@
-import * as sGis from "sgis/sGis_bundle"
 import {SpatialProcessor} from "./SpatialProcessor";
 import {Connector} from "./Connector";
 import {ControllerManager} from "./ControllerManager";
@@ -69,4 +68,4 @@ const sp = {
     releaseDate: "17.11.2017"
 };
 
-export default Object.assign({}, sGis, {sp});
+export default {sp};

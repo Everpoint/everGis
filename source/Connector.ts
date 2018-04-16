@@ -223,8 +223,8 @@ let notificationProcessors = {
 };
 
 function escapePrintMethod(connector) {
-    var print = window.print;
-    window.print = function() {
+    var print = (<any>window).print;
+    (<any>window).print = function() {
         connector.cancelNotificationRequest();
         print();
         connector.requestNotifications();
