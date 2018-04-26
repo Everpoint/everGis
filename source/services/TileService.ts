@@ -4,10 +4,12 @@ import {TileLayer} from "sgis/layers/TileLayer";
 import {TileScheme} from "sgis/TileScheme";
 import {wgs84} from "sgis/Crs";
 import {Point} from "sgis/Point";
-import {ConditionalTileLayer} from "../layers/ConditionalTileLayer";
+import {LayerGroup} from "sgis/LayerGroup";
 
 export class TileService extends MapService {
     private _tileScheme: TileScheme;
+    private _activeTileSets: number[] = [];
+
     constructor(name, connector, serviceInfo) {
         super(name, connector, serviceInfo);
         this._setLayer();
@@ -19,21 +21,37 @@ export class TileService extends MapService {
         }
 
         let layerParams = {tileScheme: this._tileScheme, crs: this.crs, isDisplayed: this.isDisplayed};
-        if (this.serviceInfo.attributesDefinition) {
-            this._layer = new ConditionalTileLayer(this.url, this.connector.sessionId, layerParams);
-        } else {
+        if (this._activeTileSets.length === 0) {
             this._layer = new TileLayer(this._getUrl(), layerParams);
+        } else {
+            let layers = this._activeTileSets.map(setId => new TileLayer(this._getUrl(setId), layerParams));
+            this._layer = new LayerGroup(layers);
         }
     }
 
     get tileScheme() { return this._tileScheme; }
 
-    _getUrl() {
-        if (this.serviceInfo.sourceUrl) {
+    _getUrl(setId: number = -1) {
+        if (this.serviceInfo.sourceUrl && setId < 0) {
             return this.serviceInfo.sourceUrl.replace(/^https?:/, '');
         } else {
-            return this.url + 'tile/{z}/{y}/{x}' + (this.connector.sessionId ? '?_sb=' + this.connector.sessionId : '');
+            let url = this.url + 'tile/{z}/{y}/{x}' + (this.connector.sessionId ? '?_sb=' + this.connector.sessionId : '');
+            if (setId >=0) {
+                url += this.connector.sessionId ? '&' : '?';
+                url += `tileSetId=${setId}`;
+            }
+            return url;
         }
+    }
+
+
+    get activeTileSets(): number[] { return this._activeTileSets; }
+    set activeTileSets(sets: number[]) {
+        if (!sets) sets = [];
+        this._activeTileSets = sets;
+        let currLayer = this._layer;
+        this._setLayer();
+        this.fire('layerChange', {prevLayer: currLayer});
     }
 }
 

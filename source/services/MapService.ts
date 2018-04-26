@@ -2,6 +2,8 @@ import {EventHandler} from "sgis/EventHandler";
 import {ajaxp, parseJSON} from "../utils";
 import {Crs, ellipticalMercator, geo, webMercator, wgs84} from "sgis/Crs";
 import {Bbox} from "sgis/Bbox";
+import {error} from "sgis/utils/utils";
+import {GetFeatures, ServiceOperation} from "./operations/GetFeatures";
 
 export class MapService extends EventHandler {
     _fullExtent: any;
@@ -154,6 +156,42 @@ export class MapService extends EventHandler {
     }
 
     get initializationPromise() { return null; }
+
+    getFeatures({condition, offset, limit, orderBy, srid, attributesFilter, getAttributes, getGeometry, getAttributesDefinition, getTotalCount}) {
+        if (this.serviceInfo.capabilities.indexOf('get') < 0) error(new Error("The service is not a feature service"));
+
+        let params = {condition, offset, limit, orderBy, srid, attributesFilter, getAttributes, getGeometry, getAttributesDefinition, getTotalCount,
+            _sb: this.connector.sid
+        };
+        let paramsString = Object.keys(params).filter(key => params[key] !== undefined).map(key => `${key}=${encodeURIComponent(params[key].toString())}`).join('&');
+        let url = `${this.url}get?${paramsString}`;
+
+        return ajaxp({url})
+            .then(([response, status]) => {
+                if (status !== 'OK') throw new Error("Failed to get data from server.");
+
+                let parsed;
+                try {
+                    parsed = parseJSON(response);
+                } catch (e) {
+                    throw new Error("Invalid response from server: " + response);
+                }
+
+                if (!parsed.success) throw new Error("Operation failed");
+
+                let data = parsed.data;
+                if (getAttributes !== false) {
+                    this.attributesDefinition.attributes.forEach(attrDef => {
+                        if (attrDef.type === 'DateTime' || attrDef.type === 'System.DateTime') {
+                            data.features.forEach(f => {
+                                if (f.attributes[attrDef.name]) f.attributes[attrDef.name] = new Date(f.attributes[attrDef.name]);
+                            });
+                        }
+                    });
+                }
+                return data;
+            });
+    }
 }
 
 MapService.prototype._isDisplayed = true;
