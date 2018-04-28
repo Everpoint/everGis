@@ -172,7 +172,7 @@ export class Api {
         });
     }
 
-    publishDataSource({name, alias = null, description = null, preview = null, isShared = false, srid, geometryType, attributeDefinition, customMapTipHtml = null}) {
+    publishDataSource({name, alias = null, description = null, preview = null, isShared = false, filter = null, srid, geometryType, attributeDefinition, customMapTipHtml = null}) {
         return this._publishService('DataSourceService', {
             Name: name,
             Alias: alias,
@@ -180,6 +180,7 @@ export class Api {
             IsShared: isShared,
             Preview: preview,
             AttributesDefinition: attributeDefinition,
+            Filter: filter,
             Srid: srid,
             GeometryType: geometryType,
             CustomMapTipHtml: customMapTipHtml
@@ -220,7 +221,8 @@ export class Api {
             Alias: options.alias,
             IsShared: options.isShared,
             AttributesDefinition: options.attributesDefinition,
-            CustomMapTipHtml: options.customMapTipHtml
+            CustomMapTipHtml: options.customMapTipHtml,
+            Filter: options.filter
         };
 
         return this._operation('admin/Services/Update', { name: options.serviceName }, JSON.stringify(props));
