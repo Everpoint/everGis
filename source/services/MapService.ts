@@ -160,10 +160,10 @@ export class MapService extends EventHandler {
     getFeatures({condition, offset, limit, orderBy, srid, attributesFilter, getAttributes, getGeometry, getAttributesDefinition, getTotalCount}) {
         if (this.serviceInfo.capabilities.indexOf('get') < 0) error(new Error("The service is not a feature service"));
 
-        let params = {condition, offset, limit, orderBy, srid, attributesFilter, getAttributes, getGeometry, getAttributesDefinition, getTotalCount,
+        let params = {condition, offset, limit, orderBy, srid, attributesFilter: attributesFilter && JSON.stringify(attributesFilter) || null, getAttributes, getGeometry, getAttributesDefinition, getTotalCount,
             _sb: this.connector.sid
         };
-        let paramsString = Object.keys(params).filter(key => params[key] !== undefined).map(key => `${key}=${encodeURIComponent(params[key].toString())}`).join('&');
+        let paramsString = Object.keys(params).filter(key => params[key] !== undefined && params[key] !== null).map(key => `${key}=${encodeURIComponent(params[key].toString())}`).join('&');
         let url = `${this.url}get?${paramsString}`;
 
         return ajaxp({url})

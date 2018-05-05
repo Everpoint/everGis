@@ -82,8 +82,8 @@ export class DataAccessService extends DataAccessBase {
     }
 
     getScalarValue(properties) {
-        let { serviceName, query } = properties;
-        return this.operation('selectScalarValue', { serviceName, query });
+        let { serviceName, query, condition } = properties;
+        return this.operation('selectScalarValue', { serviceName, query, condition });
     }
 
     copyFeatures(properties) {
@@ -210,5 +210,9 @@ export class DataAccessService extends DataAccessBase {
         };
 
         return this.operation('print', {exportDefinition: description});
+    }
+
+    aggregateIntervals({serviceName, attributeName, attributeIntervals, aggregations, condition}) {
+        return this.operation('aggregateIntervals', {serviceName, attributeName, attributeIntervals, aggregations, condition});
     }
 }

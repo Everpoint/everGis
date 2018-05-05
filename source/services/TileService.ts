@@ -9,7 +9,8 @@ import {ConditionalTileLayer} from "../layers/ConditionalTileLayer";
 
 export class TileService extends MapService {
     private _tileScheme: TileScheme;
-    private _activeTileSets: number[] = [];
+    private _activeTileSets: number[] | null = null;
+    private _condition?: string;
 
     constructor(name, connector, serviceInfo) {
         super(name, connector, serviceInfo);
@@ -23,12 +24,12 @@ export class TileService extends MapService {
 
         let layerParams = {tileScheme: this._tileScheme, crs: this.crs, isDisplayed: this.isDisplayed};
 
-        if (this._activeTileSets.length === 0 && this.serviceInfo.attributesDefinition) {
+        if (!this._activeTileSets && this.serviceInfo.attributesDefinition) {
             this._layer = new ConditionalTileLayer(this.url, this.connector.sessionId, layerParams);
             return;
         }
 
-        if (this._activeTileSets.length === 0) {
+        if (!this._activeTileSets) {
             this._layer = new TileLayer(this._getUrl(), layerParams);
         } else {
             let layers = this._activeTileSets.map(setId => new TileLayer(this._getUrl(setId), layerParams));
@@ -51,14 +52,18 @@ export class TileService extends MapService {
         }
     }
 
-
     get activeTileSets(): number[] { return this._activeTileSets; }
-    set activeTileSets(sets: number[]) {
-        if (!sets) sets = [];
+    set activeTileSets(sets: number[] | null) {
+        if (!sets) sets = null;
         this._activeTileSets = sets;
         let currLayer = this._layer;
         this._setLayer();
         this.fire('layerChange', {prevLayer: currLayer});
+    }
+
+    get condition(): string { return this._condition; }
+    set condition(condition: string) {
+        this._condition = condition;
     }
 }
 
