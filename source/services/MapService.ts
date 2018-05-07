@@ -3,7 +3,6 @@ import {ajaxp, parseJSON} from "../utils";
 import {Crs, ellipticalMercator, geo, webMercator, wgs84} from "sgis/Crs";
 import {Bbox} from "sgis/Bbox";
 import {error} from "sgis/utils/utils";
-import {GetFeatures, ServiceOperation} from "./operations/GetFeatures";
 
 export class MapService extends EventHandler {
     _fullExtent: any;
