@@ -1,7 +1,7 @@
-import {EventHandler} from "sgis/dist/EventHandler";
+import {EventHandler} from "sgis/EventHandler";
 import {Api} from "./Api";
 import {ajax, message} from "./utils";
-import {error} from "sgis/dist/utils/utils";
+import {error} from "sgis/utils/utils";
 import {xmlSerializer} from "./serializers/xmlSerializer";
 
 export class Connector extends EventHandler {
@@ -223,8 +223,8 @@ let notificationProcessors = {
 };
 
 function escapePrintMethod(connector) {
-    var print = window.print;
-    window.print = function() {
+    var print = (<any>window).print;
+    (<any>window).print = function() {
         connector.cancelNotificationRequest();
         print();
         connector.requestNotifications();

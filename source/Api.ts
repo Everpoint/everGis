@@ -1,9 +1,9 @@
 import {ajaxp, parseJSON} from "./utils";
-import {Crs, geo, wgs84} from "sgis/dist/Crs";
+import {Crs, geo, wgs84} from "sgis/Crs";
 import {serializeGeometry} from "./serializers/xmlSerializer";
 import {deserializeFeature} from "./serializers/JsonSerializer";
-import {Point} from "sgis/dist/Point";
-import {error} from "sgis/dist/utils/utils";
+import {Point} from "sgis/Point";
+import {error} from "sgis/utils/utils";
 
 export class Api {
     _frame: HTMLIFrameElement;
@@ -172,7 +172,7 @@ export class Api {
         });
     }
 
-    publishDataSource({name, alias = null, description = null, preview = null, isShared = false, srid, geometryType, attributeDefinition, customMapTipHtml = null}) {
+    publishDataSource({name, alias = null, description = null, preview = null, isShared = false, filter = null, srid, geometryType, attributeDefinition, customMapTipHtml = null}) {
         return this._publishService('DataSourceService', {
             Name: name,
             Alias: alias,
@@ -180,6 +180,7 @@ export class Api {
             IsShared: isShared,
             Preview: preview,
             AttributesDefinition: attributeDefinition,
+            Filter: filter,
             Srid: srid,
             GeometryType: geometryType,
             CustomMapTipHtml: customMapTipHtml
@@ -220,7 +221,8 @@ export class Api {
             Alias: options.alias,
             IsShared: options.isShared,
             AttributesDefinition: options.attributesDefinition,
-            CustomMapTipHtml: options.customMapTipHtml
+            CustomMapTipHtml: options.customMapTipHtml,
+            Filter: options.filter
         };
 
         return this._operation('admin/Services/Update', { name: options.serviceName }, JSON.stringify(props));

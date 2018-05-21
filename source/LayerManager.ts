@@ -1,6 +1,6 @@
 import {ServiceGroup} from "./ServiceGroup";
 import {ServiceContainer} from "./services/ServiceContainer";
-import {error} from "sgis/dist/utils/utils";
+import {error} from "sgis/utils/utils";
 import {Project} from "./Project";
 import {DataFilter} from "./DataFilter";
 

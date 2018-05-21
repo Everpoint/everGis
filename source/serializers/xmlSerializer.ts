@@ -1,18 +1,18 @@
-import {Crs, ellipticalMercator, webMercator, wgs84, geo} from "sgis/dist/Crs";
-import {Polygon} from "sgis/dist/features/Polygon";
-import {BrushFill} from "sgis/dist/symbols/polygon/BrushFill";
-import {PolygonSymbol} from "sgis/dist/symbols/polygon/Simple";
-import {PolylineSymbol} from "sgis/dist/symbols/Polyline";
-import {Polyline} from "sgis/dist/features/Polyline";
-import {MaskedImage} from "sgis/dist/symbols/point/MaskedImage";
-import {PointImageSymbol} from "sgis/dist/symbols/point/PointImageSymbol";
-import {PointSymbol} from "sgis/dist/symbols/point/Point";
-import {SquareSymbol} from "sgis/dist/symbols/point/Square";
-import {PointFeature} from "sgis/dist/features/Point";
-import {MultiPoint} from "sgis/dist/features/MultiPoint";
-import {Color} from "sgis/dist/utils/Color";
+import {Crs, ellipticalMercator, webMercator, wgs84, geo} from "sgis/Crs";
+import {Polygon} from "sgis/features/Polygon";
+import {BrushFill} from "sgis/symbols/polygon/BrushFill";
+import {PolygonSymbol} from "sgis/symbols/polygon/Simple";
+import {PolylineSymbol} from "sgis/symbols/PolylineSymbol";
+import {Polyline} from "sgis/features/Polyline";
+import {MaskedImage} from "sgis/symbols/point/MaskedImage";
+import {PointSymbol} from "sgis/symbols/point/Point";
+import {SquareSymbol} from "sgis/symbols/point/Square";
+import {PointFeature} from "sgis/features/PointFeature";
+import {MultiPoint} from "sgis/features/MultiPoint";
+import {Color} from "sgis/utils/Color";
 import {parseXmlJsonNode} from "../utils";
-import {isArray, getGuid} from "sgis/dist/utils/utils";
+import {getGuid} from "sgis/utils/utils";
+import {StaticImageSymbol} from "sgis/symbols/point/StaticImageSymbol";
 
 export let xmlSerializer = <any>{};
 
@@ -80,7 +80,7 @@ function createFeatures(response) {
                 var id = parseInt(object.attributes[idAttribute].value);
 
                 if (geometry.type === 'polygon') {
-                    var feature = <any>new Polygon(points, {crs: crs}, {id: id, attributes: attributes});
+                    var feature = <any>new Polygon(points, {crs: crs});
                     if (fillColor && fillColor.brush) {
                         feature.symbol = new BrushFill({
                             strokeWidth: parseFloat(visualDefinition.strokeThickness),
@@ -98,7 +98,7 @@ function createFeatures(response) {
                     }
                 } else if (geometry.type === 'polyline') {
                     let symbol = new PolylineSymbol({ strokeColor: color, strokeWidth: parseFloat(visualDefinition.strokeThickness)});
-                    feature = new Polyline(points, {crs, symbol}, {id, attributes});
+                    feature = new Polyline(points, {crs, symbol});
                 } else if (geometry.type === 'point' || geometry.type === 'multipoint') {
                     var symbol;
 
@@ -108,14 +108,14 @@ function createFeatures(response) {
                             maskSource: visualDefinition.maskSrc,
                             width: parseFloat(visualDefinition.size),
                             height: null,
-                            anchorPoint: visualDefinition.anchorPoint
+                            anchorPoint: [visualDefinition.anchorPoint.x, visualDefinition.anchorPoint.y]
                         });
                     } else if (visualDefinition.imageSrc) {
-                        symbol = new PointImageSymbol({
+                        symbol = new StaticImageSymbol({
                             source: visualDefinition.imageSrc,
                             width: parseFloat(visualDefinition.size),
                             height: null,
-                            anchorPoint: visualDefinition.anchorPoint
+                            anchorPoint: [visualDefinition.anchorPoint.x, visualDefinition.anchorPoint.y]
                         });
                     } else if (visualDefinition.shape === 'Circle') {
                         symbol = new PointSymbol({
@@ -143,6 +143,8 @@ function createFeatures(response) {
                 feature.displayField = response.attributesDefinitions[object.attributesDefinition]._display;
                 feature.visualDefinitionId = object.visualDefinitionId;
                 feature.generatorId = object.generatorId;
+                feature.id = id;
+                feature.attributes = attributes;
                 features.push(feature);
             }
         }
@@ -257,8 +259,6 @@ var serializer = {
             }
         }
 
-        if (!key) debugger;
-
         if (!parsed.attributesDefinitions) parsed.attributesDefinitions = {};
 
         parsed.attributesDefinitions[key] = attributesDefinition;
@@ -352,7 +352,7 @@ var serializer = {
             symbol: 'ImagePointSymbol',
             size: attributes.Size === '0' ? 10 : attributes.Size,
             color: attributes.Color,
-            anchorPoint: {x: attributes.AnchorPointX, y: attributes.AnchorPointY},
+            anchorPoint: [attributes.AnchorPointX, attributes.AnchorPointY],
             imageSrc: parsed.image[attributes.Pixels].dataUrl,
             maskSrc: maskSrc && maskSrc.dataUrl
         };
@@ -387,8 +387,6 @@ var serializer = {
     Attribute: function(node, parsed, parentObject) {
         var nodeAttributes = getNodeAttributes(node);
         if (!parentObject.attributes) parentObject.attributes = {};
-
-        if (!parsed.attributesDefinitions[parentObject.attributesDefinition]) debugger;
 
         var attributeDefinition = parsed.attributesDefinitions[parentObject.attributesDefinition][nodeAttributes.Name];
         if (!attributeDefinition) return;
@@ -476,7 +474,7 @@ xmlSerializer.serializeGeometryEdit = function(editDescription, attributesOnly, 
     tempId = -1;
     var featureList = [];
     for (var i in editDescription) {
-        if (isArray(editDescription[i]) && i !== 'deleted') featureList = featureList.concat(editDescription[i]);
+        if (Array.isArray(editDescription[i]) && i !== 'deleted') featureList = featureList.concat(editDescription[i]);
     }
 
     var formatedData = getFormatedData(featureList, attributesOnly);
@@ -552,17 +550,17 @@ function getNewXMLDocument() {
 
 function getEditCommandsNode(editDescription, xml, attributesOnly) {
     var node = xml.createElement('EditCommands');
-    if (isArray(editDescription.added)) {
+    if (Array.isArray(editDescription.added)) {
         for (var i in editDescription.added) {
             node.appendChild(getAddObjectNode(editDescription.added[i], xml));
         }
     }
-    if (isArray(editDescription.updated)) {
+    if (Array.isArray(editDescription.updated)) {
         for (var i in editDescription.updated) {
             node.appendChild(getUpdateObjectNode(editDescription.updated[i], xml, attributesOnly));
         }
     }
-    if (isArray(editDescription.deleted)) {
+    if (Array.isArray(editDescription.deleted)) {
         for (var i in editDescription.deleted) {
             node.appendChild(getDeleteObjectNode(editDescription.deleted[i], xml));
         }
@@ -925,11 +923,11 @@ function getSymbolIndex(feature, resources) {
     var symbol = feature.originalSymbol;
 
     if (feature.type === 'point') {
-        if ((symbol instanceof PointImageSymbol)) {
+        if ((symbol instanceof StaticImageSymbol)) {
             newSymbol = {
                 Pixels: getImageIndex(symbol.source, resources),
-                AnchorPointX: symbol.anchorPoint.x,
-                AnchorPointY: symbol.anchorPoint.y,
+                AnchorPointX: symbol.anchorPoint[0],
+                AnchorPointY: symbol.anchorPoint[1],
                 Size: symbol.width,
                 Color: '#7f64c800',
                 MaskPixels: '-1',
@@ -1052,7 +1050,6 @@ function getBrushIndex(color, resources) {
 
     resources.lastKey++;
     resources.brushes[resources.lastKey] = color;
-    if (color === undefined) debugger;
     return resources.lastKey;
 }
 

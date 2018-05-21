@@ -18,8 +18,8 @@ export class DataAccessService extends DataAccessBase {
      * @param {String} [properties.query] - query for data filter. Query example: select {id}, {geometry}, attr1 where attr1 == 'value';
      */
     exportData(properties) {
-        let { serviceName, exportType, query } = properties;
-        return this.operation('exportData', { serviceName, exportType, query }, false);
+        let { serviceName, exportType, query, srid } = properties;
+        return this.operation('exportData', { serviceName, exportType, query, srid }, false);
     }
 
     queryById(properties) {
@@ -82,8 +82,8 @@ export class DataAccessService extends DataAccessBase {
     }
 
     getScalarValue(properties) {
-        let { serviceName, query } = properties;
-        return this.operation('selectScalarValue', { serviceName, query });
+        let { serviceName, query, condition } = properties;
+        return this.operation('selectScalarValue', { serviceName, query, condition });
     }
 
     copyFeatures(properties) {
@@ -141,5 +141,78 @@ export class DataAccessService extends DataAccessBase {
     buildIsochroneByStorage(properties) {
         let { duration, solver, sourceServiceName, targetServiceName, resolutionK = null, uniteResults = false } = properties;
         return this.operation('isochroneByStorage', { duration, solver, sourceServiceName, targetServiceName, resolutionK, uniteResults });
+    }
+
+    print(properties) {
+        const defaults = {
+            dpi: 96,
+            paperSize: {
+                width: 210,
+                height: 297
+            },
+            margin: {
+                left: 10,
+                top: 10,
+                right: 10,
+                bottom: 10
+            }
+        };
+
+        var description = <any>{
+            ServiceStateDefinition: [],
+            MapCenter: {
+                X: properties.position ? properties.position.x : properties.map.centerPoint.x,
+                Y: properties.position ? properties.position.y : properties.map.centerPoint.y
+            },
+            SpatialReference: properties.map.crs.toString(),
+            Dpi: properties.dpi || defaults.dpi,
+            Resolution: properties.resolution || properties.map.resolution,
+            PaperSize: {
+                Width: properties.paperSize && properties.paperSize.width || defaults.paperSize.width,
+                Height: properties.paperSize && properties.paperSize.height || defaults.paperSize.height
+            },
+            Margin: {
+                Left: properties.margin && properties.margin.left || defaults.margin.left,
+                Top: properties.margin && properties.margin.top || defaults.margin.top,
+                Right: properties.margin && properties.margin.right || defaults.margin.right,
+                Bottom: properties.margin && properties.margin.bottom || defaults.margin.bottom
+            },
+            PrintingTemplateName: properties.template.Name,
+            Parameters: []
+        };
+
+        for (var i = 0, len = properties.template.BindingGroups.length; i < len; i++) {
+            description.Parameters = description.Parameters.concat(properties.template.BindingGroups[i].Parameters);
+        }
+
+        var services = properties.services;
+        for (var i = 0, len = services.length; i < len; i++) {
+            let service = services[i];
+            description.ServiceStateDefinition.push({
+                UniqueName: service.name || service.id,
+                Opactiy: service.layer.opacity,
+                IsVisible: service.isDisplayed,
+                Title: service.name,
+                CustomParameters: {},
+                Layers: [{ LayerId: -1, LegendItemId: -1, Children: [] }]
+            });
+        }
+
+        description.Legend = {
+            LayerId: -1,
+            LegendItemId: -1,
+            Children: services.filter(x => x.hasLegend).map(x => {
+                return {
+                    Name: x.alias || x.name,
+                    ServiceFullName: x.name
+                };
+            })
+        };
+
+        return this.operation('print', {exportDefinition: description});
+    }
+
+    aggregateIntervals({serviceName, attributeName, attributeIntervals, aggregations, condition}) {
+        return this.operation('aggregateIntervals', {serviceName, attributeName, attributeIntervals, aggregations, condition});
     }
 }

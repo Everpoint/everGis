@@ -1,6 +1,9 @@
 import {ViewableController} from "./controllers/ViewableController";
-import {LayerGroup} from "sgis/dist/LayerGroup";
-import {error} from "sgis/dist/utils/utils";
+import {LayerGroup} from "sgis/LayerGroup";
+import {error} from "sgis/utils/utils";
+import {ObjectSelector} from "./controllers/ObjectSelector";
+import {ImportData} from "./controllers/ImportData";
+import {TempView} from "./controllers/TempView";
 
 let registry = {};
 
@@ -42,3 +45,7 @@ export class ControllerManager {
         return controller;
     }
 }
+
+ControllerManager.registerController('objectSelector', ObjectSelector);
+ControllerManager.registerController('importData', ImportData);
+ControllerManager.registerController('tempView', TempView);

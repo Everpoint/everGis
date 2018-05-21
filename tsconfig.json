@@ -2,13 +2,13 @@
   "compilerOptions": {
     "skipLibCheck": true,
     "target": "es2015",
-    "module": "amd",
+    "module": "esnext",
     "sourceMap": true,
     "outDir": "./dist",
     "declaration": true,
     "baseUrl": "./",
     "paths": {
-      "sgis/*": ["node_modules/sgis/*"]
+      "sgis/*": ["node_modules/sgis/dist/*"]
     }
   },
   "include": [

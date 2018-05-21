@@ -1,4 +1,10 @@
-import resolve from 'rollup-plugin-node-resolve';
+import nodeResolve from 'rollup-plugin-node-resolve';
+import alias from 'rollup-plugin-alias';
+import path from "path";
+
+function resolve(dir) {
+    return path.join(__dirname, dir);
+}
 
 export default {
     input: './temp/everGis.js',
@@ -9,5 +15,11 @@ export default {
         name: 'sGis',
         sourcemap: true
     },
-    plugins: [resolve()]
+    plugins: [
+        nodeResolve(),
+        alias({
+            resolve: [".js"],
+            "sgis": resolve("../node_modules/sgis/dist"),
+        }),
+    ]
 }

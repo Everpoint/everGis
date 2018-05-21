@@ -1,4 +1,3 @@
-import {ControllerManager} from "../ControllerManager";
 import {ViewableController} from "./ViewableController";
 import {serializeGeometry} from "../serializers/JsonSerializer";
 import {DataOperation} from "../DataOperation";
@@ -59,5 +58,3 @@ export class ObjectSelector extends ViewableController {
         return this.operation('clear', {});
     }
 }
-
-ControllerManager.registerController('objectSelector', ObjectSelector);
