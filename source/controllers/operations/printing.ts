@@ -1,5 +1,5 @@
-import {IPoint} from "sgis/dist/Point";
-import {Map} from "sgis/dist/Map";
+import {IPoint} from "sgis/Point";
+import {Map} from "sgis/Map";
 import {MapService} from "../../services/MapService";
 
 export interface PrintingTemplate {
