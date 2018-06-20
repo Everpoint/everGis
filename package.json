@@ -16,7 +16,8 @@
     "build-ts": "tsc",
     "rollup": "tsc -p ./config/tsconfig-rollup.json && rollup --config ./config/rollup.config.js",
     "update-sgis": "npm update sgis && npm run build-sgis",
-    "build-sgis": "cd ./node_modules/sgis && npm run build-ts && cd ../../"
+    "build-sgis": "cd ./node_modules/sgis && npm run build-ts && cd ../../",
+    "prepublishOnly": "npm ci && npm run build"
   },
   "repository": {
     "type": "git",
