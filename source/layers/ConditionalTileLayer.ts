@@ -1,4 +1,4 @@
-import {TileLayer, TileLayerConstructorParams} from "sgis/layers/TileLayer";
+import {TileLayer, TileLayerConstructorParams} from "@evergis/sgis/layers/TileLayer";
 
 export class ConditionalTileLayer extends TileLayer {
     private _ts: number;

@@ -1,5 +1,5 @@
 {
-  "name": "evergis",
+  "name": "@evergis/sp-api",
   "version": "0.4.0",
   "description": "",
   "main": "dist/compilation/everGis.js",
@@ -8,7 +8,7 @@
     "test": "test"
   },
   "scripts": {
-    "build": "npm run build-sgis && npm run build-ts && npm run rollup",
+    "build": "npm run build-ts && npm run rollup",
     "doc": "jsdoc source -r -d docs -c jsdoc.conf.json",
     "version": "node ./config/set_version.js && git add source/everGis.ts",
     "lint": "eslint -c ./config/.eslintrc.json source/** -o lint.output",
@@ -16,7 +16,8 @@
     "build-ts": "tsc",
     "rollup": "tsc -p ./config/tsconfig-rollup.json && rollup --config ./config/rollup.config.js",
     "update-sgis": "npm update sgis && npm run build-sgis",
-    "build-sgis": "cd ./node_modules/sgis && npm run build-ts && cd ../../"
+    "build-sgis": "cd ./node_modules/sgis && npm run build-ts && cd ../../",
+    "prepublishOnly": "npm ci && npm run build"
   },
   "repository": {
     "type": "git",
@@ -24,12 +25,14 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {},
+  "peerDependencies": {
+    "@evergis/sgis": ">=0.4.0"
+  },
   "devDependencies": {
     "rollup": "^0.50.0",
     "rollup-plugin-alias": "^1.4.0",
     "rollup-plugin-node-resolve": "^3.0.0",
-    "sgis": "github:Everpoint/sGis#dev",
+    "@evergis/sgis": "^0.4.1",
     "typescript": "^2.5.3"
   }
 }
