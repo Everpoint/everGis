@@ -19,7 +19,7 @@ export default {
         nodeResolve(),
         alias({
             resolve: [".js"],
-            "sgis": resolve("../node_modules/sgis/dist"),
+            "@evergis/sgis": resolve("../node_modules/@evergis/sgis/dist"),
         }),
     ]
 }

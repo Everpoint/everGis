@@ -6,7 +6,7 @@
     "outDir": "../temp",
     "baseUrl": "../",
     "paths": {
-      "sgis/*": ["node_modules/sgis/dist/*"]
+      "@evergis/sgis/*": ["node_modules/@evergis/sgis/dist/*"]
     }
   },
   "include": [

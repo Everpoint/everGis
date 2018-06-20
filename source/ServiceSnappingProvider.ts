@@ -1,10 +1,10 @@
-import {Coordinates} from "sgis/baseTypes";
+import {Coordinates} from "@evergis/sgis/baseTypes";
 import {DataViewService} from "./services/DataViewService";
-import {Map} from "sgis/Map";
+import {Map} from "@evergis/sgis/Map";
 import {ajaxp, message} from "./utils";
-import {SnappingProviderBase} from "sgis/controls/snapping/SnappingProviderBase";
-import {SnappingData} from "sgis/controls/snapping/SnappingMethods";
-import {ISnappingProvider} from "sgis/controls/snapping/ISnappingProvider";
+import {SnappingProviderBase} from "@evergis/sgis/controls/snapping/SnappingProviderBase";
+import {SnappingData} from "@evergis/sgis/controls/snapping/SnappingMethods";
+import {ISnappingProvider} from "@evergis/sgis/controls/snapping/ISnappingProvider";
 
 const TILE_SIZE = 512;
 const CACHE_SIZE = 64;
