@@ -80,7 +80,7 @@ export class Project {
     delete() {
         return this._api.operation('projects/remove', {
             name: this.name
-        })
+        });
     }
 
     static registerCustomDataItem(key, updateHandler, applyHandler) {
