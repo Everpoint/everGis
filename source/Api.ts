@@ -40,6 +40,16 @@ export class Api {
         });
     }
 
+    getProjectsList(properties) {
+        return this._operation('projects', {
+            startFrom: properties.startFrom,
+            take: properties.take,
+            filter: properties.filter,
+            orderBy: properties.orderBy,
+            owner: properties.owner
+        });
+    }
+
     downloadFile(url) {
         this._frame.src = url;
     }

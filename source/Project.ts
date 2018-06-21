@@ -77,6 +77,12 @@ export class Project {
 
     get name() { return this._name; }
 
+    delete() {
+        return this._api.operation('projects/remove', {
+            name: this.name
+        });
+    }
+
     static registerCustomDataItem(key, updateHandler, applyHandler) {
         if (dataRegister[key]) error('Custom data key conflict: ' + key);
         dataRegister[key] = { update: updateHandler, apply: applyHandler };
