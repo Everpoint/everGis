@@ -1,9 +1,9 @@
 import {ajaxp, parseJSON} from "./utils";
-import {Crs, geo, wgs84} from "sgis/Crs";
+import {Crs, geo, wgs84} from "@evergis/sgis/Crs";
 import {serializeGeometry} from "./serializers/xmlSerializer";
 import {deserializeFeature} from "./serializers/JsonSerializer";
-import {Point} from "sgis/Point";
-import {error} from "sgis/utils/utils";
+import {Point} from "@evergis/sgis/Point";
+import {error} from "@evergis/sgis/utils/utils";
 
 export class Api {
     _frame: HTMLIFrameElement;

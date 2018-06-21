@@ -1,5 +1,5 @@
-import {IPoint} from "sgis/Point";
-import {Map} from "sgis/Map";
+import {IPoint} from "@evergis/sgis/Point";
+import {Map} from "@evergis/sgis/Map";
 import {MapService} from "../../services/MapService";
 
 export interface PrintingTemplate {
