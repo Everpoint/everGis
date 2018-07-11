@@ -1,6 +1,7 @@
 import {IPoint} from "@evergis/sgis/Point";
 import {Map} from "@evergis/sgis/Map";
 import {MapService} from "../../services/MapService";
+import {TileService} from "../../services/TileService";
 
 export interface PrintingTemplate {
     Name: string,
@@ -72,14 +73,27 @@ export function getServerPrintDescription({
 
     for (let i = 0, len = services.length; i < len; i++) {
         let service = services[i];
-        description.ServiceStateDefinition.push({
-            UniqueName: service.name ,
-            Opactiy: service.layer.opacity,
-            IsVisible: service.isDisplayed,
-            Title: service.name,
-            CustomParameters: {},
-            Layers: [{ LayerId: -1, LegendItemId: -1, Children: [] }]
-        });
+        if (service instanceof TileService && service.activeTileSets && service.activeTileSets.length > 0) {
+            service.activeTileSets.forEach(setId => {
+                description.ServiceStateDefinition.push({
+                    UniqueName: service.name ,
+                    Opactiy: service.layer.opacity,
+                    IsVisible: service.isDisplayed,
+                    Title: service.name,
+                    CustomParameters: {"tileSetId": setId},
+                    Layers: [{ LayerId: -1, LegendItemId: -1, Children: [] }]
+                });
+            });
+        } else {
+            description.ServiceStateDefinition.push({
+                UniqueName: service.name ,
+                Opactiy: service.layer.opacity,
+                IsVisible: service.isDisplayed,
+                Title: service.name,
+                CustomParameters: {},
+                Layers: [{ LayerId: -1, LegendItemId: -1, Children: [] }]
+            });
+        }
     }
 
     description.Legend = {
