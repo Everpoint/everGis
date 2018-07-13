@@ -4,6 +4,12 @@ import {ajax, message} from "./utils";
 import {error} from "@evergis/sgis/utils/utils";
 import {xmlSerializer} from "./serializers/xmlSerializer";
 
+export interface Credentials {
+    login?: string;
+    password?: string;
+    sessionId?: string;
+}
+
 export class Connector extends EventHandler {
     api: Api;
     _notificationRequestObject: any;
@@ -16,12 +22,12 @@ export class Connector extends EventHandler {
 
     apiLoginUrl: string;
     _aborted: any;
-    private initializationPromise: Promise<any>;
+    initializationPromise: Promise<string>;
     _sessionId: string;
     private _latestOperationNotification: any;
     private _login: any;
 
-    constructor(url, authServiceUrl, {login, password, sessionId}: any) {
+    constructor(url, authServiceUrl, credentials?: Credentials) {
         super();
 
         this._url = url;
@@ -33,7 +39,9 @@ export class Connector extends EventHandler {
         // this._rootMapItem = rootMapItem;
         this._failedNotificationRequests = 0;
 
-        this.initializeSession({login, password, sessionId});
+        if (credentials) {
+          this.initializeSession(credentials);
+        }
 
         this.api = new Api(this);
     }
@@ -56,7 +64,7 @@ export class Connector extends EventHandler {
         if (index !== -1) this._objectSelectorListeners.splice(index, 1);
     }
 
-    initializeSession({login, password, sessionId}) {
+    initializeSession({login, password, sessionId}: Credentials) {
         this.initializationPromise = new Promise((resolve, reject) => {
             var self = this;
             if (login && password) {
@@ -99,6 +107,8 @@ export class Connector extends EventHandler {
                 resolve(id);
             }
         });
+
+        return this.initializationPromise;
     }
 
     requestNotifications() {
