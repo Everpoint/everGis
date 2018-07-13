@@ -46,8 +46,49 @@ export class Api {
             take: properties.take,
             filter: properties.filter,
             orderBy: properties.orderBy,
-            owner: properties.owner
+            owner: properties.owner,
+            filterByFavorites: properties.filterByFavorites
         });
+    }
+
+    getFavorites(properties) {
+        return this._operation('favorites', {
+            startFrom: properties.startFrom,
+            take: properties.take,
+            filter: properties.filter,
+        });
+    }
+
+    addFavorites(data) {
+        return this._operation('favorites/add', {}, data);
+    }
+
+    removeFavorites(data) {
+        return this._operation('favorites/remove', {}, data);
+    }
+
+    deleteProjects(data) {
+        return this._operation('projects/delete',{}, data)
+    }
+
+    loadProject(name) {
+        return this._operation('projects/load', { name: name })
+            .then((response) => {
+               return response;
+            })
+            .catch(error => {
+                console.log(error);
+            });
+    }
+
+    createProject(params) {
+        return this._operation('projects/create', {}, params)
+            .then((response) => {
+                return response;
+            })
+            .catch(error => {
+                console.log(error);
+            });
     }
 
     downloadFile(url) {
