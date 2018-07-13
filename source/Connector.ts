@@ -4,7 +4,7 @@ import {ajax, message} from "./utils";
 import {error} from "@evergis/sgis/utils/utils";
 import {xmlSerializer} from "./serializers/xmlSerializer";
 
-export type Credentials = {
+export interface Credentials {
     login?: string;
     password?: string;
     sessionId?: string;
