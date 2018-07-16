@@ -68,7 +68,7 @@ export class Api {
     }
 
     deleteProjects(data) {
-        return this._operation('projects/delete',{}, data)
+        return this._operation('projects/remove',{}, data)
     }
 
     loadProject(name) {
@@ -82,7 +82,7 @@ export class Api {
     }
 
     createProject(params) {
-        return this._operation('projects/create', {}, params)
+        return this._operation('projects/create', params, {})
             .then((response) => {
                 return response;
             })
