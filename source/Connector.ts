@@ -68,7 +68,7 @@ export class Connector extends EventHandler {
         this.initializationPromise = new Promise((resolve, reject) => {
             var self = this;
             if (login && password) {
-                let url = this.apiLoginUrl.replace('{login}', login).replace('{password}', password) + '&ts=' + Date.now();
+                let url = this.apiLoginUrl.replace('{login}', login).replace('{password}', password) + '&format=json&ts=' + Date.now();
 
                 ajax({
                     url: url,
