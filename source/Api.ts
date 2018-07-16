@@ -76,8 +76,8 @@ export class Api {
             .then((response) => {
                return response;
             })
-            .catch(error => {
-                console.log(error);
+            .catch(err => {
+                error(err);
             });
     }
 
@@ -86,8 +86,8 @@ export class Api {
             .then((response) => {
                 return response;
             })
-            .catch(error => {
-                console.log(error);
+            .catch(err => {
+                error(err);
             });
     }
 
