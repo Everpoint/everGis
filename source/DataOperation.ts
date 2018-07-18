@@ -73,7 +73,7 @@ export class DataOperation extends EventHandler {
         if (operation.status === 'Success') {
             this.resolve(content);
         } else {
-            this.reject({ operation: this._operationName, status: operation.status});
+            this.reject({operation: this._operationName, status: operation.status, error: content && content.error});
         }
     }
 
