@@ -47,7 +47,9 @@ export class Api {
             filter: properties.filter,
             orderBy: properties.orderBy,
             owner: properties.owner,
-            filterByFavorites: properties.filterByFavorites
+            filterByFavorites: properties.filterByFavorites,
+            filterByOwner: properties.filterByOwner,
+            serviceTypes: properties.serviceTypes
         });
     }
 
