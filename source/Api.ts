@@ -41,7 +41,7 @@ export class Api {
     }
 
     getProjectsList(properties) {
-        return this._operation('projects', {
+        return this._operation('catalog', {
             startFrom: properties.startFrom,
             take: properties.take,
             filter: properties.filter,
