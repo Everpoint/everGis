@@ -3,6 +3,11 @@ import {parseJSON} from "./utils";
 import * as serializer from "@evergis/sgis/serializers/symbolSerializer";
 import {isString} from "@evergis/sgis/utils/utils";
 
+export enum LabelStyle {
+    simple = 'SimpleLabel',
+    polyline = 'SimplePolylineLabel'
+}
+
 export class DataFilter {
     condition = null;
     minResolution = -1;
@@ -119,6 +124,7 @@ export class Labeling {
     offsetFromSymbol = true;
     isActive = false;
     isBoxDisplayed = true;
+    labelStyle: LabelStyle.simple;
 
     constructor(options: any = {}) {
         Object.assign(this, options);
@@ -179,5 +185,6 @@ let defaultLabeling = {
     offset: [3,3],
     offsetFromSymbol: true,
     isActive: false,
-    isBoxDisplayed: true
+    isBoxDisplayed: true,
+    labelStyle: LabelStyle.simple
 };
