@@ -61,16 +61,16 @@ export class Api {
         });
     }
 
-    addFavorites(data) {
-        return this._operation('favorites/add', {}, data);
+    addFavorites(data: string[]) {
+        return this._operation('favorites/add', {}, JSON.stringify(data));
     }
 
-    removeFavorites(data) {
-        return this._operation('favorites/remove', {}, data);
+    removeFavorites(data: string[]) {
+        return this._operation('favorites/remove', {}, JSON.stringify(data));
     }
 
-    deleteProjects(data) {
-        return this._operation('projects/batchRemove',{}, data)
+    deleteProjects(data: string[]) {
+        return this._operation('projects/batchRemove',{}, JSON.stringify(data))
     }
 
     loadProject(name) {
