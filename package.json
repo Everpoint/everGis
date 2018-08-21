@@ -1,6 +1,6 @@
 {
   "name": "@evergis/sp-api",
-  "version": "0.4.7",
+  "version": "0.4.8",
   "description": "",
   "main": "dist/compilation/everGis.js",
   "types": "dist/compilation/everGis.d.ts",
