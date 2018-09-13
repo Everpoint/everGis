@@ -83,8 +83,8 @@ export class Api {
             });
     }
 
-    createProject(params) {
-        return this._operation('projects/create', params)
+    createProject(params, data) {
+        return this._operation('admin/services/create', params, JSON.stringify(data))
             .then((response) => {
                 return response;
             })
