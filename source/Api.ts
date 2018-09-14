@@ -85,9 +85,6 @@ export class Api {
 
     createProject(params, data) {
         return this._operation('admin/services/create', params, JSON.stringify(data))
-            .then((response) => {
-                return response;
-            })
             .catch(err => {
                 error(err);
             });
