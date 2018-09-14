@@ -75,23 +75,16 @@ export class Api {
 
     loadProject(name) {
         return this._operation('projects/load', { name: name })
-            .then((response) => {
-               return response;
-            })
-            .catch(err => {
-                error(err);
-            });
     }
 
-    createProject(params) {
-        return this._operation('projects/create', params)
-            .then((response) => {
-                return response;
-            })
-            .catch(err => {
-                error(err);
-            });
+    createProject(params, data) {
+        return this._operation('admin/services/create', params, JSON.stringify(data))
     }
+
+    updateProject(params, data) {
+        return this._operation('admin/services/update', params, JSON.stringify(data))
+    }
+
 
     downloadFile(url) {
         this._frame.src = url;
