@@ -90,6 +90,14 @@ export class Api {
             });
     }
 
+    updateProject(params, data) {
+        return this._operation('admin/services/update', params, JSON.stringify(data))
+            .catch(err => {
+                error(err);
+            });
+    }
+
+
     downloadFile(url) {
         this._frame.src = url;
     }
