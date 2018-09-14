@@ -75,26 +75,14 @@ export class Api {
 
     loadProject(name) {
         return this._operation('projects/load', { name: name })
-            .then((response) => {
-               return response;
-            })
-            .catch(err => {
-                error(err);
-            });
     }
 
     createProject(params, data) {
         return this._operation('admin/services/create', params, JSON.stringify(data))
-            .catch(err => {
-                error(err);
-            });
     }
 
     updateProject(params, data) {
         return this._operation('admin/services/update', params, JSON.stringify(data))
-            .catch(err => {
-                error(err);
-            });
     }
 
 
