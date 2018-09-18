@@ -106,4 +106,4 @@ export class DataViewService extends MapService {
     }
 }
 
-ServiceContainer.register(serviceInfo => serviceInfo.serviceType === 'DataView' && serviceInfo.capabilities.indexOf('tile') === -1 || serviceInfo.serviceType === 'DataSourceService', DataViewService);
+ServiceContainer.register(serviceInfo => serviceInfo.serviceType === 'DataView' && serviceInfo.capabilities.indexOf('tile') === -1 || serviceInfo.serviceType === 'DataSourceService' || serviceInfo.serviceType === 'CompositeService', DataViewService);
