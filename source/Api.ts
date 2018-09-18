@@ -77,11 +77,11 @@ export class Api {
         return this._operation('projects/load', { name: name })
     }
 
-    createProject(params, data) {
+    createResource(params, data) {
         return this._operation('admin/services/create', params, JSON.stringify(data))
     }
 
-    updateProject(params, data) {
+    updateResource(params, data) {
         return this._operation('admin/services/update', params, JSON.stringify(data))
     }
 
