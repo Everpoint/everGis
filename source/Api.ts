@@ -85,6 +85,9 @@ export class Api {
         return this._operation('admin/services/update', params, JSON.stringify(data))
     }
 
+    removeResource(data: string[]) {
+        return this._operation('admin/services/batchRemove', {}, JSON.stringify(data))
+    }
 
     downloadFile(url) {
         this._frame.src = url;
