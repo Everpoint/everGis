@@ -5,6 +5,23 @@ import {deserializeFeature} from "./serializers/JsonSerializer";
 import {Point} from "@evergis/sgis/Point";
 import {error} from "@evergis/sgis/utils/utils";
 
+export type ServiceType =  "DataView" |
+    "DataSourceService" |
+    "LayerGroup" |
+    "UserProject" |
+    "CompositeService"
+
+export interface GetResourcesParams {
+  startFrom?: number;
+  take?: number;
+  filter?: string;
+  orderBy?: string[];
+  owner?: string;
+  filterByFavorites?: boolean;
+  filterByOwner?: boolean;
+  serviceTypes?: ServiceType[];
+}
+
 export class Api {
     _frame: HTMLIFrameElement;
     _connector: any;
@@ -40,7 +57,7 @@ export class Api {
         });
     }
 
-    getProjectsList(properties) {
+    getResources(properties: GetResourcesParams) {
         return this._operation('catalog', {
             startFrom: properties.startFrom,
             take: properties.take,
