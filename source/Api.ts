@@ -224,7 +224,7 @@ export class Api {
         return this._operation('admin/Services/Create', {serviceType: type}, JSON.stringify(params));
     }
 
-    publishDataView({name, alias = null, description = null, filter, isShared = false, preview = null, dataSourceName, attributeDefinition, customMapTipHtml = null}) {
+    publishDataView({name, alias = null, description = null, filter, isShared = false, preview = null, dataSourceName, attributeDefinition, customMapTipHtml = null, cacheSizeLimit = null}) {
         return this._publishService('DataView', {
             Name: name,
             Alias: alias,
@@ -234,7 +234,8 @@ export class Api {
             Filter: filter,
             DataSourceName: dataSourceName,
             AttributesDefinition: attributeDefinition,
-            CustomMapTipHtml: customMapTipHtml
+            CustomMapTipHtml: customMapTipHtml,
+            CacheSizeLimit: cacheSizeLimit,
         });
     }
 
