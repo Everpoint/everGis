@@ -235,7 +235,7 @@ export class Api {
             DataSourceName: dataSourceName,
             AttributesDefinition: attributeDefinition,
             CustomMapTipHtml: customMapTipHtml,
-            CacheSizeLimit: cacheSizeLimit,
+            CacheSizeLimit: cacheSizeLimit || undefined,
         });
     }
 
