@@ -5,7 +5,7 @@ export const parseXmlJsonNode = function(node) {
     for (var i = 0, len = node.childNodes.length; i < len; i++) {
         string += node.childNodes[i].nodeValue;
     }
-    return parseJSON(string);
+    return string.length !== 0 ? parseJSON(string) : null;
 };
 
 export const parseJSON = function(string) {
