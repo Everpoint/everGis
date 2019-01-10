@@ -70,6 +70,7 @@ export class DataViewLayer extends Layer {
     get opacity() { return this._dynamicLayer.opacity; }
     set opacity(opacity) {
         this._dynamicLayer.opacity = opacity;
+        this._resolutionGroups.forEach(group => group.layer.opacity = opacity);
         this.fire('propertyChange', {property: 'opacity'});
     }
 

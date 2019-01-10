@@ -12,6 +12,7 @@ import {Render} from "@evergis/sgis/renders/Render";
 import {Feature, FeatureParams} from "@evergis/sgis/features/Feature";
 import {HorizontalAlignment, VerticalAlignment} from "@evergis/sgis/renders/VectorLabel";
 import {Coordinates} from "@evergis/sgis/baseTypes";
+import {StaticVectorImageRender} from "@evergis/sgis/renders/StaticVectorImageRender";
 
 interface ClusterFeatureParams extends FeatureParams {
     objectCount: number;
@@ -67,6 +68,7 @@ export class ClusterLayer extends Layer {
         features.forEach(feature => {
             renders = renders.concat(feature.render(resolution, bbox.crs));
         });
+        renders.forEach(render => (<StaticVectorImageRender>render).opacity = this.opacity);
         return renders;
     }
 
