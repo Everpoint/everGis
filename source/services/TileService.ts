@@ -6,6 +6,8 @@ import {wgs84} from "@evergis/sgis/Crs";
 import {Point} from "@evergis/sgis/Point";
 import {LayerGroup} from "@evergis/sgis/LayerGroup";
 import {ConditionalTileLayer} from "../layers/ConditionalTileLayer";
+import {ajaxp} from "../utils";
+import {DataFilter} from "../DataFilter";
 
 export class TileService extends MapService {
     private _tileScheme: TileScheme;
@@ -54,11 +56,26 @@ export class TileService extends MapService {
 
     get activeTileSets(): number[] { return this._activeTileSets; }
     set activeTileSets(sets: number[] | null) {
-        if (!sets) sets = null;
+        if (!sets || sets.length === 0) sets = null;
         this._activeTileSets = sets;
         let currLayer = this._layer;
         this._setLayer();
         this.fire('layerChange', {prevLayer: currLayer});
+
+        let condition = "";
+        if (sets !== null && sets.length > 0) {
+            condition = `gid in [${sets.join(',')}]`;
+        }
+
+        let filter = new DataFilter({condition});
+
+        let data = filter ? 'filterDescription=' + encodeURIComponent(JSON.stringify(filter.serialize())) : '';
+        ajaxp({
+            url: `${this.url}setTempDataFilter?_sb=${this.connector.sessionId}`,
+            type: 'POST',
+            data: data
+        });
+
     }
 
     get condition(): string { return this._condition; }
