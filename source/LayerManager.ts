@@ -127,6 +127,8 @@ function restoreServiceParameters (container, desc, layerManager) {
             if (childDesc) restoreServiceParameters(child, childDesc, layerManager);
         });
     }
+
+    if (desc.activeTileSets) service.activeTileSets = desc.activeTileSets;
 }
 
 function saveContainer(container) {
@@ -146,7 +148,8 @@ function saveContainer(container) {
             container.service.view && container.service.view.customFilter
         ),
         meta: container.service && container.service.meta,
-        children: saveChildren(container.service)
+        children: saveChildren(container.service),
+        activeTileSets: container.service.activeTileSets
     };
 }
 
