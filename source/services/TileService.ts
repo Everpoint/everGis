@@ -64,7 +64,8 @@ export class TileService extends MapService {
 
         let condition = "";
         if (sets !== null && sets.length > 0) {
-            condition = `gid in [${sets.join(',')}]`;
+            let idField = this.attributesDefinition.idField;
+            condition = `${idField} in [${sets.join(',')}]`;
         }
 
         let filter = new DataFilter({condition});

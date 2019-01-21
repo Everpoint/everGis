@@ -40,6 +40,7 @@ export class DataViewLayer extends Layer {
 
         if (filter.symbol && filter.symbol instanceof ClusterSymbol) {
             let layer = new ClusterLayer(this._service.url, this._service.connector.sessionId, filter.symbol);
+            layer.opacity = this.opacity;
             layer.aggregationParameters = [{ filters: filter.condition, aggregations: filter.aggregations && filter.aggregations.join(',')}];
             if (filter.symbol.gridSize) layer.clusterSize = filter.symbol.gridSize;
             layer.algorithm = 'adjustedGrid';
