@@ -1,6 +1,6 @@
 import {ajaxp, parseJSON} from "./utils";
 import {Crs, geo, wgs84} from "@evergis/sgis/Crs";
-import {serializeGeometry} from "./serializers/xmlSerializer";
+import {serializeGeometry} from "./serializers/JsonSerializer";
 import {deserializeFeature} from "./serializers/JsonSerializer";
 import {Point} from "@evergis/sgis/Point";
 import {error} from "@evergis/sgis/utils/utils";
