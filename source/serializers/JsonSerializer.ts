@@ -31,9 +31,25 @@ export const serializeGeometry = function(geometry) {
     }
 };
 
+function normalizeFeatureAttribute(attributes: { Key: string, Value: any }[]) {
+    return attributes && attributes.reduce((acc, { Key, Value }) => {
+        acc[Key] = Value;
+        return acc;
+    }, {})
+}
+
 export const deserializeFeature = function(obj, crs) {
     let Constructor = geometryTypeMap[obj.geometryType];
     if (!Constructor) error('Unknown geometry type');
 
-    return new Constructor(obj.geometry, { crs: crs, attributes: obj.attributes, sourceName: obj.sourceName, id: obj.id, symbol: defaultSymbols[obj.geometryType] });
+    const feature = new Constructor(obj.geometry, {
+        crs,
+        symbol: defaultSymbols[obj.geometryType]
+    });
+    // feature constructor not set other attributes
+    feature.attributes = normalizeFeatureAttribute(obj.attributes);
+    feature.sourceName = obj.sourceName;
+    feature.id = obj.id;
+
+    return feature;
 };
