@@ -27,9 +27,13 @@ export class DataFilter {
 
     static deserialize({ Title, Symbol, Condition, Labeling: LabelingConst, MaxResolution, MinResolution, ChildFilters, SerializationData}) {
         let serializationData = <any>{};
-        try {
-            serializationData = parseJSON(SerializationData) || {};
-        } catch (e) {}
+        if (typeof SerializationData === "string") {
+            try {
+                serializationData = parseJSON(SerializationData) || {};
+            } catch (e) {}
+        } else if (typeof SerializationData === 'object' && SerializationData !== null) {
+            serializationData = SerializationData;
+        }
 
         let result = new DataFilter({
             condition: Condition,
