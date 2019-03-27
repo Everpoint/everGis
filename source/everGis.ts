@@ -65,8 +65,8 @@ const sp = {
         ViewableController: ViewableController
     },
     ServiceSnappingProvider: ServiceSnappingProvider,
-    version: "0.4.20",
-    releaseDate: "19.03.2019"
+    version: "0.4.21",
+    releaseDate: "27.03.2019"
 };
 
 export default {sp};
