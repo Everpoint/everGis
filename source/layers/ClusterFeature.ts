@@ -2,7 +2,7 @@ import {FeatureParams} from "@evergis/sgis/features/Feature";
 import {PointFeature} from "@evergis/sgis/features/PointFeature";
 import {Coordinates} from "@evergis/sgis/baseTypes";
 
-interface ClusterFeatureParams extends FeatureParams {
+export interface ClusterFeatureParams extends FeatureParams {
   objectCount: number;
   aggregations: any;
   setNo: number;
