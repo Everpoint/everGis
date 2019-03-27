@@ -60,7 +60,7 @@ export class ClusterSymbol extends PointSymbol {
   fontStyle: string;
   fontColor: string;
   fontWeight = 400;
-  labelBackground: string | null = null;
+  labelBackground?: string;
 
   _singleObjectSymbol = null;
   _pieGroups = {};
@@ -241,6 +241,12 @@ export class ClusterSymbol extends PointSymbol {
       pieAggregationIndex: this.pieAggregationIndex,
       _pieGroups: this._pieGroups,
       labelText: this.labelText,
+      fontSize: this.fontSize,
+      fontFamily: this.fontFamily,
+      fontStyle: this.fontStyle,
+      fontColor: this.fontColor,
+      fontWeight: this.fontWeight,
+      labelBackground: this.labelBackground,
       singleObjectSymbol: this.singleObjectSymbol && (this.singleObjectSymbol.serialize && this.singleObjectSymbol.serialize() || symbolSerializer.serialize(this.singleObjectSymbol)),
       gridSize: this.gridSize
     };
