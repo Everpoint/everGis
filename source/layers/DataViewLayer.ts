@@ -1,9 +1,10 @@
 import {Layer} from "@evergis/sgis/layers/Layer";
 import {DynamicLayer} from "@evergis/sgis/layers/DynamicLayer";
-import {ClusterLayer, ClusterSymbol} from "./ClusterLayer";
+import {ClusterLayer} from "./ClusterLayer";
 import {SpDynamicLayer} from "./SpDynamicLayer";
 import {Bbox} from "@evergis/sgis/Bbox";
 import {Render} from "@evergis/sgis/renders/Render";
+import {ClusterSymbol} from "./ClusterSymbol";
 
 export class DataViewLayer extends Layer {
     delayedUpdate = true;

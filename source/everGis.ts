@@ -15,7 +15,7 @@ import {ServiceContainer} from "./services/ServiceContainer";
 import {ServiceGroupService} from "./services/ServiceGroupService";
 import {StaticSourceService} from "./services/StaticSourceService";
 import {TileService} from "./services/TileService";
-import {ClusterLayer, ClusterSymbol} from "./layers/ClusterLayer";
+import {ClusterLayer} from "./layers/ClusterLayer";
 import {DataViewLayer} from "./layers/DataViewLayer";
 import {Controller} from "./controllers/Controller";
 import {DataAccessBase} from "./controllers/DataAccessBase";
@@ -26,6 +26,7 @@ import {TempView} from "./controllers/TempView";
 import {ViewableController} from "./controllers/ViewableController";
 import {SpDynamicLayer} from "./layers/SpDynamicLayer";
 import {ServiceSnappingProvider} from "./ServiceSnappingProvider";
+import {ClusterSymbol} from "./layers/ClusterSymbol";
 
 const sp = {
     SpatialProcessor: SpatialProcessor,

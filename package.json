@@ -26,13 +26,13 @@
   "author": "",
   "license": "ISC",
   "peerDependencies": {
-    "@evergis/sgis": ">=0.4.0"
+    "@evergis/sgis": ">=0.4.7"
   },
   "devDependencies": {
     "rollup": "^0.50.0",
     "rollup-plugin-alias": "^1.4.0",
     "rollup-plugin-node-resolve": "^3.0.0",
-    "@evergis/sgis": "^0.4.1",
+    "@evergis/sgis": "^0.4.7",
     "typescript": "^2.5.3"
   }
 }

@@ -1,4 +1,4 @@
-import {ClusterSymbol} from "./layers/ClusterLayer";
+import {ClusterSymbol} from "./layers/ClusterSymbol";
 import {parseJSON} from "./utils";
 import * as serializer from "@evergis/sgis/serializers/symbolSerializer";
 import {isString} from "@evergis/sgis/utils/utils";
