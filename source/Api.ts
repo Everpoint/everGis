@@ -1,9 +1,9 @@
 import {ajaxp, parseJSON} from "./utils";
-import {Crs, geo, wgs84} from "@evergis/sgis/Crs";
+import {Crs, geo, wgs84} from "@evergis/sgis/es/Crs";
 import {serializeGeometry} from "./serializers/JsonSerializer";
 import {deserializeFeature} from "./serializers/JsonSerializer";
-import {Point} from "@evergis/sgis/Point";
-import {error} from "@evergis/sgis/utils/utils";
+import {Point} from "@evergis/sgis/es/Point";
+import {error} from "@evergis/sgis/es/utils/utils";
 
 export type ServiceType =  "DataView" |
     "DataSourceService" |

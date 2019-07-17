@@ -1,12 +1,12 @@
-import {PointFeature} from "@evergis/sgis/features/PointFeature";
-import {Polyline} from "@evergis/sgis/features/Polyline";
-import {Polygon} from "@evergis/sgis/features/Polygon";
-import {PointSymbol} from "@evergis/sgis/symbols/point/Point";
-import {PolylineSymbol} from "@evergis/sgis/symbols/PolylineSymbol";
-import {PolygonSymbol} from "@evergis/sgis/symbols/polygon/Simple";
-import {Point} from "@evergis/sgis/Point";
-import {Bbox} from "@evergis/sgis/Bbox";
-import {error} from "@evergis/sgis/utils/utils";
+import {PointFeature} from "@evergis/sgis/es/features/PointFeature";
+import {Polyline} from "@evergis/sgis/es/features/Polyline";
+import {Polygon} from "@evergis/sgis/es/features/Polygon";
+import {PointSymbol} from "@evergis/sgis/es/symbols/point/Point";
+import {PolylineSymbol} from "@evergis/sgis/es/symbols/PolylineSymbol";
+import {PolygonSymbol} from "@evergis/sgis/es/symbols/polygon/Simple";
+import {Point} from "@evergis/sgis/es/Point";
+import {Bbox} from "@evergis/sgis/es/Bbox";
+import {error} from "@evergis/sgis/es/utils/utils";
 
 let geometryTypeMap = { 'point': PointFeature, 'polyline': Polyline, 'polygon': Polygon };
 

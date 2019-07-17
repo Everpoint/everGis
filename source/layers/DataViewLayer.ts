@@ -1,9 +1,9 @@
-import {Layer} from "@evergis/sgis/layers/Layer";
-import {DynamicLayer} from "@evergis/sgis/layers/DynamicLayer";
+import {Layer} from "@evergis/sgis/es/layers/Layer";
+import {DynamicLayer} from "@evergis/sgis/es/layers/DynamicLayer";
 import {ClusterLayer} from "./ClusterLayer";
 import {SpDynamicLayer} from "./SpDynamicLayer";
-import {Bbox} from "@evergis/sgis/Bbox";
-import {Render} from "@evergis/sgis/renders/Render";
+import {Bbox} from "@evergis/sgis/es/Bbox";
+import {Render} from "@evergis/sgis/es/renders/Render";
 import {ClusterSymbol} from "./ClusterSymbol";
 
 export class DataViewLayer extends Layer {

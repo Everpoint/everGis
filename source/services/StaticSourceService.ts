@@ -1,6 +1,6 @@
-import {EventHandler} from "@evergis/sgis/EventHandler";
+import {EventHandler} from "@evergis/sgis/es/EventHandler";
 import {ServiceContainer} from "./ServiceContainer";
-import {error} from "@evergis/sgis/utils/utils";
+import {error} from "@evergis/sgis/es/utils/utils";
 import {ajaxp} from "../utils";
 
 export class StaticSourceService extends EventHandler {

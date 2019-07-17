@@ -1,8 +1,8 @@
-import {PointSymbol} from "@evergis/sgis/symbols/point/Point";
-import {HorizontalAlignment, VectorLabel, VerticalAlignment} from "@evergis/sgis/renders/VectorLabel";
-import {Arc} from "@evergis/sgis/renders/Arc";
-import * as symbolSerializer from "@evergis/sgis/serializers/symbolSerializer";
-import {Symbol} from "@evergis/sgis/symbols/Symbol";
+import {PointSymbol} from "@evergis/sgis/es/symbols/point/Point";
+import {HorizontalAlignment, VectorLabel, VerticalAlignment} from "@evergis/sgis/es/renders/VectorLabel";
+import {Arc} from "@evergis/sgis/es/renders/Arc";
+import * as symbolSerializer from "@evergis/sgis/es/serializers/symbolSerializer";
+import {Symbol} from "@evergis/sgis/es/symbols/Symbol";
 import {ClusterFeature} from "./ClusterFeature";
 
 export interface ClusterSymbolParams {

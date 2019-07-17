@@ -1,6 +1,6 @@
-import {FeatureParams} from "@evergis/sgis/features/Feature";
-import {PointFeature} from "@evergis/sgis/features/PointFeature";
-import {Coordinates} from "@evergis/sgis/baseTypes";
+import {FeatureParams} from "@evergis/sgis/es/features/Feature";
+import {PointFeature} from "@evergis/sgis/es/features/PointFeature";
+import {Coordinates} from "@evergis/sgis/es/baseTypes";
 
 export interface ClusterFeatureParams extends FeatureParams {
   objectCount: number;

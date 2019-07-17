@@ -3,13 +3,11 @@
     "skipLibCheck": true,
     "target": "es2015",
     "module": "esnext",
+    "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "./dist",
     "declaration": true,
-    "baseUrl": "./",
-    "paths": {
-      "@evergis/sgis/*": ["node_modules/@evergis/sgis/dist/*"]
-    }
+    "baseUrl": "./"
   },
   "include": [
     "./source/**/*.ts"

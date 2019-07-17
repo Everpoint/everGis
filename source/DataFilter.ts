@@ -1,7 +1,7 @@
 import {ClusterSymbol} from "./layers/ClusterSymbol";
 import {parseJSON} from "./utils";
-import * as serializer from "@evergis/sgis/serializers/symbolSerializer";
-import {isString} from "@evergis/sgis/utils/utils";
+import * as serializer from "@evergis/sgis/es/serializers/symbolSerializer";
+import {isString} from "@evergis/sgis/es/utils/utils";
 
 export enum LabelStyle {
     simple = 'SimpleLabel',

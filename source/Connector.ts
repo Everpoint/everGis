@@ -1,7 +1,7 @@
-import {EventHandler} from "@evergis/sgis/EventHandler";
+import {EventHandler} from "@evergis/sgis/es/EventHandler";
 import {Api} from "./Api";
 import {ajax, message} from "./utils";
-import {error} from "@evergis/sgis/utils/utils";
+import {error} from "@evergis/sgis/es/utils/utils";
 import {xmlSerializer} from "./serializers/xmlSerializer";
 
 export interface Credentials {

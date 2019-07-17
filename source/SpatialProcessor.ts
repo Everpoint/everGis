@@ -6,8 +6,8 @@ import {DataAccessService} from "./controllers/DataAccessService";
 import {ServiceContainer} from "./services/ServiceContainer";
 import {MapService} from "./services/MapService";
 import {TileService} from "./services/TileService";
-import {Map} from "@evergis/sgis/Map"
-import {DomPainter} from "@evergis/sgis/painters/DomPainter/DomPainter";
+import {Map} from "@evergis/sgis/es/Map"
+import {DomPainter} from "@evergis/sgis/es/painters/DomPainter/DomPainter";
 
 export class SpatialProcessor {
     _baseServiceContainer: ServiceContainer;

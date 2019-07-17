@@ -1,6 +1,6 @@
 import {ServiceGroup} from "./ServiceGroup";
 import {ServiceContainer} from "./services/ServiceContainer";
-import {error} from "@evergis/sgis/utils/utils";
+import {error} from "@evergis/sgis/es/utils/utils";
 import {Project} from "./Project";
 import {DataFilter} from "./DataFilter";
 

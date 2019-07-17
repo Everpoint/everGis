@@ -7,17 +7,20 @@
   "directories": {
     "test": "test"
   },
+  "files": [
+    "es"
+  ],
   "scripts": {
     "build": "npm run build-ts && npm run rollup",
     "doc": "jsdoc source -r -d docs -c jsdoc.conf.json",
     "version": "node ./config/set_version.js && git add source/everGis.ts",
     "lint": "eslint -c ./config/.eslintrc.json source/** -o lint.output",
     "test": "jest --no-cache",
-    "build-ts": "tsc",
+    "build:es": "tsc --rootDir source --outDir es",
     "rollup": "tsc -p ./config/tsconfig-rollup.json && rollup --config ./config/rollup.config.js",
     "update-sgis": "npm update sgis && npm run build-sgis",
     "build-sgis": "cd ./node_modules/sgis && npm run build-ts && cd ../../",
-    "prepublishOnly": "npm ci && npm run build"
+    "prepublishOnly": "npm ci && npm run build-ts"
   },
   "repository": {
     "type": "git",
@@ -26,13 +29,13 @@
   "author": "",
   "license": "ISC",
   "peerDependencies": {
-    "@evergis/sgis": ">=0.4.7"
+    "@evergis/sgis": ">=0.5.0-alpha.1"
   },
   "devDependencies": {
     "rollup": "^0.50.0",
     "rollup-plugin-alias": "^1.4.0",
     "rollup-plugin-node-resolve": "^3.0.0",
-    "@evergis/sgis": "^0.4.7",
+    "@evergis/sgis": "^0.5.0-alpha.1",
     "typescript": "^2.5.3"
   }
 }

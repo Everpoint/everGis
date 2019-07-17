@@ -1,6 +1,6 @@
-import {EventHandler} from "@evergis/sgis/EventHandler";
-import {LayerGroup} from "@evergis/sgis/LayerGroup";
-import {error} from "@evergis/sgis/utils/utils";
+import {EventHandler} from "@evergis/sgis/es/EventHandler";
+import {LayerGroup} from "@evergis/sgis/es/LayerGroup";
+import {error} from "@evergis/sgis/es/utils/utils";
 
 export class ServiceGroup extends EventHandler {
     private _name: any;

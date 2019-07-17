@@ -1,4 +1,4 @@
-import {DynamicLayer} from "@evergis/sgis/layers/DynamicLayer";
+import {DynamicLayer} from "@evergis/sgis/es/layers/DynamicLayer";
 
 export class SpDynamicLayer extends DynamicLayer {
     _service: any;

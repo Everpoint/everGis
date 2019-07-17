@@ -1,10 +1,10 @@
-import {Layer} from "@evergis/sgis/layers/Layer";
+import {Layer} from "@evergis/sgis/es/layers/Layer";
 import {ajax} from "../utils";
-import {Polygon} from "@evergis/sgis/features/Polygon";
-import {Bbox} from "@evergis/sgis/Bbox";
-import {Render} from "@evergis/sgis/renders/Render";
-import {Feature} from "@evergis/sgis/features/Feature";
-import {StaticVectorImageRender} from "@evergis/sgis/renders/StaticVectorImageRender";
+import {Polygon} from "@evergis/sgis/es/features/Polygon";
+import {Bbox} from "@evergis/sgis/es/Bbox";
+import {Render} from "@evergis/sgis/es/renders/Render";
+import {Feature} from "@evergis/sgis/es/features/Feature";
+import {StaticVectorImageRender} from "@evergis/sgis/es/renders/StaticVectorImageRender";
 import {ClusterSymbol} from "./ClusterSymbol";
 import {ClusterFeature} from "./ClusterFeature";
 

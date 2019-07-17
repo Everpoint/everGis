@@ -1,5 +1,5 @@
-import {IPoint} from "@evergis/sgis/Point";
-import {Map} from "@evergis/sgis/Map";
+import {IPoint} from "@evergis/sgis/es/Point";
+import {Map} from "@evergis/sgis/es/Map";
 import {MapService} from "../../services/MapService";
 import {TileService} from "../../services/TileService";
 
