@@ -18,6 +18,7 @@ export class ViewableController extends Controller {
             this.initializationPromise.then(() => {
                 let viewName = this.initData.DataViewServiceName;
                 let container = new ServiceContainer(this.connector, viewName, {});
+                container.init();
 
                 container.once('stateUpdate', () => {
                     if (container.service && container.service.layer) {

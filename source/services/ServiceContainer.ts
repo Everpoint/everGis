@@ -21,8 +21,8 @@ export class ServiceContainer extends EventHandler {
 
         if (service) {
             this._initWithService(service);
-        } else {
-            this._init(serviceInfo);
+        } else if (serviceInfo) {
+            this.init(serviceInfo);
         }
     }
 
@@ -41,7 +41,7 @@ export class ServiceContainer extends EventHandler {
         service.on('stateUpdate contentChange', this.forwardEvent.bind(this));
     }
 
-    _init(serviceInfo) {
+    init(serviceInfo = null) {
         let promise = serviceInfo ? Promise.resolve(serviceInfo) : this._loadServiceInfo();
 
         promise.then(serviceInfo => {

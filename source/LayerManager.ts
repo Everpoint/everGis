@@ -7,6 +7,8 @@ import {DataFilter} from "./DataFilter";
 export class LayerManager extends ServiceGroup {
     private _connector: any;
     private _map: any;
+    private _forInit: ServiceContainer[];
+    private _isLoadingService: boolean;
     private ready: Promise<any>;
     private _resolveReady: (value?: (PromiseLike<any> | any)) => void;
 
@@ -15,6 +17,7 @@ export class LayerManager extends ServiceGroup {
         this._map = map;
         this._connector = connector;
         this._map.addLayer(this.layer);
+        this._forInit = [];
 
         this.ready = new Promise((resolve) => this._resolveReady = resolve);
     }
@@ -24,10 +27,18 @@ export class LayerManager extends ServiceGroup {
             .then(this._resolveReady);
     }
 
-    loadService(name, index = -1, parent = null) {
+    loadService(name, index = -1, parent = null, delayedInit = false) {
         if (this.getServiceContainer(name, true)) throw new Error(`Service ${name} is already in the list`);
 
         let container = new ServiceContainer(this._connector, name, {});
+
+        if (delayedInit) {
+            this._forInit.push(container);
+            this.ready.then(this._initInBackground.bind(this));
+        } else {
+            container.init();
+        }
+
         if (parent) {
             parent.insertService(container, index);
         } else {
@@ -37,9 +48,24 @@ export class LayerManager extends ServiceGroup {
         return container;
     }
 
-    loadWithPromise(name, parent = null) {
+    private _initInBackground() {
+        if (this._isLoadingService) return;
+
+        let toInit = this._forInit.shift();
+        if (!toInit) return;
+
+        this._isLoadingService = true;
+        toInit.once('stateUpdate', () => {
+            this._isLoadingService = false;
+            this._initInBackground();
+        });
+
+        toInit.init()
+    }
+
+    loadWithPromise(name, parent = null, delayedInit = false) {
         return new Promise((resolve, reject) => {
-            let container = this.loadService(name, -1, parent);
+            let container = this.loadService(name, -1, parent, delayedInit);
             container.on('stateUpdate', () => {
                 if (container.service) {
                     resolve(container);
@@ -88,22 +114,23 @@ Project.registerCustomDataItem('services', ({layerManager}) => {
     });
 });
 
-function restoreService(layerManager, serviceDesc, parent = null) {
+function restoreService(layerManager, serviceDesc, parent = null, isInHiddenGroup = false) {
     if (serviceDesc.isFolder) {
         let service = new ServiceGroup(serviceDesc.serviceName, { alias: serviceDesc.alias });
         let container = new ServiceContainer(layerManager._connector, serviceDesc.serviceName, <any>{ service });
+
         (parent || layerManager).insertService(container);
-        return restoreServiceParameters(container, serviceDesc, layerManager);
+        return restoreServiceParameters(container, serviceDesc, layerManager, isInHiddenGroup);
     }
 
-    layerManager.loadWithPromise(serviceDesc.serviceName, parent)
+    layerManager.loadWithPromise(serviceDesc.serviceName, parent, isInHiddenGroup || !serviceDesc.isDisplayed)
         .then(service => {
             restoreServiceParameters(service, serviceDesc, layerManager);
         })
         .catch(() => {});
 }
 
-function restoreServiceParameters (container, desc, layerManager) {
+function restoreServiceParameters (container, desc, layerManager, isInHiddenGroup = false) {
     let service = container.service;
     let view = service && service.view || service;
 
@@ -119,7 +146,7 @@ function restoreServiceParameters (container, desc, layerManager) {
 
     if (desc.isFolder && desc.children) {
         desc.children.forEach(child => {
-            restoreService(layerManager, child, container.service);
+            restoreService(layerManager, child, container.service, isInHiddenGroup || desc.isDisplayed === false);
         });
     } else if (desc.children && container.service && container.service.children) {
         container.service.children.forEach(child => {

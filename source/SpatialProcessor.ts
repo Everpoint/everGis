@@ -70,6 +70,7 @@ export class SpatialProcessor {
     _init({ services, projectName, baseService, position, resolution, mapWrapper, centerPoint }) {
         if (baseService) {
             this._baseServiceContainer = new ServiceContainer(this._connector, baseService, {});
+            this._baseServiceContainer.init();
             this._baseServiceContainer.once('stateUpdate', this._onBaseServiceInit.bind(this, { position, resolution, mapWrapper, centerPoint }));
         }
 
